@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Models
 {
@@ -16,9 +15,7 @@ namespace Core.Models
         public int? UserId { get; set; }
         public User? User { get; set; }
 
-        public int? CollectionId { get; set; }
-        public Collection? Collection { get; set; }
-
+        public ICollection<Collection> Collections { get; set; } = new List<Collection>();
         public ICollection<Flashcard> Flashcards { get; set; } = new List<Flashcard>();
         public ICollection<Category> Categories { get; set; } = new List<Category>();
     }
