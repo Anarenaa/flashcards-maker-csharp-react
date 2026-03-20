@@ -14,6 +14,6 @@ namespace Core.Models
 
         [Required]
         public int SetId { get; set; }
-        public required Set Set { get; set; }
+        public Set Set { get; set; }
     }
 }

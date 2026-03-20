@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260320164457_SeedAll")]
+    partial class SeedAll
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -35,23 +38,6 @@ namespace Core.Migrations
                     b.HasIndex("SetsId");
 
                     b.ToTable("CategorySet");
-
-                    b.HasData(
-                        new
-                        {
-                            CategoriesId = 1,
-                            SetsId = 1
-                        },
-                        new
-                        {
-                            CategoriesId = 2,
-                            SetsId = 1
-                        },
-                        new
-                        {
-                            CategoriesId = 3,
-                            SetsId = 2
-                        });
                 });
 
             modelBuilder.Entity("CollectionSet", b =>
@@ -67,28 +53,6 @@ namespace Core.Migrations
                     b.HasIndex("SetsId");
 
                     b.ToTable("CollectionSet");
-
-                    b.HasData(
-                        new
-                        {
-                            CollectionsId = 1,
-                            SetsId = 1
-                        },
-                        new
-                        {
-                            CollectionsId = 1,
-                            SetsId = 2
-                        },
-                        new
-                        {
-                            CollectionsId = 2,
-                            SetsId = 1
-                        },
-                        new
-                        {
-                            CollectionsId = 3,
-                            SetsId = 1
-                        });
                 });
 
             modelBuilder.Entity("Core.Models.Category", b =>
@@ -166,23 +130,23 @@ namespace Core.Migrations
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 3, 20, 16, 44, 55, 908, DateTimeKind.Utc).AddTicks(6988),
                             Name = "Favorites",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 3, 20, 16, 44, 55, 908, DateTimeKind.Utc).AddTicks(6990)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 3, 20, 16, 44, 55, 908, DateTimeKind.Utc).AddTicks(7668),
                             Name = "My English Vocabulary",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 3, 20, 16, 44, 55, 908, DateTimeKind.Utc).AddTicks(7670)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 3, 20, 16, 44, 55, 908, DateTimeKind.Utc).AddTicks(7673),
                             Name = "English A0",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 3, 20, 16, 44, 55, 908, DateTimeKind.Utc).AddTicks(7674)
                         });
                 });
 

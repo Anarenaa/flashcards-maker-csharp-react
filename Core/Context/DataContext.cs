@@ -1,4 +1,5 @@
 ﻿using Core.Models;
+using Core.Extensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Context
@@ -19,6 +20,8 @@ namespace Core.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            ModelBuilderSeedExtension.SeedAll(modelBuilder);
         }
     }
 }
