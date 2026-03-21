@@ -10,23 +10,21 @@ namespace Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<List<Set>> GetAllSetsAsync(string? searchText = null)
+        public async Task<List<Set>> GetAllSetsAsync(List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.IsPublic
-                    && ((string.IsNullOrEmpty(searchText) 
-                            || s.Name.ToLower().Contains(searchText.ToLower())
-                        ))
+                    && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id))) 
+                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
             return sets.ToList();
         }
-        public async Task<List<Set>> GetAllUserSets(int userId, string? searchText = null)
+        public async Task<List<Set>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.UserId == userId
-                    && ((string.IsNullOrEmpty(searchText) 
-                        || s.Name.Contains(searchText) 
-                        || s.Description.Contains(searchText)))
+                    && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
+                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
             return sets.ToList();
         }
