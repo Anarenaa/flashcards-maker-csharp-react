@@ -7,7 +7,7 @@ namespace Repositories.Interfaces
         public Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
             string includeProperties = "");
-        Task<T?> GetByIdAsync(int id);
+        Task<T?> GetByIdAsync(int id, string includeProperties = "");
         Task AddAsync(T entity);
 
         //Справжня робота (сам SQL запит UPDATE або DELETE) відбувається пізніше —
