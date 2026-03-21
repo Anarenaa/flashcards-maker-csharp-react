@@ -1,4 +1,5 @@
-﻿using System.Linq.Expressions;
+﻿using System.Linq;
+using System.Linq.Expressions;
 using Core.Context;
 using Microsoft.EntityFrameworkCore;
 
@@ -36,7 +37,7 @@ namespace Repositories
             IQueryable<T> query = _dbSet;
 
             foreach (var includeProperty in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
+        {
                 query = query.Include(includeProperty);
             }
 
