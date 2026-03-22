@@ -8,5 +8,6 @@ namespace App.Controllers
         {
             return View();
         }
+        public IActionResult MySets() => View();
     }
 }
