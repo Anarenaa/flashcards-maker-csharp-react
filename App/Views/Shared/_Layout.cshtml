@@ -136,6 +136,7 @@
     <aside>
         <h1>Flashcards Maker</h1>
         <div class="line"></div>
+
         <nav>
             @* Логіка активної кнопки через C# *@
             @{
@@ -143,7 +144,7 @@
                 string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
             }
 
-            <a asp-controller="Dashboard" asp-action="Index" class="nav-btn @(action == "Index" && controller == "Dashboard" ? "active" : "")">Головна</a>
+            <a asp-controller="Main" asp-action="Index" class="nav-btn @(action == "Index" && controller == "Main" ? "active" : "")">Головна</a>
             <a asp-controller="Sets" asp-action="Index" class="nav-btn @(controller == "Sets" ? "active" : "")">Мої сети</a>
             <a asp-controller="Collections" asp-action="Index" class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
             <a asp-controller="Account" asp-action="Profile" class="nav-btn @(action == "Profile" ? "active" : "")">Профіль</a>
