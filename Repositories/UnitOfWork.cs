@@ -7,7 +7,7 @@ namespace Repositories
     {
         private readonly DataContext _context;
         public ISetRepository Sets { get; }
-        //public IFlashcardRepository Flashcards { get; }
+        public IFlashcardRepository Flashcards { get; }
         //public ICollectionRepository Collections { get; }
         //public ICategoryRepository Categories { get; }
         //public IUserRepository Users { get; }
@@ -15,7 +15,7 @@ namespace Repositories
         {
             _context = context;
             Sets = new SetRepository(_context);
-            //Flashcards = new FlashcardRepository(_context);
+            Flashcards = new FlashcardRepository(_context);
             //Collections = new CollectionRepository(_context);
             //Categories = new CategoryRepository(_context);
             //Users = new UserRepository(_context);
