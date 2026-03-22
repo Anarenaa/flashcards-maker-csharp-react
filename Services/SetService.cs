@@ -1,4 +1,6 @@
-﻿using Core.Models;
+﻿using Core.DTOs;
+using Core.Exceptions;
+using Core.Models;
 using Repositories.Interfaces;
 
 namespace Services
@@ -10,39 +12,103 @@ namespace Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<List<Set>> GetAllSetsAsync(List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllSetsAsync(List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.IsPublic
                     && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id))) 
-                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
+                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
+                    includeProperties: "User"
             );
-            return sets.ToList();
+            
+            var setIds = sets.Select(s => s.Id).ToList();
+            var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            
+            var setDtos = sets.Select(s => new SetDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Description = s.Description,
+                FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                UserName = s.User?.Name ?? null,
+                IsPublic = s.IsPublic,
+                CreatedAt = s.CreatedAt,
+                LastUpdatedAt = s.UpdatedAt
+            }).ToList();
+            
+            return setDtos;
         }
-        public async Task<List<Set>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.UserId == userId
                     && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
-            return sets.ToList();
+            
+            var setIds = sets.Select(s => s.Id).ToList();
+            var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            
+            var setDtos = sets.Select(s => new SetDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Description = s.Description,
+                FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                IsPublic = s.IsPublic,
+                CreatedAt = s.CreatedAt,
+                LastUpdatedAt = s.UpdatedAt
+            }).ToList();
+            
+            return setDtos;
         }
-        public async Task<Set?> GetSetByIdAsync(int id)
+        public async Task<SetDetailDTO?> GetSetByIdAsync(int id)
         {
-            var set = await _unitOfWork.Sets.GetByIdAsync(id, "Flashcards, Categories");
-            return set;
+            var s = await _unitOfWork.Sets.GetByIdAsync(id, "Flashcards, Categories");
+
+            if (s == null) throw new NotFoundException("Сет не знайдено");
+
+            return new SetDetailDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Description = s.Description,
+                FlashcardsCount = s.Flashcards.Count(),
+                IsPublic = s.IsPublic,
+                CreatedAt = s.CreatedAt,
+                LastUpdatedAt = s.UpdatedAt
+                //Add Flashcards and Categories collections
+            };
         }
 
         //додати метод "додавання сету до колекції"
 
-        public async Task AddSetAsync(Set set)
+        public async Task AddSetAsync(SetDTO setDto)
         {
+            var set = new Set
+            {
+                Name = setDto.Name,
+                Description = setDto.Description,
+                IsPublic = setDto.IsPublic
+                //UserId should be set based on the authenticated user
+            };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task UpdateSetAsync(Set set)
+        public async Task UpdateSetAsync(SetDTO setDto)
         {
+            var existingSet = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
+            if(existingSet is null)
+            {
+                throw new NotFoundException("Сет не знайдено");
+            }
+            var set = new Set
+            {
+                Id = setDto.Id.Value,
+                Name = setDto.Name,
+                Description = setDto.Description,
+                IsPublic = setDto.IsPublic
+            };
             await _unitOfWork.Sets.UpdateSetAsync(set);
             await _unitOfWork.SaveChangesAsync();
         }
@@ -53,6 +119,9 @@ namespace Services
             {
                 _unitOfWork.Sets.Delete(set);
                 await _unitOfWork.SaveChangesAsync();
+            } else
+            {
+                throw new NotFoundException("Сет не знайдено");
             }
         }
     }
