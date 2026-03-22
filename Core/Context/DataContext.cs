@@ -12,10 +12,9 @@ namespace Core.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<Flashcard> Flashcards { get; set; }
 
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+        public DataContext(DbContextOptions<DataContext> options)
+           : base(options)
         {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer("Your server");
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
