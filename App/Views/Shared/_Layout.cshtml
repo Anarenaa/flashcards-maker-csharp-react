@@ -1,50 +1,161 @@
 ﻿<!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="utf-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - App</title>
-    <script type="importmap"></script>
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
-    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/App.styles.css" asp-append-version="true" />
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewData["Title"] - Flashcards Maker</title>
+    <style>
+        /* Скопіюйте сюди всі свої :root, body, aside, nav, .btn стилі */
+        :root {
+            --bg-color: #141B25;
+            --text-color: #DEE4C7;
+            --accent-color: #F0FFFF;
+            --btn-bg: rgba(129, 131, 117, 0.1);
+            --btn-border: rgba(129, 131, 117, 0.3);
+            --btn-hover: rgba(107, 135, 137, 0.3);
+        }
+
+        body {
+            background: var(--bg-color);
+            margin: 0;
+            color: var(--text-color);
+            font-family: system-ui, sans-serif;
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Додайте решту свого CSS тут... */
+        aside {
+            width: 300px;
+            padding: 40px;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid rgba(240, 255, 255, 0.2);
+            flex-shrink: 0;
+            box-sizing: border-box;
+            z-index: 20;
+        }
+
+        .line {
+            width: 100%;
+            height: 2px;
+            background-color: var(--accent-color);
+            margin-top: 10px;
+            opacity: 0.8;
+        }
+
+        nav {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 30px;
+            flex-grow: 1;
+        }
+
+        .nav-btn {
+            background-color: var(--btn-bg);
+            border: 1px solid var(--btn-border);
+            color: var(--text-color);
+            padding: 12px;
+            border-radius: 6px;
+            text-decoration: none;
+            text-align: center;
+            font-size: 14px;
+            transition: 0.3s ease;
+        }
+
+            .nav-btn:hover {
+                background-color: var(--btn-hover);
+                border-color: var(--accent-color);
+                transform: translateX(8px);
+            }
+
+            .nav-btn.active {
+                background-color: rgba(240, 255, 255, 0.15);
+                border-color: var(--accent-color);
+                color: white;
+                font-weight: 600;
+            }
+
+        .btn-exit {
+            margin-top: auto;
+            border-color: rgba(255, 100, 100, 0.2);
+        }
+
+        .content-area {
+            flex-grow: 1;
+            padding: 40px;
+            overflow-y: auto;
+            box-sizing: border-box;
+        }
+
+        @@media (max-width: 950px) {
+            body {
+                flex-direction: column;
+                overflow-y: auto;
+                height: auto;
+            }
+
+            aside {
+                width: 100%;
+                height: auto;
+                padding: 20px;
+                border-right: none;
+                border-bottom: 2px solid rgba(240, 255, 255, 0.2);
+            }
+
+            nav {
+                flex-direction: row;
+                flex-wrap: wrap;
+                margin-top: 20px;
+            }
+
+            .nav-btn {
+                flex: 1 1 140px;
+            }
+
+                .nav-btn:hover {
+                    transform: translateY(-3px);
+                }
+
+            .btn-exit {
+                margin-top: 0;
+            }
+
+            .content-area {
+                padding: 20px;
+                height: auto;
+                overflow: visible;
+            }
+        }
+    </style>
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-light bg-white border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">App</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-dark" asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-                        </li>
-                    </ul>
-                </div>
-            </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @RenderBody()
-        </main>
-    </div>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - App - <a asp-area="" asp-controller="Home" asp-action="Privacy">Privacy</a>
-        </div>
-    </footer>
-    <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="~/js/site.js" asp-append-version="true"></script>
+    <aside>
+        <h1>Flashcards Maker</h1>
+        <div class="line"></div>
+        <nav>
+            @* Логіка активної кнопки через C# *@
+            @{
+                string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+                string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+            }
+
+            <a asp-controller="Dashboard" asp-action="Index" class="nav-btn @(action == "Index" && controller == "Dashboard" ? "active" : "")">Головна</a>
+            <a asp-controller="Sets" asp-action="Index" class="nav-btn @(controller == "Sets" ? "active" : "")">Мої сети</a>
+            <a asp-controller="Collections" asp-action="Index" class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
+            <a asp-controller="Account" asp-action="Profile" class="nav-btn @(action == "Profile" ? "active" : "")">Профіль</a>
+            <a asp-controller="Account" asp-action="Settings" class="nav-btn @(action == "Settings" ? "active" : "")">Налаштування</a>
+            <a asp-controller="Home" asp-action="Index" class="nav-btn btn-exit">Початок</a>
+        </nav>
+    </aside>
+
+    <main class="content-area">
+        @RenderBody()
+    </main>
+
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
