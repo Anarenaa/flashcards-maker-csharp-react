@@ -162,5 +162,36 @@ namespace Services
             set.Categories.Remove(category);
             await _unitOfWork.SaveChangesAsync();
         }
+        public async Task AddSetToCollectionAsync(int setId, int collectionId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+
+            bool alreadyExists = await _unitOfWork.Collections
+                .AnySetInCollectionAsync(collectionId, setId);
+
+            if (alreadyExists) throw new AppException("Сет вже доданий до колекції");
+
+            var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
+            if (collection == null) throw new NotFoundException("Колекцію не знайдено");
+
+            collection.Sets.Add(set);
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task RemoveSetFromCollectionAsync(int setId, int collectionId)
+        {
+            var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
+            if (collection == null) throw new NotFoundException("Колекцію не знайдено");
+
+            await _unitOfWork.Collections.LoadSingleSetAsync(collection, setId);
+
+            var set = collection.Sets.FirstOrDefault(s => s.Id == setId);
+            if (set == null) throw new NotFoundException("Сет не знайдено в колекції");
+
+            collection.Sets.Remove(set);
+
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }
