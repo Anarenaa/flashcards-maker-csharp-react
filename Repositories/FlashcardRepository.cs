@@ -8,16 +8,6 @@ namespace Repositories
     public class FlashcardRepository : Repository<Flashcard>, IFlashcardRepository
     {
         public FlashcardRepository(DataContext context) : base(context) { }
-        public async Task UpdateFlashcardAsync(Flashcard flashcard)
-        {
-            var existingFlashcard = await _dbSet.FindAsync(flashcard.Id);
-            if (existingFlashcard is not null)
-            {
-                existingFlashcard.Term = flashcard.Term;
-                existingFlashcard.Definition = flashcard.Definition;
-                existingFlashcard.UpdatedAt = DateTime.UtcNow;
-            }
-        }
         public async Task<int> GetCountBySetIdAsync(int setId)
         {
             return await _dbSet.CountAsync(f => f.SetId == setId);
