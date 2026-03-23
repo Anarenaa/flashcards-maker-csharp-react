@@ -14,6 +14,9 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<SetService>();
+builder.Services.AddScoped<FlashcardService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<CollectionService>();
 
 var app = builder.Build();
 
