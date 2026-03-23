@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Models
 {
-    public class Category
+    public class Category : IHasCreationDate
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
@@ -12,7 +12,8 @@ namespace Core.Models
         [StringLength(50)]
         public required string Name { get; set; }
         public int? UserId { get; set; }
-         public User? User { get; set; }
+        public User? User { get; set; }
+        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 
         public ICollection<Set> Sets { get; set; } = new List<Set>();
     }

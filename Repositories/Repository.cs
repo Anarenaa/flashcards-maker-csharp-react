@@ -1,11 +1,12 @@
 ﻿using System.Linq;
 using System.Linq.Expressions;
 using Core.Context;
+using Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Repositories
 {
-    public class Repository<T> where T : class
+    public class Repository<T> where T : class, IHasCreationDate
     {
         protected readonly DataContext _context;
         protected readonly DbSet<T> _dbSet;
@@ -30,7 +31,9 @@ namespace Repositories
                 query = query.Where(filter);
             }
 
-            return await query.ToListAsync();
+            return await query
+                .OrderByDescending(x => x.CreatedAt)
+                .ToListAsync();
         }
         public async Task<T?> GetByIdAsync(int id, string includeProperties = "")
         {

@@ -77,13 +77,17 @@ namespace Services
                 IsPublic = set.IsPublic,
                 CreatedAt = set.CreatedAt,
                 LastUpdatedAt = set.UpdatedAt,
-                Flashcards = set.Flashcards.Select(f => new FlashcardDTO
+                Flashcards = set.Flashcards
+                .OrderByDescending(f => f.CreatedAt)
+                .Select(f => new FlashcardDTO
                 {
                     Id = f.Id,
                     Term = f.Term,
                     Definition = f.Definition
                 }).ToList(),
-                Categories = set.Categories.Select(c => new CategoryDTO
+                Categories = set.Categories
+                .OrderByDescending(f => f.CreatedAt)
+                .Select(c => new CategoryDTO
                 {
                     Id = c.Id,
                     Name = c.Name

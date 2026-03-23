@@ -3,7 +3,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Models
 {
-    public abstract class BaseModel
+    public abstract class BaseModel : IHasCreationDate
     {
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
