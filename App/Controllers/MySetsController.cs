@@ -16,7 +16,7 @@ namespace App.Controllers
         // Відображення списку
         public async Task<IActionResult> Index()
         {
-            var sets = await _setService.GetAllSetsAsync([]);
+            var sets = await _setService.GetAllUserSetsAsync(0,[]);
             return View(sets);
         }
 

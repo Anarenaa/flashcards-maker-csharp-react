@@ -38,11 +38,11 @@ namespace Services
 
             return setDtos;
         }
-        public async Task<List<SetDTO>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllUserSetsAsync(int? userId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
-                    filter: s => s.UserId == userId
-                    && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
+                    //filter: s => s.UserId == userId &&
+                    s => (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
 
