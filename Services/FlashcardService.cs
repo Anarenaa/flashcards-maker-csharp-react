@@ -53,8 +53,9 @@ namespace Services
             if (flashcard == null)
                 throw new NotFoundException("Картка не знайдена.");
 
-            await _unitOfWork.Flashcards.UpdateFlashcardAsync(flashcard);
-
+            flashcard.Term = flashcardDto.Term;
+            flashcard.Definition = flashcardDto.Definition;
+            flashcard.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteFlashcardAsync(int id)

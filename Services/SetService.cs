@@ -105,19 +105,16 @@ namespace Services
         }
         public async Task UpdateSetAsync(SetDTO setDto)
         {
-            var existingSet = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
-            if (existingSet is null)
+            var set = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
+            if (set is null)
             {
                 throw new NotFoundException("Сет не знайдено");
             }
-            var set = new Set
-            {
-                Id = setDto.Id.Value,
-                Name = setDto.Name,
-                Description = setDto.Description,
-                IsPublic = setDto.IsPublic
-            };
-            await _unitOfWork.Sets.UpdateSetAsync(set);
+
+            set.Name = setDto.Name;
+            set.Description = setDto.Description;
+            set.IsPublic = setDto.IsPublic;
+            set.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteSetAsync(int id)

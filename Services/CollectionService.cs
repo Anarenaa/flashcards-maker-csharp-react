@@ -72,14 +72,10 @@ namespace Services
             if (collection == null)
                 throw new NotFoundException("Колекція не знайдена");
 
-            var updatedCollection = new Collection
-            {
-                Id = collection.Id,
-                Name = collectionDto.Name,
-                Description = collectionDto.Description,
-                UserId = collection.UserId
-            };
-            await _unitOfWork.Collections.UpdateCollectionAsync(updatedCollection);
+            collection.Name = collectionDto.Name;
+            collection.Description = collectionDto.Description;
+            collection.UpdatedAt = DateTime.UtcNow;
+
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteCollectionAsync(int collectionId)

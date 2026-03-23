@@ -39,7 +39,7 @@ namespace Services
             {
                 throw new NotFoundException("Категорія не знайдена");
             }
-            await _unitOfWork.Categories.UpdateCategoryAsync(category);
+            category.Name = categoryDto.Name;
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteCategoryAsync(int categoryId)
