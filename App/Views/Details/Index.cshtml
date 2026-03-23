@@ -181,6 +181,41 @@
             font-family: inherit;
             width: 100%;
             box-sizing: border-box;
+            .search-bar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--btn-border);
+    }
+
+    .search-bar input {
+        flex-grow: 1;
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        outline: none;
+        font-family: inherit;
+    }
+
+    .search-bar input:focus { border-color: var(--accent-color); }
+
+    .btn-search {
+        background: var(--accent-color);
+        color: #141B25;
+        border: none;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .btn-search:hover { background: #fff; transform: translateY(-2px); }
         }
 </style>
 

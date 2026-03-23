@@ -13,25 +13,27 @@ namespace App.Controllers
             _setService = setService;
         }
 
-        // Відображення списку
-        public async Task<IActionResult> Index()
+        public async Task<IActionResult> Index(string? searchText)
         {
-            var sets = await _setService.GetAllUserSetsAsync(0,[]);
+           
+            var sets = await _setService.GetAllUserSetsAsync(null, null, searchText);
+
+            ViewData["CurrentFilter"] = searchText;
+
             return View(sets);
         }
 
-        // Створення нового сету
         [HttpPost]
         public async Task<IActionResult> Create(SetDTO setDto)
         {
             if (!ModelState.IsValid)
             {
-                var allSets = await _setService.GetAllSetsAsync([]);
-                return View("Index", allSets); // Повертаємо помилки, якщо назва порожня
+                var allSets = await _setService.GetAllUserSetsAsync(null, null, null);
+                return View("Index", allSets);
             }
 
-            await _setService.AddSetAsync(setDto); // ВИКЛИК СЕРВІСУ
-            return RedirectToAction(nameof(Index)); // Перезавантаження сторінки
+            await _setService.AddSetAsync(setDto);
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -39,7 +41,7 @@ namespace App.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _setService.UpdateSetAsync(setDto); // ВИКЛИК СЕРВІСУ
+                await _setService.UpdateSetAsync(setDto);
                 return RedirectToAction(nameof(Index));
             }
             return RedirectToAction(nameof(Index));
@@ -47,7 +49,7 @@ namespace App.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
-            await _setService.DeleteSetAsync(id); // ВИКЛИК СЕРВІСУ
+            await _setService.DeleteSetAsync(id);
             return RedirectToAction(nameof(Index));
         }
     }

@@ -51,7 +51,7 @@
         font-size: 1.5rem;
         line-height: 1;
         padding: 5px;
-        z-index: 10; 
+        z-index: 10;
         opacity: 0.5;
         transition: 0.3s;
     }
@@ -90,6 +90,48 @@
             .dropdown button:hover, .dropdown a:hover {
                 background-color: #6B8789;
             }
+
+    /* --- ПАНЕЛЬ ПОШУКУ --- */
+    .search-bar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--btn-border);
+    }
+
+        .search-bar input {
+            flex-grow: 1;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
+
+            .search-bar input:focus {
+                border-color: var(--accent-color);
+            }
+
+    .btn-search {
+        background: var(--accent-color);
+        color: #141B25;
+        border: none;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-search:hover {
+            background: #fff;
+            transform: translateY(-2px);
+        }
 
     /* --- МОДАЛЬНЕ ВІКНО --- */
     .modal-overlay {
@@ -183,11 +225,22 @@
         input:checked + .slider:before {
             transform: translateX(22px);
         }
-
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
+
+    <!-- ФОРМА ПОШУКУ -->
+    <form asp-controller="MySets" asp-action="Index" method="get" class="search-bar">
+        <input type="text" name="searchText"
+               placeholder="Пошук по назві ваших сетів..."
+               value="@ViewData["CurrentFilter"]" />
+        <button type="submit" class="btn-search">Шукати</button>
+        @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
+        {
+            <a asp-action="Index" style="color: var(--accent-color); text-decoration: none; align-self: center; margin-left: 10px;">Скинути</a>
+        }
+    </form>
 
     <div class="sets-grid">
         @* Картка створення *@
@@ -198,10 +251,8 @@
 
         @foreach (var set in Model)
         {
-            @* URL буде: /MySets/Details/1 *@
-@* В MySets/Index.cshtml *@
-<div class="set-card" onclick="handleCardClick(event, '/MySets/Details/@set.Id')">                
-    <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
+            <div class="set-card" onclick="handleCardClick(event, '/MySets/Details/@set.Id')">
+                <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
 
                 <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase())">Редагувати</button>
@@ -219,6 +270,13 @@
             </div>
         }
     </div>
+
+    @if (!Model.Any() && !string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
+    {
+        <div style="text-align: center; padding: 40px; opacity: 0.5;">
+            Нічого не знайдено за запитом "@ViewData["CurrentFilter"]"
+        </div>
+    }
 </div>
 
 @* Універсальна модалка *@
@@ -226,19 +284,15 @@
     <div class="modal">
         <form id="setForm" method="post">
             <h2 id="modalTitle">Сет</h2>
-
             <input type="hidden" name="Id" id="setIdField" value="">
-
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 0.8rem; opacity: 0.6;">Назва сету</label>
                 <input type="text" name="Name" id="setNameField" required placeholder="Наприклад: Англійська B2">
             </div>
-
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 0.8rem; opacity: 0.6;">Опис</label>
                 <input type="text" name="Description" id="setDescField" placeholder="Короткий опис">
             </div>
-
             <div class="toggle-row">
                 <span>Зробити публічним</span>
                 <label class="switch">
@@ -246,7 +300,6 @@
                     <span class="slider"></span>
                 </label>
             </div>
-
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
                 <button type="button" onclick="closeModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
                 <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 25px; border-radius:6px; cursor:pointer; font-weight:bold;">Зберегти</button>
@@ -271,7 +324,7 @@
         }
 
         function openEditModal(event, id, name, desc, isPublic) {
-            event.stopPropagation(); 
+            event.stopPropagation();
             document.getElementById('modalTitle').innerText = "Редагувати сет";
             form.action = "@Url.Action("Edit", "MySets")";
             document.getElementById('setIdField').value = id;
@@ -294,11 +347,9 @@
             event.stopPropagation();
             const btn = event.currentTarget;
             const dropdown = btn.nextElementSibling;
-
             document.querySelectorAll('.dropdown').forEach(d => {
                 if (d !== dropdown) d.style.display = 'none';
             });
-
             dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
         }
 
