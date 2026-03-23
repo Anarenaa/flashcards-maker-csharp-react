@@ -1,5 +1,283 @@
-﻿@*
-    For more information on enabling MVC for empty projects, visit https://go.microsoft.com/fwlink/?LinkID=397860
-*@
+﻿@using Core.DTOs
+@model SetDetailDTO
+
 @{
+    ViewData["Title"] = "Редактор карток - " + Model.Name;
+}
+
+<style>
+
+    .back-link {
+        color: var(--accent-color);
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        opacity: 0.7;
+        text-decoration: none;
+        transition: 0.3s;
+        font-size: 0.9rem;
+    }
+
+        .back-link:hover {
+            opacity: 1;
+            transform: translateX(-5px);
+        }
+
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+    }
+
+    /* СІТКА */
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    /* КАРТКА */
+    .flashcard-item {
+        background-color: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        border-radius: 15px;
+        padding: 25px;
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        transition: all 0.3s ease;
+    }
+
+        .flashcard-item:hover {
+            border-color: var(--accent-color);
+            background-color: var(--btn-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+    .card-term {
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 1.15rem;
+        margin-bottom: 12px;
+        word-wrap: break-word;
+        padding-right: 20px;
+    }
+
+    .card-divider {
+        height: 1px;
+        background: rgba(240, 255, 255, 0.1);
+        border: none;
+        margin: 10px 0;
+    }
+
+    .card-definition {
+        opacity: 0.8;
+        font-size: 1rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    /* МЕНЮ ТРЬОХ КРАПОК */
+    .dots {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 1.5rem;
+        line-height: 1;
+        padding: 5px;
+        opacity: 0.5;
+        transition: 0.3s;
+    }
+
+        .dots:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
+
+    .dropdown {
+        position: absolute;
+        top: 45px;
+        right: 15px;
+        background: #2C3440;
+        border: 1px solid #818375;
+        border-radius: 8px;
+        display: none;
+        flex-direction: column;
+        z-index: 100;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        overflow: hidden;
+    }
+
+        .dropdown button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+            .dropdown button:hover {
+                background-color: #6B8789;
+            }
+
+    /* КНОПКА ДОДАТИ */
+    .btn-main {
+        background: #6B8789;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-main:hover {
+            background: #7ba1a3;
+        }
+
+    /* МОДАЛКА */
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: #1C2531;
+        border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 15px;
+        width: 420px;
+        max-width: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+        .modal input, .modal textarea {
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+            width: 100%;
+            box-sizing: border-box;
+        }
+</style>
+
+<div class="content-area">
+    <a asp-controller="MySets" asp-action="Index" class="back-link">← Назад до моїх сетів</a>
+
+    <div class="header-row">
+        <div>
+            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.8rem;">@Model.Name</h2>
+            <p style="opacity: 0.6; margin: 5px 0 0 0;">@Model.Description</p>
+        </div>
+        <button class="btn-main" onclick="openCreateCardModal()">+ Додати картку</button>
+    </div>
+
+    <div class="cards-grid">
+        @foreach (var card in Model.Flashcards)
+        {
+            <div class="flashcard-item">
+                <div class="dots" onclick="toggleMenu(event)">⋮</div>
+                <div class="dropdown">
+                    <button type="button" onclick="openEditCardModal('@card.Id', '@card.Term', '@card.Definition')">Редагувати</button>
+
+                    <form asp-controller="Details" asp-action="DeleteCard" method="post" onsubmit="return confirm('Видалити?')">
+                        <input type="hidden" name="cardId" value="@card.Id" />
+                        <input type="hidden" name="setId" value="@Model.Id" />
+                        <button type="submit" style="color: #ff8080;">Видалити</button>
+                    </form>
+                </div>
+
+                <div class="card-term">@card.Term</div>
+                <hr class="card-divider">
+                <div class="card-definition">@card.Definition</div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- МОДАЛКА -->
+<div class="modal-overlay" id="cardModal">
+    <div class="modal">
+        <h2 id="modalTitle" style="color: var(--accent-color); margin: 0;">Нова картка</h2>
+        <form asp-controller="Details" asp-action="SaveCard" method="post">
+            <input type="hidden" name="setId" value="@Model.Id" />
+            <input type="hidden" name="cardDto.Id" id="modalCardId" value="0" />
+
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <div>
+                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Питання</label>
+                    <input type="text" name="cardDto.Term" id="modalTerm" required>
+                </div>
+
+                <div>
+                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Відповідь</label>
+                    <textarea name="cardDto.Definition" id="modalDefinition" rows="4" required></textarea>
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" onclick="closeCardModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                    <button type="submit" class="btn-main">Зберегти</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const modal = document.getElementById('cardModal');
+
+        function openCreateCardModal() {
+            document.getElementById('modalTitle').innerText = "Нова картка";
+            document.getElementById('modalCardId').value = "0";
+            document.getElementById('modalTerm').value = "";
+            document.getElementById('modalDefinition').value = "";
+            modal.style.display = 'flex';
+        }
+
+        function openEditCardModal(id, term, def) {
+            document.getElementById('modalTitle').innerText = "Редагувати картку";
+            document.getElementById('modalCardId').value = id;
+            document.getElementById('modalTerm').value = term;
+            document.getElementById('modalDefinition').value = def;
+            modal.style.display = 'flex';
+        }
+
+        function closeCardModal() { modal.style.display = 'none'; }
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const menu = e.currentTarget.nextElementSibling;
+            document.querySelectorAll('.dropdown').forEach(d => { if(d !== menu) d.style.display = 'none' });
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        window.addEventListener('click', (e) => {
+            if (!e.target.matches('.dots')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            if (e.target === modal) closeCardModal();
+        });
+    </script>
 }

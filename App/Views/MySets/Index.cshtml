@@ -198,9 +198,10 @@
 
         @foreach (var set in Model)
         {
-            <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Details", "MySets", new { id = set.Id })')">
-
-                <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
+            @* URL буде: /MySets/Details/1 *@
+@* В MySets/Index.cshtml *@
+<div class="set-card" onclick="handleCardClick(event, '/MySets/Details/@set.Id')">                
+    <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
 
                 <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase())">Редагувати</button>
