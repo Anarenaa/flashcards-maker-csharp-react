@@ -16,14 +16,14 @@ namespace Services
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.IsPublic
-                    && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id))) 
+                    && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
                     includeProperties: "User"
             );
-            
+
             var setIds = sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
-            
+
             var setDtos = sets.Select(s => new SetDTO
             {
                 Id = s.Id,
@@ -35,7 +35,7 @@ namespace Services
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt
             }).ToList();
-            
+
             return setDtos;
         }
         public async Task<List<SetDTO>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
@@ -45,10 +45,10 @@ namespace Services
                     && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
-            
+
             var setIds = sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
-            
+
             var setDtos = sets.Select(s => new SetDTO
             {
                 Id = s.Id,
@@ -59,29 +59,37 @@ namespace Services
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt
             }).ToList();
-            
+
             return setDtos;
         }
-        public async Task<SetDetailDTO?> GetSetByIdAsync(int id)
+        public async Task<SetDetailDTO> GetSetByIdAsync(int setId)
         {
-            var s = await _unitOfWork.Sets.GetByIdAsync(id, "Flashcards, Categories");
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards,Categories");
 
-            if (s == null) throw new NotFoundException("Сет не знайдено");
+            if (set == null) throw new NotFoundException("Сет не знайдено");
 
             return new SetDetailDTO
             {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                FlashcardsCount = s.Flashcards.Count(),
-                IsPublic = s.IsPublic,
-                CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt
-                //Add Flashcards and Categories collections
+                Id = set.Id,
+                Name = set.Name,
+                Description = set.Description,
+                FlashcardsCount = set.Flashcards.Count(),
+                IsPublic = set.IsPublic,
+                CreatedAt = set.CreatedAt,
+                LastUpdatedAt = set.UpdatedAt,
+                Flashcards = set.Flashcards.Select(f => new FlashcardDTO
+                {
+                    Id = f.Id,
+                    Term = f.Term,
+                    Definition = f.Definition
+                }).ToList(),
+                Categories = set.Categories.Select(c => new CategoryDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                }).ToList()
             };
         }
-
-        //додати метод "додавання сету до колекції"
 
         public async Task AddSetAsync(SetDTO setDto)
         {
@@ -97,32 +105,96 @@ namespace Services
         }
         public async Task UpdateSetAsync(SetDTO setDto)
         {
-            var existingSet = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
-            if(existingSet is null)
+            var set = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
+            if (set is null)
             {
                 throw new NotFoundException("Сет не знайдено");
             }
-            var set = new Set
-            {
-                Id = setDto.Id.Value,
-                Name = setDto.Name,
-                Description = setDto.Description,
-                IsPublic = setDto.IsPublic
-            };
-            await _unitOfWork.Sets.UpdateSetAsync(set);
+
+            set.Name = setDto.Name;
+            set.Description = setDto.Description;
+            set.IsPublic = setDto.IsPublic;
+            set.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteSetAsync(int id)
         {
             var set = await _unitOfWork.Sets.GetByIdAsync(id);
-            if(set is not null)
+            if (set is not null)
             {
                 _unitOfWork.Sets.Delete(set);
                 await _unitOfWork.SaveChangesAsync();
-            } else
+            }
+            else
             {
                 throw new NotFoundException("Сет не знайдено");
             }
+        }
+
+        public async Task AddCategoryToSetAsync(int setId, int categoryId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(
+                setId,
+                includeProperties: "Categories"
+            );
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+
+            var category = await _unitOfWork.Categories.GetByIdAsync(categoryId);
+            if (category == null) throw new NotFoundException("Категорію не знайдено");
+
+            if (!set.Categories.Any(c => c.Id == categoryId))
+            {
+                set.Categories.Add(category);
+            }
+            else
+            {
+                throw new AppException("Категорія вже додана до сету");
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task RemoveCategoryFromSetAsync(int setId, int categoryId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(
+                setId,
+                includeProperties: "Categories"
+            );
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+
+            var category = set.Categories.FirstOrDefault(c => c.Id == categoryId);
+            if (category == null) throw new NotFoundException("Категорію не знайдено в сеті");
+
+            set.Categories.Remove(category);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task AddSetToCollectionAsync(int setId, int collectionId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+
+            bool alreadyExists = await _unitOfWork.Collections
+                .AnySetInCollectionAsync(collectionId, setId);
+
+            if (alreadyExists) throw new AppException("Сет вже доданий до колекції");
+
+            var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
+            if (collection == null) throw new NotFoundException("Колекцію не знайдено");
+
+            collection.Sets.Add(set);
+
+            await _unitOfWork.SaveChangesAsync();
+        }
+        public async Task RemoveSetFromCollectionAsync(int setId, int collectionId)
+        {
+            var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
+            if (collection == null) throw new NotFoundException("Колекцію не знайдено");
+
+            var set = await _unitOfWork.Collections.LoadSingleSetAsync(collection, setId);
+            if (set == null) throw new NotFoundException("Сет не знайдено в колекції");
+
+            collection.Sets.Remove(set);
+
+            await _unitOfWork.SaveChangesAsync();
         }
     }
 }

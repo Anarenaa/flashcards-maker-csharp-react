@@ -2,7 +2,7 @@
 
 namespace Repositories.Interfaces
 {
-    public interface ISetRepository : IRepository<Set>
+    public interface ICategoryRepository : IRepository<Category>
     {
     }
 }
