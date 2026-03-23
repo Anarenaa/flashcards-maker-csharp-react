@@ -184,9 +184,7 @@ namespace Services
             var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
             if (collection == null) throw new NotFoundException("Колекцію не знайдено");
 
-            await _unitOfWork.Collections.LoadSingleSetAsync(collection, setId);
-
-            var set = collection.Sets.FirstOrDefault(s => s.Id == setId);
+            var set = await _unitOfWork.Collections.LoadSingleSetAsync(collection, setId);
             if (set == null) throw new NotFoundException("Сет не знайдено в колекції");
 
             collection.Sets.Remove(set);
