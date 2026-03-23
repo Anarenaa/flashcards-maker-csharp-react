@@ -4,6 +4,7 @@
     {
         ISetRepository Sets { get; }
         IFlashcardRepository Flashcards { get; }
+        ICategoryRepository Categories { get; }
         Task SaveChangesAsync();
     }
 }
