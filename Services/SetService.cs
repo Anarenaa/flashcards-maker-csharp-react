@@ -62,26 +62,34 @@ namespace Services
 
             return setDtos;
         }
-        public async Task<SetDetailDTO?> GetSetByIdAsync(int id)
+        public async Task<SetDetailDTO> GetSetByIdAsync(int setId)
         {
-            var s = await _unitOfWork.Sets.GetByIdAsync(id, "Flashcards, Categories");
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards,Categories");
 
-            if (s == null) throw new NotFoundException("Сет не знайдено");
+            if (set == null) throw new NotFoundException("Сет не знайдено");
 
             return new SetDetailDTO
             {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                FlashcardsCount = s.Flashcards.Count(),
-                IsPublic = s.IsPublic,
-                CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt
-                //Add Flashcards and Categories collections
+                Id = set.Id,
+                Name = set.Name,
+                Description = set.Description,
+                FlashcardsCount = set.Flashcards.Count(),
+                IsPublic = set.IsPublic,
+                CreatedAt = set.CreatedAt,
+                LastUpdatedAt = set.UpdatedAt,
+                Flashcards = set.Flashcards.Select(f => new FlashcardDTO
+                {
+                    Id = f.Id,
+                    Term = f.Term,
+                    Definition = f.Definition
+                }).ToList(),
+                Categories = set.Categories.Select(c => new CategoryDTO
+                {
+                    Id = c.Id,
+                    Name = c.Name
+                }).ToList()
             };
         }
-
-        //додати метод "додавання сету до колекції"
 
         public async Task AddSetAsync(SetDTO setDto)
         {
