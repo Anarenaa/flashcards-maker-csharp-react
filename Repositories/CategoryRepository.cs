@@ -12,13 +12,5 @@ namespace Repositories
     public class CategoryRepository : Repository<Category>, ICategoryRepository
     {
         public CategoryRepository(DataContext context) : base(context) { }
-        public async Task UpdateCategoryAsync(Category category)
-        {
-            var existingCategory = await _dbSet.FindAsync(category.Id);
-            if (existingCategory is not null)
-            {
-                existingCategory.Name = category.Name;
-            }
-        }
     }
 }
