@@ -1,15 +1,188 @@
-﻿@{
+﻿@using Core.DTOs
+@model IEnumerable<SetDTO>
+
+@{
     ViewData["Title"] = "Головна";
+   
+    var currentUserName = "Admin";
 }
 
-<h2>Всі навчальні сети</h2>
-<div class="sets-grid">
-    @* Тут ваш код карток, який ми писали раніше *@
-    <div class="set-card create-card">...</div>
+<style>
+   
+    .search-bar {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--btn-border);
+    }
+
+        .search-bar input {
+            flex-grow: 1;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
+
+            .search-bar input:focus {
+                border-color: var(--accent-color);
+            }
+
+    .btn-search {
+        background: var(--accent-color);
+        color: #141B25;
+        border: none;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-search:hover {
+            background: #fff;
+            transform: translateY(-2px);
+        }
+
+   
+    .sets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+    }
+
+    .set-card {
+        background-color: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        border-radius: 12px;
+        padding: 25px;
+        min-height: 160px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+        cursor: pointer;
+        transition: all 0.3s ease;
+    }
+
+        .set-card:hover {
+            border-color: var(--accent-color);
+            background-color: var(--btn-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+   
+    .my-set-tag {
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        background: var(--accent-color);
+        color: #141B25;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+    }
+
+    .owner-border {
+        border-color: rgba(240, 255, 255, 0.5) !important;
+    }
+
+    .author-name {
+        font-size: 0.75rem;
+        opacity: 0.5;
+        margin-bottom: 10px;
+        display: block;
+    }
+</style>
+
+<div class="content-area">
+    <h2 style="margin-bottom: 20px;">Всі навчальні сети</h2>
+
+   
+    <form asp-controller="Main" asp-action="Index" method="get" class="search-bar">
+        <input type="text" name="searchText"
+               placeholder="Шукати публічні та власні сети..."
+               value="@ViewData["CurrentFilter"]" />
+        <button type="submit" class="btn-search">Шукати</button>
+
+        @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
+        {
+            <a asp-controller="Main" asp-action="Index"
+               style="color: var(--accent-color); text-decoration: none; align-self: center; margin-left: 10px; font-size: 0.9rem;">
+                ✕ Скинути
+            </a>
+        }
+    </form>
+
+    <div class="sets-grid">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var set in Model)
+            {
+             
+                bool isMine = set.UserName == currentUserName;
+
+                <div class="set-card @(isMine ? "owner-border" : "")"
+                     onclick="location.href='@Url.Action("Index", "Details", new { id = set.Id })'">
+
+                    @if (isMine)
+                    {
+                        <div class="my-set-tag">МІЙ СЕТ</div>
+                    }
+
+                    <span class="author-name">
+                        @(isMine ? "Ви створили" : $"Автор: {set.UserName}")
+                    </span>
+
+                    <h3 style="margin: 0 0 8px 0;">@set.Name</h3>
+                    <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
+
+                    <div style="font-size: 0.75rem; margin-top: 15px; opacity: 0.5; display: flex; justify-content: space-between;">
+                        <span>@set.FlashcardsCount карток</span>
+                        <span>
+                            @if (set.IsPublic)
+                            {
+                                <span>🌐 Публічний</span>
+                            }
+                            else
+                            {
+
+                                <span style="color: #ff8080;">🔒 Приватний</span>
+                            }
+                        </span>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; opacity: 0.4;">
+                <p style="font-size: 1.2rem;">Нічого не знайдено...</p>
+                <p>Спробуйте змінити запит або створіть власний сет у розділі "Мої сети".</p>
+            </div>
+        }
+    </div>
 </div>
 
 @section Scripts {
-    <script>
-        // Сюди можна винести JS тільки для цієї сторінки
+    <script>   
+        document.querySelectorAll('.set-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
     </script>
 }

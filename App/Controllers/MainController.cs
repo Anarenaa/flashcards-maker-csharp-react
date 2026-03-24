@@ -1,13 +1,21 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Services;
+using System.Threading.Tasks;
 
 namespace App.Controllers
 {
     public class MainController : Controller
     {
-        public IActionResult Index()
+        private readonly SetService _setService;
+        public MainController(SetService setService)
         {
-            return View();
+            _setService = setService;
         }
-        public IActionResult MySets() => View();
+        public async Task<IActionResult> Index(string? searchText)
+        {    
+            var sets = await _setService.GetAllSetsAsync(null, searchText);
+            ViewData["CurrentFilter"] = searchText;
+            return View(sets);
+        }
     }
 }
