@@ -12,10 +12,11 @@ namespace Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<IEnumerable<CategoryDTO>> GetCategoriesByUserIdAsync(int userId)
+        public async Task<IEnumerable<CategoryDTO>> GetCategoriesByUserIdAsync(//int userId
+                                                                               )
         {
             var categories = await _unitOfWork.Categories.GetAllAsync(
-                filter: c => c.UserId == userId
+         //       filter: c => c.UserId == userId
             );
             return categories.Select(c => new CategoryDTO
             {
