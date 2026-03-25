@@ -3,13 +3,13 @@
 
 @{
     ViewData["Title"] = "Головна";
-    // Ім'я користувача для перевірки власності (потім замінити на User.Identity.Name)
+    // Ім'я користувача для перевірки власності
     var currentUserName = "Admin";
 }
 
 <style>
-    /* --- ПОШУК --- */
-    .search-bar {
+    /* --- КОНТЕЙНЕР ПОШУКУ ТА СОРТУВАННЯ --- */
+    .search-container {
         display: flex;
         gap: 15px;
         margin-bottom: 30px;
@@ -17,9 +17,16 @@
         padding: 15px;
         border-radius: 12px;
         border: 1px solid var(--btn-border);
+        align-items: center;
     }
 
-        .search-bar input {
+    .search-bar-form {
+        display: flex;
+        flex-grow: 1;
+        gap: 10px;
+    }
+
+        .search-bar-form input {
             flex-grow: 1;
             background: #141B25;
             border: 1px solid #818375;
@@ -30,9 +37,22 @@
             font-family: inherit;
         }
 
-            .search-bar input:focus {
+            .search-bar-form input:focus, .sort-select:focus {
                 border-color: var(--accent-color);
             }
+
+    /* СТИЛЬ ВИПАДАЮЧОГО СПИСКУ */
+    .sort-select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 0 15px;
+        border-radius: 8px;
+        outline: none;
+        cursor: pointer;
+        font-family: inherit;
+        min-width: 160px;
+    }
 
     .btn-search {
         background: var(--accent-color);
@@ -62,7 +82,7 @@
         border: 1px solid var(--btn-border);
         border-radius: 12px;
         padding: 25px;
-        min-height: 150px;
+        min-height: 160px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -79,7 +99,7 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
-    /* --- НИЖНЯ ЧАСТИНА КАРТКИ (ДАТИ ТА КІЛЬКІСТЬ) --- */
+    /* --- НИЖНЯ ЧАСТИНА КАРТКИ --- */
     .card-footer {
         margin-top: auto;
         padding-top: 15px;
@@ -96,7 +116,7 @@
         justify-content: space-between;
     }
 
-    /* --- МЕНЮ КРАПОК --- */
+    /* --- ЕЛЕМЕНТИ КЕРУВАННЯ --- */
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -144,7 +164,6 @@
                 background-color: #6B8789;
             }
 
-    /* --- БЕДЖІ ТА ТЕКСТ --- */
     .my-set-tag {
         position: absolute;
         top: -10px;
@@ -169,7 +188,6 @@
         display: block;
     }
 
-    /* --- МОДАЛКА --- */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -195,7 +213,7 @@
         gap: 15px;
     }
 
-        .modal select {
+        .modal input, .modal select {
             background: #141B25;
             border: 1px solid #818375;
             color: white;
@@ -210,21 +228,28 @@
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Всі навчальні сети</h2>
 
-    <!-- ФОРМА ПОШУКУ -->
-    <form asp-controller="Main" asp-action="Index" method="get" class="search-bar">
-        <input type="text" name="searchText"
-               placeholder="Шукати публічні та власні сети..."
-               value="@ViewData["CurrentFilter"]" />
-        <button type="submit" class="btn-search">Шукати</button>
+    <!-- ФОРМА ПОШУКУ ТА СОРТУВАННЯ -->
+    <div class="search-container">
+        <form asp-controller="Main" asp-action="Index" method="get" class="search-bar-form">
+            <input type="text" name="searchText"
+                   placeholder="Шукати публічні та власні сети..."
+                   value="@ViewData["CurrentFilter"]" />
 
+            <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
+                <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
+                <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
+            </select>
+
+            <button type="submit" class="btn-search">Шукати</button>
+        </form>
         @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
         {
             <a asp-controller="Main" asp-action="Index"
-               style="color: var(--accent-color); text-decoration: none; align-self: center; margin-left: 10px; font-size: 0.9rem;">
+               style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem; white-space: nowrap;">
                 ✕ Скинути
             </a>
         }
-    </form>
+    </div>
 
     <div class="sets-grid">
         @if (Model != null && Model.Any())
@@ -236,7 +261,6 @@
                 <div class="set-card @(isMine ? "owner-border" : "")"
                      onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
 
-                    <!-- МЕНЮ ⋮ -->
                     <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
                     <div class="dropdown" onclick="event.stopPropagation()">
                         <button type="button" onclick="openCollectModal(event, '@set.Id')">Зберегти в колекцію</button>
@@ -254,7 +278,6 @@
                     <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                     <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
 
-                    @* НИЖНЯ ЧАСТИНА КАРТКИ *@
                     <div class="card-footer">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <span style="font-size: 0.75rem; opacity: 0.6;">@set.FlashcardsCount карток</span>
@@ -294,8 +317,8 @@
 
             <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
                 <div>
-                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Оберіть існуючу папку:</label>
-                    <select name="collectionId" style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px; width: 100%; outline: none;">
+                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Оберіть папку:</label>
+                    <select name="collectionId">
                         <option value="">-- Оберіть зі списку --</option>
                         @if (ViewBag.UserCollections != null)
                         {
@@ -310,9 +333,8 @@
                 <div style="text-align: center; opacity: 0.4; font-size: 0.8rem;">— АБО СТВОРІТЬ НОВУ —</div>
 
                 <div>
-                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Впишіть назву нової колекції:</label>
-                    <input type="text" name="newCollectionName" placeholder="Наприклад: Підготовка до КР"
-                           style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px; width: 100%; outline: none; box-sizing: border-box;" />
+                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Назва нової колекції:</label>
+                    <input type="text" name="newCollectionName" placeholder="Назва нової папки..." />
                 </div>
 
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
@@ -355,6 +377,7 @@
             if (e.target === collectModal) closeCollectModal();
         };
 
+        // Анімація карток
         document.querySelectorAll('.set-card').forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';
