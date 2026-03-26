@@ -10,8 +10,10 @@ obj/
 *.log
 # ASP.NETwwwroot/lib/
 wwwroot/node_modules/
-# Secrets / env.env
+# Secrets 
+/ env.env
 .env.*
+appsettings.Development.json
 secrets.json
 # Publishpublish/
 # OS
