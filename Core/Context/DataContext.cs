@@ -20,6 +20,20 @@ namespace Core.Context
         {
             base.OnModelCreating(modelBuilder);
 
+            // Шукаємо всі сутності, які наслідують BaseModel, і налаштовуємо їхні поля
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseModel).IsAssignableFrom(entity.ClrType))
+                {
+                    modelBuilder.Entity(entity.ClrType)
+                        .Property(nameof(BaseModel.CreatedAt))
+                        .HasDefaultValueSql("GETUTCDATE()");
+                    modelBuilder.Entity(entity.ClrType)
+                        .Property(nameof(BaseModel.UpdatedAt))
+                        .HasDefaultValueSql("GETUTCDATE()");
+                }
+            }
+
             ModelBuilderSeedExtension.SeedAll(modelBuilder);
         }
     }

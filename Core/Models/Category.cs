@@ -13,7 +13,7 @@ namespace Core.Models
         public required string Name { get; set; }
         public int? UserId { get; set; }
         public User? User { get; set; }
-        public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+        public DateTime CreatedAt { get; set; }
 
         public ICollection<Set> Sets { get; set; } = new List<Set>();
     }
