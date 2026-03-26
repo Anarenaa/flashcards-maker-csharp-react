@@ -3,7 +3,6 @@
 
 @{
     ViewData["Title"] = "Головна";
-    // Ім'я користувача для перевірки власності
     var currentUserName = "Admin";
 }
 
@@ -41,7 +40,6 @@
                 border-color: var(--accent-color);
             }
 
-    /* СТИЛЬ ВИПАДАЮЧОГО СПИСКУ */
     .sort-select {
         background: #141B25;
         border: 1px solid #818375;
@@ -116,7 +114,6 @@
         justify-content: space-between;
     }
 
-    /* --- ЕЛЕМЕНТИ КЕРУВАННЯ --- */
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -245,7 +242,7 @@
         @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
         {
             <a asp-controller="Main" asp-action="Index"
-               style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem; white-space: nowrap;">
+               style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem; white-space: nowrap; margin-left: 10px;">
                 ✕ Скинути
             </a>
         }
@@ -278,6 +275,7 @@
                     <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                     <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
 
+                    @* НИЖНЯ ЧАСТИНА КАРТКИ (СИНХРОНІЗОВАНА) *@
                     <div class="card-footer">
                         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                             <span style="font-size: 0.75rem; opacity: 0.6;">@set.FlashcardsCount карток</span>
@@ -286,13 +284,27 @@
                             </span>
                         </div>
 
+                        @{
+                            var localUpdate = set.LastUpdatedAt.ToLocalTime();
+                            var localCreate = set.CreatedAt.ToLocalTime();
+                        }
+
                         <div class="date-info">
                             <span>Створено:</span>
-                            <span>@set.CreatedAt.ToString("dd.MM.yyyy")</span>
+                            <span>@localCreate.ToString("dd.MM.yyyy")</span>
                         </div>
                         <div class="date-info">
                             <span>Оновлено:</span>
-                            <span style="color: var(--accent-color); opacity: 0.8;">@set.LastUpdatedAt.ToString("HH:mm") сьогодні</span>
+                            <span style="color: var(--accent-color); opacity: 0.9;">
+                                @if (localUpdate.Date == DateTime.Now.Date)
+                                {
+                                    @localUpdate.ToString("HH:mm") 
+                                }
+                                else
+                                {
+                                    @localUpdate.ToString("dd.MM.yyyy")
+                                }
+                            </span>
                         </div>
                     </div>
                 </div>
