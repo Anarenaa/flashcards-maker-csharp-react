@@ -1,12 +1,13 @@
-﻿using Core.Models;
-using Core.Extensions;
+﻿using Core.Extensions;
+using Core.Models;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Context
 {
-    public class DataContext : DbContext
+    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
-        public DbSet<User> Users { get; set; }
         public DbSet<Collection> Collections { get; set; }
         public DbSet<Set> Sets { get; set; }
         public DbSet<Category> Categories { get; set; }
@@ -33,6 +34,12 @@ namespace Core.Context
                         .HasDefaultValueSql("GETUTCDATE()");
                 }
             }
+            modelBuilder.Entity<User>()
+                .Property(u => u.CreatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+            modelBuilder.Entity<User>()
+                .Property(u => u.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
 
             ModelBuilderSeedExtension.SeedAll(modelBuilder);
         }

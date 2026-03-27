@@ -1,18 +1,13 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.AspNetCore.Identity;
 
 namespace Core.Models
 {
-    public class User : BaseModel
+    public class User : IdentityUser<int>
     {
-        [Required]
-        [StringLength(100, MinimumLength = 2)]
-        public required string Name { get; set; }
-        [Required]
-        [EmailAddress]
-        [StringLength(254)]
-        public required string Email { get; set; }
-        public string? PasswordHash { get; set; }
+        public string? AvatarUrl { get; set; }
+        public DateTime CreatedAt { get; set; }
+        public DateTime UpdatedAt { get; set; }
 
         public ICollection<Category> Categories { get; set; } = new List<Category>();
         public ICollection<Collection> Collections { get; set; } = new List<Collection>();
