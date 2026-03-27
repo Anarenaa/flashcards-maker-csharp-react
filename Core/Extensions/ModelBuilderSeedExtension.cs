@@ -1,6 +1,4 @@
 ﻿using Core.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Extensions
@@ -10,7 +8,6 @@ namespace Core.Extensions
         public static void SeedAll(ModelBuilder modelBuilder)
         {
             SeedUsers(modelBuilder);
-            SeedUsers(modelBuilder);
             SeedSets(modelBuilder);
             SeedFlashcards(modelBuilder);
             SeedCategories(modelBuilder);
@@ -18,42 +15,6 @@ namespace Core.Extensions
 
             SeedCategorySets(modelBuilder);
             SeedCollectionSets(modelBuilder);
-        }
-        public static void SeedUsers(ModelBuilder modelBuilder)
-        {
-            var hasher = new PasswordHasher<User>();
-
-            var user1 = new User
-            {
-                Id = 1,
-                UserName = "john_doe",
-                NormalizedUserName = "JOHN_DOE",
-                Email = "john_doe@gmail.com",
-                NormalizedEmail = "JOHN_DOE@GMAIL.COM",
-                EmailConfirmed = true,
-                SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
-                ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                CreatedAt = DateTime.Parse("2023-01-02T11:30:00Z"),
-                UpdatedAt = DateTime.Parse("2023-01-02T11:30:00Z")
-            };
-            user1.PasswordHash = "AQAAAAIAAYagAAAAEJ9V9f8r6Lz0j5Z8+m1kL6v7n8m9L0X5v9PjL6v7n8m9L0X5v9PjL6v7n8m9L0X5v9PjL6==";
-
-            var user2 = new User
-            {
-                Id = 2,
-                UserName = "jane_smith",
-                NormalizedUserName = "JANE_SMITH",
-                Email = "jane_smith@gmail.com",
-                NormalizedEmail = "JANE_SMITH@GMAIL.COM",
-                EmailConfirmed = true,
-                SecurityStamp = "0B4D1A60-F22B-4467-93C0-94D1898E5E7C",
-                ConcurrencyStamp = "C8A1088E-983C-435E-9804-6334D976451C",
-                CreatedAt = DateTime.Parse("2023-02-02T11:30:00Z"),
-                UpdatedAt = DateTime.Parse("2023-03-02T11:30:00Z")
-            };
-            user2.PasswordHash = "AQAAAAIAAYagAAAAEK9pZzVvR0XlM5XvU1vL2vX5vPjL6v7n8m9L0X5v9PjL6v7n8m9L0X5v9PjL6v7n8m9L0X5v9PjL6==";
-
-            modelBuilder.Entity<User>().HasData(user1, user2);
         }
         public static void SeedUsers(ModelBuilder modelBuilder)
         {
@@ -98,7 +59,6 @@ namespace Core.Extensions
                     Name = "Fruits",
                     Description = "English vocabulary",
                     UserId = 1,
-                    UserId = 1,
                     CreatedAt = DateTime.Parse("2024-01-01T10:15:00"),
                     UpdatedAt = DateTime.Parse("2024-01-01T10:15:00")
                 },
@@ -109,7 +69,6 @@ namespace Core.Extensions
                     Description = "Math test preparation set",
                     IsPublic = false,
                     UserId = 2,
-                    UserId = 2,
                     CreatedAt = DateTime.Parse("2024-01-02T11:30:00"),
                     UpdatedAt = DateTime.Parse("2024-01-03T12:11:00")
                 },
@@ -118,7 +77,6 @@ namespace Core.Extensions
                     Id = 3,
                     Name = "Роки революцій",
                     Description = "Всесвітня історія: революції різних років",
-                    UserId = 2,
                     UserId = 2,
                     CreatedAt = DateTime.Parse("2024-01-03T09:45:00"),
                     UpdatedAt = DateTime.Parse("2024-01-04T14:20:00")
