@@ -11,8 +11,6 @@ namespace Core.Models
         [Required]
         [StringLength(50)]
         public required string Name { get; set; }
-        public int? UserId { get; set; }
-        public User? User { get; set; }
         public DateTime CreatedAt { get; set; }
 
         public ICollection<Set> Sets { get; set; } = new List<Set>();

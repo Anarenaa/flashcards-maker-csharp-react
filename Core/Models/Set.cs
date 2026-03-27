@@ -12,8 +12,8 @@ namespace Core.Models
         public string? Description { get; set; }
         public bool IsPublic { get; set; } = true;
 
-        public int? UserId { get; set; }
-        public User? User { get; set; }
+        public int UserId { get; set; }
+        public User User { get; set; }
 
         public ICollection<Collection> Collections { get; set; } = new List<Collection>();
         public ICollection<Flashcard> Flashcards { get; set; } = new List<Flashcard>();

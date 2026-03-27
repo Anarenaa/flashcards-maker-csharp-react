@@ -48,7 +48,7 @@ namespace Services
                     Id = s.Id,
                     Name = s.Name,
                     Description = s.Description,
-                    UserName = s.User?.Name ?? null,
+                    UserName = s.User?.UserName ?? null,
                     IsPublic = s.IsPublic,
                     FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                     CreatedAt = s.CreatedAt,

@@ -34,6 +34,14 @@ namespace Core.Context
                         .HasDefaultValueSql("GETUTCDATE()");
                 }
             }
+            
+            modelBuilder.Entity<Set>()
+                .HasOne(s => s.User)
+                .WithMany(u => u.Sets)
+                .HasForeignKey(s => s.UserId)
+                .OnDelete(DeleteBehavior.NoAction);
+
+                
             modelBuilder.Entity<User>()
                 .Property(u => u.CreatedAt)
                 .HasDefaultValueSql("GETUTCDATE()");

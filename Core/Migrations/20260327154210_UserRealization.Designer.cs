@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260327154210_UserRealization")]
+    partial class UserRealization
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -107,7 +110,12 @@ namespace Core.Migrations
                         .HasMaxLength(50)
                         .HasColumnType("nvarchar(50)");
 
+                    b.Property<int?>("UserId")
+                        .HasColumnType("int");
+
                     b.HasKey("Id");
+
+                    b.HasIndex("UserId");
 
                     b.ToTable("Categories");
 
@@ -660,6 +668,13 @@ namespace Core.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("Core.Models.Category", b =>
+                {
+                    b.HasOne("Core.Models.User", null)
+                        .WithMany("Categories")
+                        .HasForeignKey("UserId");
+                });
+
             modelBuilder.Entity("Core.Models.Collection", b =>
                 {
                     b.HasOne("Core.Models.User", "User")
@@ -751,6 +766,8 @@ namespace Core.Migrations
 
             modelBuilder.Entity("Core.Models.User", b =>
                 {
+                    b.Navigation("Categories");
+
                     b.Navigation("Collections");
 
                     b.Navigation("Sets");
