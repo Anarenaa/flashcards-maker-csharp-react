@@ -38,14 +38,36 @@ builder.Services.AddAuthentication(options =>
         ValidAudience = builder.Configuration["Jwt:Audience"],
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
     };
+
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // Перевіряємо, чи є в запиті кука з назвою "AuthToken"
+            var accessToken = context.Request.Cookies["AuthToken"];
+
+            // Якщо є — кажемо системі використовувати її як токен
+            if (!string.IsNullOrEmpty(accessToken))
+            {
+                context.Token = accessToken;
+            }
+            return Task.CompletedTask;
+        }
+    };
+});
+// Редирект у Razor Pages при відсутності авторизації
+builder.Services.ConfigureApplicationCookie(options =>
+{
+    options.LoginPath = "/Account/Login";
+    options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
-builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<SetService>();
 builder.Services.AddScoped<FlashcardService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
+builder.Services.AddScoped<IAuthService, AuthService>();
 
 var app = builder.Build();
 
