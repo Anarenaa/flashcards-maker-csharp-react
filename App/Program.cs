@@ -1,6 +1,8 @@
 using System.Text;
 using Core.Context;
 using Core.Models;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -24,15 +26,17 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme) // Потрібно для тимчасового зберігання даних від Google
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true, 
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
@@ -43,10 +47,7 @@ builder.Services.AddAuthentication(options =>
     {
         OnMessageReceived = context =>
         {
-            // Перевіряємо, чи є в запиті кука з назвою "AuthToken"
             var accessToken = context.Request.Cookies["AuthToken"];
-
-            // Якщо є — кажемо системі використовувати її як токен
             if (!string.IsNullOrEmpty(accessToken))
             {
                 context.Token = accessToken;
@@ -54,7 +55,13 @@ builder.Services.AddAuthentication(options =>
             return Task.CompletedTask;
         }
     };
+})
+.AddGoogle(options =>
+{
+    options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
+
 // Редирект у Razor Pages при відсутності авторизації
 builder.Services.ConfigureApplicationCookie(options =>
 {
@@ -68,6 +75,7 @@ builder.Services.AddScoped<FlashcardService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
+builder.Services.AddScoped<UserService>();
 
 var app = builder.Build();
 

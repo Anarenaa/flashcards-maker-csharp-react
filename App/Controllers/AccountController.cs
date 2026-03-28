@@ -1,6 +1,9 @@
+using System.Security.Claims;
 using Core.DTOs;
 using Core.Exceptions;
 using Core.Models;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
@@ -84,13 +87,55 @@ namespace App.Controllers
                     return Redirect(returnUrl);
                 }
 
-                return RedirectToAction("Index", "Home");
+                return RedirectToAction("Index", "Main");
             }
             catch (UnauthorizedAccessException)
             {
                 ModelState.AddModelError(string.Empty, "Неправильний email або пароль");
                 ViewData["ReturnUrl"] = returnUrl;
                 return View(dto);
+            }
+        }
+        [HttpGet("google-response")]
+        public async Task<IActionResult> GoogleResponse()
+        {
+            // Отримуємо дані від Google через тимчасову схему кук
+            var result = await HttpContext.AuthenticateAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            if (!result.Succeeded || result.Principal == null)
+            {
+                return RedirectToAction("Login");
+            }
+
+            // Витягуємо унікальний Google ID (це і є наш ProviderKey)
+            var googleId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
+
+            // Інші дані для створення профілю
+            var email = result.Principal.FindFirstValue(ClaimTypes.Email);
+            var name = result.Principal.FindFirstValue(ClaimTypes.Name);
+            var avatar = result.Principal.FindFirstValue("picture")
+                         ?? result.Principal.FindFirstValue("image");
+
+            try
+            {
+                var token = await _authService.ExternalLoginAsync(email, name, avatar, googleId);
+
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                Response.Cookies.Append("AuthToken", token, new CookieOptions
+                {
+                    HttpOnly = true,
+                    Secure = true,
+                    SameSite = SameSiteMode.Strict,
+                    Expires = DateTime.UtcNow.AddDays(7)
+                });
+
+                return RedirectToAction("Index", "Main");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Помилка: " + ex.Message;
+                return RedirectToAction("Login");
             }
         }
 

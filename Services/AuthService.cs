@@ -65,6 +65,42 @@ namespace Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+        public async Task<string> ExternalLoginAsync(string email, string name, string avatarUrl, string googleId)
+        {
+            var user = await _userManager.FindByLoginAsync("Google", googleId);
+
+            if (user == null)
+            {
+                user = await _userManager.FindByEmailAsync(email);
+
+                if (user == null)
+                {
+                    user = new User
+                    {
+                        UserName = email.Split('@')[0],
+                        Email = email,
+                        AvatarUrl = avatarUrl,
+                        EmailConfirmed = true
+                    };
+
+                    var createResult = await _userManager.CreateAsync(user);
+                    if (!createResult.Succeeded)
+                        throw new Exception(string.Join(", ", createResult.Errors.Select(e => e.Description)));
+                }
+
+                var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", googleId, "Google"));
+                if (!addLoginResult.Succeeded)
+                    throw new Exception("Не вдалося прив'язати Google-акаунт");
+            }
+
+            if (!string.IsNullOrEmpty(avatarUrl) && user.AvatarUrl != avatarUrl)
+            {
+                user.AvatarUrl = avatarUrl;
+                await _userManager.UpdateAsync(user);
+            }
+
+            return GenerateJwtToken(user);
+        }
     }
 }
 
