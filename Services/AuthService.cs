@@ -38,7 +38,7 @@ namespace Services
                 user = await _userManager.FindByNameAsync(dto.UserNameOrEmail);
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
-                throw new UnauthorizedAccessException("");
+                throw new UnauthorizedAccessException("Неправильний логін або пароль");
 
             return GenerateJwtToken(user);
         }
