@@ -62,6 +62,27 @@ namespace Services
 
             return setDtos;
         }
+        public async Task<List<SetDTO>> GetSetsByCollectionIdAsync(int collectionId)
+        {
+            var sets = await _unitOfWork.Sets.GetAllAsync(
+                    filter: s => s.Collections.Any(c => c.Id == collectionId),
+                    includeProperties: "User"
+            );
+            var setIds = sets.Select(s => s.Id).ToList();
+            var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            var setDtos = sets.Select(s => new SetDTO
+            {
+                Id = s.Id,
+                Name = s.Name,
+                Description = s.Description,
+                FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                UserName = s.User?.UserName ?? null,
+                IsPublic = s.IsPublic,
+                CreatedAt = s.CreatedAt,
+                LastUpdatedAt = s.UpdatedAt
+            }).ToList();
+            return setDtos;
+        }
         public async Task<SetDetailDTO> GetSetByIdAsync(int setId)
         {
             var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards,Categories");

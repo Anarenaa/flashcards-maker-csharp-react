@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260328190212_MakeUserIdNullableInSets")]
+    partial class MakeUserIdNullableInSets
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -323,9 +326,6 @@ namespace Core.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
-                    b.Property<bool>("IsAccessible")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("IsPublic")
                         .HasColumnType("bit");
 
@@ -354,7 +354,6 @@ namespace Core.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
                             Description = "English vocabulary",
-                            IsAccessible = true,
                             IsPublic = true,
                             Name = "Fruits",
                             UpdatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
@@ -365,7 +364,6 @@ namespace Core.Migrations
                             Id = 2,
                             CreatedAt = new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified),
                             Description = "Math test preparation set",
-                            IsAccessible = true,
                             IsPublic = false,
                             Name = "Math",
                             UpdatedAt = new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Unspecified),
@@ -376,7 +374,6 @@ namespace Core.Migrations
                             Id = 3,
                             CreatedAt = new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified),
                             Description = "Всесвітня історія: революції різних років",
-                            IsAccessible = true,
                             IsPublic = true,
                             Name = "Роки революцій",
                             UpdatedAt = new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Unspecified),

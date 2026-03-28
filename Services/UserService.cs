@@ -47,12 +47,15 @@ namespace Services
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new NotFoundException("Користувача не знайдено");
 
+            await _unitOfWork.Sets.DeleteUnusedUserSetsAsync(user.Id);
+            await _unitOfWork.Sets.UnableSetsWithoutUserInCollections();
             var result = await _userManager.DeleteAsync(user);
 
             if (!result.Succeeded)
             {
                 throw new Exception("Не вдалося видалити профіль: " + string.Join(", ", result.Errors.Select(e => e.Description)));
             }
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task<PublicUserDTO> GetUserProfileAsync(int userId)
         {

@@ -39,7 +39,7 @@ namespace Core.Context
                 .HasOne(s => s.User)
                 .WithMany(u => u.Sets)
                 .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.NoAction);
+                .OnDelete(DeleteBehavior.SetNull);
 
                 
             modelBuilder.Entity<User>()
