@@ -3,13 +3,12 @@
 
 @{
     ViewData["Title"] = "Головна";
-   
     var currentUserName = "Admin";
 }
 
 <style>
-   
-    .search-bar {
+    /* --- КОНТЕЙНЕР ПОШУКУ ТА СОРТУВАННЯ --- */
+    .search-container {
         display: flex;
         gap: 15px;
         margin-bottom: 30px;
@@ -17,9 +16,16 @@
         padding: 15px;
         border-radius: 12px;
         border: 1px solid var(--btn-border);
+        align-items: center;
     }
 
-        .search-bar input {
+    .search-bar-form {
+        display: flex;
+        flex-grow: 1;
+        gap: 10px;
+    }
+
+        .search-bar-form input {
             flex-grow: 1;
             background: #141B25;
             border: 1px solid #818375;
@@ -30,9 +36,21 @@
             font-family: inherit;
         }
 
-            .search-bar input:focus {
+            .search-bar-form input:focus, .sort-select:focus {
                 border-color: var(--accent-color);
             }
+
+    .sort-select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 0 15px;
+        border-radius: 8px;
+        outline: none;
+        cursor: pointer;
+        font-family: inherit;
+        min-width: 160px;
+    }
 
     .btn-search {
         background: var(--accent-color);
@@ -50,7 +68,7 @@
             transform: translateY(-2px);
         }
 
-   
+    /* --- СІТКА СЕТІВ --- */
     .sets-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -65,10 +83,11 @@
         min-height: 160px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         position: relative;
         cursor: pointer;
         transition: all 0.3s ease;
+        z-index: 1;
     }
 
         .set-card:hover {
@@ -78,7 +97,70 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
-   
+    /* --- НИЖНЯ ЧАСТИНА КАРТКИ --- */
+    .card-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(240, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-info {
+        font-size: 0.7rem;
+        opacity: 0.4;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .card-menu-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 1.5rem;
+        line-height: 1;
+        padding: 5px;
+        z-index: 10;
+        opacity: 0.5;
+        transition: 0.3s;
+    }
+
+        .card-menu-btn:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
+
+    .dropdown {
+        position: absolute;
+        top: 45px;
+        right: 15px;
+        background: #2C3440;
+        border: 1px solid #818375;
+        border-radius: 8px;
+        display: none;
+        flex-direction: column;
+        z-index: 100;
+        box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        overflow: hidden;
+    }
+
+        .dropdown button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+            .dropdown button:hover {
+                background-color: #6B8789;
+            }
+
     .my-set-tag {
         position: absolute;
         top: -10px;
@@ -102,37 +184,84 @@
         margin-bottom: 10px;
         display: block;
     }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: #1C2531;
+        border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 15px;
+        width: 420px;
+        max-width: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+        .modal input, .modal select {
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Всі навчальні сети</h2>
 
-   
-    <form asp-controller="Main" asp-action="Index" method="get" class="search-bar">
-        <input type="text" name="searchText"
-               placeholder="Шукати публічні та власні сети..."
-               value="@ViewData["CurrentFilter"]" />
-        <button type="submit" class="btn-search">Шукати</button>
+    <!-- ФОРМА ПОШУКУ ТА СОРТУВАННЯ -->
+    <div class="search-container">
+        <form asp-controller="Main" asp-action="Index" method="get" class="search-bar-form">
+            <input type="text" name="searchText"
+                   placeholder="Шукати публічні та власні сети..."
+                   value="@ViewData["CurrentFilter"]" />
 
+            <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
+                <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
+                <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
+            </select>
+
+            <button type="submit" class="btn-search">Шукати</button>
+        </form>
         @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
         {
             <a asp-controller="Main" asp-action="Index"
-               style="color: var(--accent-color); text-decoration: none; align-self: center; margin-left: 10px; font-size: 0.9rem;">
+               style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem; white-space: nowrap; margin-left: 10px;">
                 ✕ Скинути
             </a>
         }
-    </form>
+    </div>
 
     <div class="sets-grid">
         @if (Model != null && Model.Any())
         {
             @foreach (var set in Model)
             {
-             
                 bool isMine = set.UserName == currentUserName;
 
                 <div class="set-card @(isMine ? "owner-border" : "")"
-                     onclick="location.href='@Url.Action("Index", "Details", new { id = set.Id })'">
+                     onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
+
+                    <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
+                    <div class="dropdown" onclick="event.stopPropagation()">
+                        <button type="button" onclick="openCollectModal(event, '@set.Id')">Зберегти в колекцію</button>
+                    </div>
 
                     @if (isMine)
                     {
@@ -143,22 +272,40 @@
                         @(isMine ? "Ви створили" : $"Автор: {set.UserName}")
                     </span>
 
-                    <h3 style="margin: 0 0 8px 0;">@set.Name</h3>
+                    <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                     <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
 
-                    <div style="font-size: 0.75rem; margin-top: 15px; opacity: 0.5; display: flex; justify-content: space-between;">
-                        <span>@set.FlashcardsCount карток</span>
-                        <span>
-                            @if (set.IsPublic)
-                            {
-                                <span>🌐 Публічний</span>
-                            }
-                            else
-                            {
+                    @* НИЖНЯ ЧАСТИНА КАРТКИ (СИНХРОНІЗОВАНА) *@
+                    <div class="card-footer">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
+                            <span style="font-size: 0.75rem; opacity: 0.6;">@set.FlashcardsCount карток</span>
+                            <span style="font-size: 0.75rem; opacity: 0.6;">
+                                @(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")
+                            </span>
+                        </div>
 
-                                <span style="color: #ff8080;">🔒 Приватний</span>
-                            }
-                        </span>
+                        @{
+                            var localUpdate = set.LastUpdatedAt.ToLocalTime();
+                            var localCreate = set.CreatedAt.ToLocalTime();
+                        }
+
+                        <div class="date-info">
+                            <span>Створено:</span>
+                            <span>@localCreate.ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <div class="date-info">
+                            <span>Оновлено:</span>
+                            <span style="color: var(--accent-color); opacity: 0.9;">
+                                @if (localUpdate.Date == DateTime.Now.Date)
+                                {
+                                    @localUpdate.ToString("HH:mm") 
+                                }
+                                else
+                                {
+                                    @localUpdate.ToString("dd.MM.yyyy")
+                                }
+                            </span>
+                        </div>
                     </div>
                 </div>
             }
@@ -167,19 +314,87 @@
         {
             <div style="grid-column: 1 / -1; text-align: center; padding: 60px; opacity: 0.4;">
                 <p style="font-size: 1.2rem;">Нічого не знайдено...</p>
-                <p>Спробуйте змінити запит або створіть власний сет у розділі "Мої сети".</p>
             </div>
         }
     </div>
 </div>
 
+<!-- МОДАЛКА ЗБЕРЕЖЕННЯ -->
+<div class="modal-overlay" id="collectModal">
+    <div class="modal">
+        <form asp-controller="Main" asp-action="AddToCollection" method="post">
+            <h2 style="color: var(--accent-color); margin: 0;">Зберегти сет</h2>
+
+            <input type="hidden" name="setId" id="modalSetId" />
+
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <div>
+                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Оберіть папку:</label>
+                    <select name="collectionId">
+                        <option value="">-- Оберіть зі списку --</option>
+                        @if (ViewBag.UserCollections != null)
+                        {
+                            @foreach (var col in ViewBag.UserCollections as IEnumerable<CollectionDTO>)
+                            {
+                                <option value="@col.Id">@col.Name</option>
+                            }
+                        }
+                    </select>
+                </div>
+
+                <div style="text-align: center; opacity: 0.4; font-size: 0.8rem;">— АБО СТВОРІТЬ НОВУ —</div>
+
+                <div>
+                    <label style="font-size: 0.8rem; opacity: 0.6; display: block; margin-bottom: 5px;">Назва нової колекції:</label>
+                    <input type="text" name="newCollectionName" placeholder="Назва нової папки..." />
+                </div>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" onclick="closeCollectModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                    <button type="submit" class="btn-search" style="width: auto;">Зберегти</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
-    <script>   
+    <script>
+        const collectModal = document.getElementById('collectModal');
+
+        function handleCardClick(event, url) {
+            if (event.target.closest('.card-menu-btn') || event.target.closest('.dropdown')) return;
+            window.location.href = url;
+        }
+
+        function toggleMenu(event) {
+            event.stopPropagation();
+            const btn = event.currentTarget;
+            const dropdown = btn.nextElementSibling;
+            document.querySelectorAll('.dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
+            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+        }
+
+        function openCollectModal(event, setId) {
+            event.stopPropagation();
+            document.getElementById('modalSetId').value = setId;
+            collectModal.style.display = 'flex';
+            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+        }
+
+        function closeCollectModal() { collectModal.style.display = 'none'; }
+
+        window.onclick = (e) => {
+            if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            if (e.target === collectModal) closeCollectModal();
+        };
+
+        // Анімація карток
         document.querySelectorAll('.set-card').forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';
             setTimeout(() => {
-                card.style.transition = 'all 0.5s ease';
+                card.style.transition = 'all 0.4s ease';
                 card.style.opacity = '1';
                 card.style.transform = 'translateY(0)';
             }, index * 50);

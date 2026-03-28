@@ -42,26 +42,27 @@ namespace App.Controllers
         }
 
         // --- РОБОТА З КАРТКАМИ ---
-
         [HttpPost("SaveCard")]
         public async Task<IActionResult> SaveCard(int setId, FlashcardDTO cardDto)
         {
             if (cardDto.Id == null || cardDto.Id == 0)
-            {
                 await _flashcardService.CreateFlashcardAsync(setId, cardDto);
-            }
             else
-            {
                 await _flashcardService.UpdateFlashcardAsync(cardDto);
+
+            var setDetail = await _setService.GetSetByIdAsync(setId);
+            if (setDetail != null)
+            {
+                var setUpdate = new SetDTO
+                {
+                    Id = setDetail.Id,
+                    Name = setDetail.Name,
+                    Description = setDetail.Description,
+                    IsPublic = setDetail.IsPublic
+                };
+                await _setService.UpdateSetAsync(setUpdate);
             }
 
-            return RedirectToAction("Index", new { id = setId });
-        }
-
-        [HttpPost("DeleteCard")]
-        public async Task<IActionResult> DeleteCard(int cardId, int setId)
-        {
-            await _flashcardService.DeleteFlashcardAsync(cardId);
             return RedirectToAction("Index", new { id = setId });
         }
 
@@ -125,5 +126,6 @@ namespace App.Controllers
 
             return RedirectToAction("Index", new { id = setId });
         }
+
     }
 }

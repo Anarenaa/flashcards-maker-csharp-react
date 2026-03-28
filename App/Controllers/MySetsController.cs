@@ -1,24 +1,37 @@
 ﻿using Core.DTOs;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace App.Controllers
 {
     public class MySetsController : Controller
     {
         private readonly SetService _setService;
+        private readonly CollectionService _collectionService; 
 
-        public MySetsController(SetService setService)
+        public MySetsController(SetService setService, CollectionService collectionService)
         {
             _setService = setService;
+            _collectionService = collectionService;
         }
 
-        public async Task<IActionResult> Index(string? searchText)
+        public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
-           
             var sets = await _setService.GetAllUserSetsAsync(null, null, searchText);
 
+            sets = sortOrder switch
+            {
+                "oldest" => sets.OrderBy(s => s.CreatedAt).ToList(),
+                "newest" => sets.OrderByDescending(s => s.CreatedAt).ToList(),
+                _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
+            };
+
             ViewData["CurrentFilter"] = searchText;
+            ViewData["CurrentSort"] = sortOrder;
+
+            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(1);
 
             return View(sets);
         }
@@ -26,14 +39,15 @@ namespace App.Controllers
         [HttpPost]
         public async Task<IActionResult> Create(SetDTO setDto)
         {
-            if (!ModelState.IsValid)
+            if (ModelState.IsValid)
             {
-                var allSets = await _setService.GetAllUserSetsAsync(null, null, null);
-                return View("Index", allSets);
-            }
+                setDto.CreatedAt = DateTime.Now;
+                setDto.LastUpdatedAt = DateTime.Now;
 
-            await _setService.AddSetAsync(setDto);
-            return RedirectToAction(nameof(Index));
+                await _setService.AddSetAsync(setDto);
+                return RedirectToAction(nameof(Index));
+            }
+            return await Index(null);
         }
 
         [HttpPost]
@@ -41,6 +55,8 @@ namespace App.Controllers
         {
             if (ModelState.IsValid)
             {
+                setDto.LastUpdatedAt = DateTime.Now;
+
                 await _setService.UpdateSetAsync(setDto);
                 return RedirectToAction(nameof(Index));
             }
@@ -50,6 +66,16 @@ namespace App.Controllers
         public async Task<IActionResult> Delete(int id)
         {
             await _setService.DeleteSetAsync(id);
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddToCollection(int setId, int collectionId)
+        {
+            if (setId != 0 && collectionId != 0)
+            {
+                await _setService.AddSetToCollectionAsync(setId, collectionId);
+            }
             return RedirectToAction(nameof(Index));
         }
     }

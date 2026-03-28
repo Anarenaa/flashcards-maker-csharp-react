@@ -22,7 +22,7 @@
         min-height: 160px;
         display: flex;
         flex-direction: column;
-        justify-content: center;
+        justify-content: flex-start;
         position: relative;
         cursor: pointer;
         transition: all 0.3s ease;
@@ -39,7 +39,36 @@
     .create-card {
         border: 2px dashed rgba(240, 255, 255, 0.3);
         text-align: center;
+        justify-content: center;
         background: transparent;
+    }
+
+    /* --- НИЖНЯ ЧАСТИНА КАРТКИ (ФУТЕР) --- */
+    .card-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(240, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+    .date-info {
+        font-size: 0.7rem;
+        opacity: 0.4;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .sets-count-badge {
+        background: rgba(240, 255, 255, 0.1);
+        color: var(--accent-color);
+        padding: 2px 8px;
+        border-radius: 6px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        width: fit-content;
+        margin-bottom: 5px;
     }
 
     /* --- МЕНЮ ТРЬОХ КРАПОК --- */
@@ -91,8 +120,8 @@
                 background-color: #6B8789;
             }
 
-    /* --- ПАНЕЛЬ ПОШУКУ --- */
-    .search-bar {
+    /* --- ФІЛЬТРИ --- */
+    .filter-container {
         display: flex;
         gap: 15px;
         margin-bottom: 30px;
@@ -100,9 +129,16 @@
         padding: 15px;
         border-radius: 12px;
         border: 1px solid var(--btn-border);
+        align-items: center;
     }
 
-        .search-bar input {
+    .filter-form {
+        display: flex;
+        flex-grow: 1;
+        gap: 12px;
+    }
+
+        .filter-form input {
             flex-grow: 1;
             background: #141B25;
             border: 1px solid #818375;
@@ -113,9 +149,16 @@
             font-family: inherit;
         }
 
-            .search-bar input:focus {
-                border-color: var(--accent-color);
-            }
+    .sort-select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 11px 15px;
+        border-radius: 8px;
+        outline: none;
+        cursor: pointer;
+        min-width: 150px;
+    }
 
     .btn-search {
         background: var(--accent-color);
@@ -125,65 +168,19 @@
         border-radius: 8px;
         cursor: pointer;
         font-weight: bold;
-        transition: 0.3s;
     }
 
-        .btn-search:hover {
-            background: #fff;
-            transform: translateY(-2px);
-        }
-
-    /* --- МОДАЛЬНЕ ВІКНО --- */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
-    }
-
-    .modal {
-        background: #1C2531;
-        border: 1px solid var(--accent-color);
-        padding: 30px;
-        border-radius: 15px;
-        width: 420px;
-        max-width: 90%;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-        .modal h2 {
-            margin: 0 0 10px 0;
-            color: var(--accent-color);
-        }
-
-        .modal input[type="text"] {
-            background: var(--bg-color);
-            border: 1px solid #818375;
-            color: white;
-            padding: 12px;
-            border-radius: 8px;
-            outline: none;
-            width: 100%;
-            box-sizing: border-box;
-        }
-
-    /* Toggle Switch */
+    /* --- TOGGLE SWITCH --- */
     .toggle-row {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-top: 10px;
     }
 
     .switch {
         position: relative;
+        display: inline-block;
         width: 44px;
         height: 22px;
     }
@@ -201,9 +198,9 @@
         left: 0;
         right: 0;
         bottom: 0;
-        background: #444;
-        border-radius: 22px;
+        background-color: #444;
         transition: .4s;
+        border-radius: 22px;
     }
 
         .slider:before {
@@ -213,86 +210,132 @@
             width: 16px;
             left: 3px;
             bottom: 3px;
-            background: white;
-            border-radius: 50%;
+            background-color: white;
             transition: .4s;
+            border-radius: 50%;
         }
 
     input:checked + .slider {
-        background: #6B8789;
+        background-color: #6B8789;
     }
 
         input:checked + .slider:before {
             transform: translateX(22px);
         }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal {
+        background: #1C2531;
+         border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 15px;
+        width: 420px;
+        max-width: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
 
-    <!-- ФОРМА ПОШУКУ -->
-    <form asp-controller="MySets" asp-action="Index" method="get" class="search-bar">
-        <input type="text" name="searchText"
-               placeholder="Пошук по назві ваших сетів..."
-               value="@ViewData["CurrentFilter"]" />
-        <button type="submit" class="btn-search">Шукати</button>
-        @if (!string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
-        {
-            <a asp-action="Index" style="color: var(--accent-color); text-decoration: none; align-self: center; margin-left: 10px;">Скинути</a>
-        }
-    </form>
+    <div class="filter-container">
+        <form asp-controller="MySets" asp-action="Index" method="get" class="filter-form">
+            <input type="text" name="searchText" placeholder="Пошук ваших сетів..." value="@ViewData["CurrentFilter"]" />
+            <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
+                <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
+                <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
+            </select>
+            <button type="submit" class="btn-search">Шукати</button>
+        </form>
+    </div>
 
     <div class="sets-grid">
-        @* Картка створення *@
         <div class="set-card create-card" onclick="openCreateModal()">
             <div style="font-size: 3rem; color: var(--accent-color); line-height: 1;">+</div>
-            <div style="margin-top: 10px; font-weight: 500;">Створити новий сет</div>
+            <div style="font-weight: 500;">Створити новий сет</div>
         </div>
 
         @foreach (var set in Model)
         {
-            <div class="set-card" onclick="handleCardClick(event, '/MySets/Details/@set.Id')">
+            <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
 
                 <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase())">Редагувати</button>
+                    
                     <a asp-controller="MySets" asp-action="Delete" asp-route-id="@set.Id"
                        onclick="event.stopPropagation(); return confirm('Видалити цей сет?')">Видалити</a>
                 </div>
 
-                <h3 style="margin: 0 0 8px 0;">@set.Name</h3>
+                <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
 
-                <div style="font-size: 0.75rem; margin-top: 15px; opacity: 0.5; display: flex; justify-content: space-between;">
-                    <span>@set.FlashcardsCount карток</span>
-                    <span>@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+                <div class="card-footer">
+                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                        <span class="sets-count-badge">@set.FlashcardsCount карток</span>
+                        <span style="font-size: 0.75rem; opacity: 0.6;">@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+                    </div>
+
+                    @{
+                        var localUpdate = set.LastUpdatedAt.ToLocalTime();
+                        var localCreate = set.CreatedAt.ToLocalTime();
+                    }
+
+                    <div class="date-info">
+                        <span>Створено:</span>
+                        <span>@localCreate.ToString("dd.MM.yyyy")</span>
+                    </div>
+
+                    <div class="date-info">
+                        <span>Оновлено:</span>
+                        <span style="color: var(--accent-color); opacity: 0.9;">
+                            @if (localUpdate.Date == DateTime.Now.Date)
+                            {
+                                @localUpdate.ToString("HH:mm")
+                            }
+                            else
+                            {
+                                @localUpdate.ToString("dd.MM.yyyy")
+                            }
+                        </span>
+                    </div>
                 </div>
             </div>
         }
     </div>
-
-    @if (!Model.Any() && !string.IsNullOrEmpty(ViewData["CurrentFilter"]?.ToString()))
-    {
-        <div style="text-align: center; padding: 40px; opacity: 0.5;">
-            Нічого не знайдено за запитом "@ViewData["CurrentFilter"]"
-        </div>
-    }
 </div>
 
-@* Універсальна модалка *@
+@* Модалка *@
 <div class="modal-overlay" id="setModal">
     <div class="modal">
         <form id="setForm" method="post">
             <h2 id="modalTitle">Сет</h2>
-            <input type="hidden" name="Id" id="setIdField" value="">
+            <input type="hidden" name="Id" id="setIdField">
+
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 0.8rem; opacity: 0.6;">Назва сету</label>
-                <input type="text" name="Name" id="setNameField" required placeholder="Наприклад: Англійська B2">
+                <input type="text" name="Name" id="setNameField" required style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px;">
             </div>
+
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 0.8rem; opacity: 0.6;">Опис</label>
-                <input type="text" name="Description" id="setDescField" placeholder="Короткий опис">
+                <input type="text" name="Description" id="setDescField" style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px;">
             </div>
+
             <div class="toggle-row">
                 <span>Зробити публічним</span>
                 <label class="switch">
@@ -300,6 +343,7 @@
                     <span class="slider"></span>
                 </label>
             </div>
+
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
                 <button type="button" onclick="closeModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
                 <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 25px; border-radius:6px; cursor:pointer; font-weight:bold;">Зберегти</button>
@@ -312,7 +356,6 @@
     <script>
         const modal = document.getElementById('setModal');
         const form = document.getElementById('setForm');
-
         function openCreateModal() {
             document.getElementById('modalTitle').innerText = "Новий навчальний сет";
             form.action = "@Url.Action("Create", "MySets")";
@@ -322,7 +365,6 @@
             document.getElementById('setPublicField').checked = true;
             modal.style.display = 'flex';
         }
-
         function openEditModal(event, id, name, desc, isPublic) {
             event.stopPropagation();
             document.getElementById('modalTitle').innerText = "Редагувати сет";
@@ -332,31 +374,24 @@
             document.getElementById('setDescField').value = desc;
             document.getElementById('setPublicField').checked = (isPublic === 'true');
             modal.style.display = 'flex';
+            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
         }
-
         function closeModal() { modal.style.display = 'none'; }
 
         function handleCardClick(event, url) {
-            if (event.target.closest('.card-menu-btn') || event.target.closest('.dropdown')) {
-                return;
-            }
+            if (event.target.closest('.card-menu-btn') || event.target.closest('.dropdown')) return;
             window.location.href = url;
         }
-
         function toggleMenu(event) {
             event.stopPropagation();
             const btn = event.currentTarget;
             const dropdown = btn.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(d => {
-                if (d !== dropdown) d.style.display = 'none';
-            });
+            document.querySelectorAll('.dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
             dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
         }
 
         window.onclick = (e) => {
-            if (!e.target.matches('.card-menu-btn')) {
-                document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-            }
+            if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
             if (e.target === modal) closeModal();
         };
     </script>
