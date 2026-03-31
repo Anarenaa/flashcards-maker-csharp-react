@@ -6,6 +6,7 @@
         IFlashcardRepository Flashcards { get; }
         ICategoryRepository Categories { get; }
         ICollectionRepository Collections { get; }
+        IPracticeRepository Practice { get;  }
         Task SaveChangesAsync();
     }
 }

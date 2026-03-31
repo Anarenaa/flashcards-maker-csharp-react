@@ -10,6 +10,7 @@ namespace Repositories
         public IFlashcardRepository Flashcards { get; }
         public ICategoryRepository Categories { get; }
         public ICollectionRepository Collections { get; }
+        public IPracticeRepository Practice { get; }
         //public IUserRepository Users { get; }
         public UnitOfWork(DataContext context)
         {
@@ -18,6 +19,7 @@ namespace Repositories
             Flashcards = new FlashcardRepository(_context);
             Categories = new CategoryRepository(_context);
             Collections = new CollectionRepository(_context);
+            Practice = new PracticeRepository(_context);
             //Users = new UserRepository(_context);
         }
         public async Task SaveChangesAsync()
