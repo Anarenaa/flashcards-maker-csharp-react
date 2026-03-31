@@ -28,25 +28,54 @@ namespace App.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register(RegisterDto dto, string? confirm)
         {
+            if (dto.Password != confirm)
+            {
+                ModelState.AddModelError(string.Empty, "Паролі не збігаються");
+            }
+
             if (!ModelState.IsValid)
             {
                 return View(dto);
             }
 
             var result = await _authService.RegisterAsync(dto);
-            
+
             if (result.Succeeded)
             {
-                return RedirectToAction("Login");
+             
+                var loginDto = new LoginDto
+                {
+                    UserNameOrEmail = dto.Email,
+                    Password = dto.Password
+                };
+
+                try
+                {
+          
+                    var token = await _authService.LoginAsync(loginDto);
+
+                    Response.Cookies.Append("AuthToken", token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Expires = DateTime.UtcNow.AddDays(7)
+                    });
+
+                    return RedirectToAction("Index", "Main");
+                }
+                catch
+                {
+                    return RedirectToAction("Login");
+                }
             }
-            
+
             foreach (var error in result.Errors)
             {
                 ModelState.AddModelError(string.Empty, error.Description);
             }
-            
+
             return View(dto);
         }
 
