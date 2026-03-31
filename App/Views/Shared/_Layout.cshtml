@@ -130,6 +130,46 @@
             }
         }
     </style>
+    <script>
+           function applyTheme(themeData) {
+            if (!themeData) return;
+            const root = document.documentElement;
+            root.style.setProperty('--bg-color', themeData.bg);
+            root.style.setProperty('--accent-color', themeData.accent);
+            root.style.setProperty('--btn-border', themeData.accent + '4D'); 
+            root.style.setProperty('--btn-hover', themeData.btn);
+        }
+
+        
+        const savedTheme = localStorage.getItem('user-theme');
+        if (savedTheme) {
+            applyTheme(JSON.parse(savedTheme));
+        }
+    </script>
+    <script>
+        function getCookie(name) {
+            let value = "; " + document.cookie;
+            let parts = value.split("; " + name + "=");
+            if (parts.length === 2) return parts.pop().split(";").shift();
+        }
+
+        function applyTheme(bg, accent, btn) {
+            const root = document.documentElement;
+            root.style.setProperty('--bg-color', bg);
+            root.style.setProperty('--accent-color', accent);
+            root.style.setProperty('--btn-border', accent + '4D');
+            root.style.setProperty('--btn-hover', btn);
+        }
+
+       
+        const themeCookie = getCookie("UserTheme");
+        if (themeCookie) {
+            const colors = decodeURIComponent(themeCookie).split('|');
+            if (colors.length === 3) {
+                applyTheme(colors[0], colors[1], colors[2]);
+            }
+        }
+    </script>
 </head>
 <body>
 

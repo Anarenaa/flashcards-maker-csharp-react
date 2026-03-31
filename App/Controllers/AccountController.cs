@@ -246,7 +246,26 @@ namespace App.Controllers
         //        return RedirectToAction("MyProfile");
         //    }
         //}
+        [Authorize]
+        [HttpPost("save-theme")]
+        public async Task<IActionResult> SaveTheme(string bg, string accent, string btn)
+        {
+            if (!int.TryParse(UserId, out int currentUserId)) return Unauthorized();
 
+            try
+            {
+                
+                var themeData = $"{bg}|{accent}|{btn}";
+                Response.Cookies.Append("UserTheme", themeData, new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddYears(1),
+                    HttpOnly = false 
+                });
+
+                return Ok();
+            }
+            catch { return BadRequest(); }
+        }
         [HttpPost("logout")]
         public IActionResult Logout()
         {

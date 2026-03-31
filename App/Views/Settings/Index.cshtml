@@ -336,7 +336,54 @@
                         <label style="font-size: 0.85rem; opacity: 0.7;">Кнопки</label>
                     </div>
                 </div>
+                @section Scripts {
+                    <script>
 
+                        const themePresets = {
+                            storm: { bg: '#141B25', accent: '#F0FFFF', btn: '#6B8789' },
+                            midnight: { bg: '#0D0D0D', accent: '#BB86FC', btn: '#3700B3' },
+                            forest: { bg: '#0B1410', accent: '#81C784', btn: '#2E7D32' }
+                        };
+
+                        document.querySelectorAll('.theme-item').forEach(item => {
+                            item.addEventListener('click', function() {
+                                document.querySelectorAll('.theme-item').forEach(i => i.classList.remove('active'));
+                                this.classList.add('active');
+
+                                const themeName = this.querySelector('span').innerText.toLowerCase();
+                                let themeData;
+                                if (themeName.includes('storm')) themeData = themePresets.storm;
+                                if (themeName.includes('midnight')) themeData = themePresets.midnight;
+                                if (themeName.includes('forest')) themeData = themePresets.forest;
+
+                                if (themeData) {
+                                    applyTheme(themeData);
+                                    localStorage.setItem('user-theme', JSON.stringify(themeData));
+                                }
+                            });
+                        });
+
+                        document.querySelector('.btn-main').addEventListener('click', function() {
+                            const customTheme = {
+                                bg: document.querySelectorAll('.color-input')[0].value,
+                                accent: document.querySelectorAll('.color-input')[1].value,
+                                btn: document.querySelectorAll('.color-input')[2].value
+                            };
+
+                            applyTheme(customTheme);
+                            localStorage.setItem('user-theme', JSON.stringify(customTheme));
+                            alert("Кастомну тему застосовано!");
+                        });
+
+                        function applyTheme(themeData) {
+                            const root = document.documentElement;
+                            root.style.setProperty('--bg-color', themeData.bg);
+                            root.style.setProperty('--accent-color', themeData.accent);
+                            root.style.setProperty('--btn-border', themeData.accent + '4D');
+                            root.style.setProperty('--btn-hover', themeData.btn);
+                        }
+                    </script>
+                }
                 @* СТАНДАРТНА КНОПКА *@
                 <button type="button" class="btn-main">
                     Застосувати стиль
