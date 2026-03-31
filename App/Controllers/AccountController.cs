@@ -164,7 +164,16 @@ namespace App.Controllers
                 return RedirectToAction("Login");
             }
         }
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
+        {
+            var properties = new AuthenticationProperties
+            {
+                RedirectUri = Url.Action("GoogleResponse")
+            };
 
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+        }
         //[Authorize]
         //[HttpGet("my-profile")]
         //public async Task<IActionResult> MyProfile()

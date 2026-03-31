@@ -50,6 +50,12 @@
             opacity: 0.7;
         }
 
+        .password-container {
+            position: relative;
+            display: flex;
+            align-items: center;
+        }
+
         input {
             width: 100%;
             background: #141B25;
@@ -64,7 +70,21 @@
 
             input:focus {
                 border-color: #F0FFFF;
-                box-shadow: 0 0 10px rgba(240, 255, 255, 0.2);
+            }
+
+        .toggle-password {
+            position: absolute;
+            right: 12px;
+            cursor: pointer;
+            opacity: 0.5;
+            transition: 0.3s;
+            display: flex;
+            align-items: center;
+        }
+
+            .toggle-password:hover {
+                opacity: 1;
+                color: #F0FFFF;
             }
 
         .btn-auth {
@@ -86,12 +106,53 @@
                 transform: translateY(-2px);
             }
 
-        .validation-summary {
-            color: #ff8080;
-            font-size: 0.8rem;
-            margin-bottom: 15px;
+        /* СТИЛІ РОЗДІЛЬНИКА */
+        .separator {
+            display: flex;
+            align-items: center;
             text-align: center;
+            margin: 25px 0;
+            opacity: 0.4;
+            font-size: 0.8rem;
         }
+
+            .separator::before, .separator::after {
+                content: '';
+                flex: 1;
+                border-bottom: 1px solid rgba(255,255,255,0.2);
+            }
+
+            .separator:not(:empty)::before {
+                margin-right: .5em;
+            }
+
+            .separator:not(:empty)::after {
+                margin-left: .5em;
+            }
+
+        /* СТИЛЬ КНОПКИ GOOGLE */
+        .btn-google {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            width: 100%;
+            background: white;
+            color: #141B25;
+            border: none;
+            padding: 12px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+            text-decoration: none;
+            font-size: 0.9rem;
+        }
+
+            .btn-google:hover {
+                background: #e0e0e0;
+                transform: translateY(-2px);
+            }
 
         .auth-footer {
             text-align: center;
@@ -105,30 +166,67 @@
                 text-decoration: none;
                 font-weight: bold;
             }
+
+        .validation-summary {
+            color: #ff8080;
+            font-size: 0.8rem;
+            margin-bottom: 15px;
+            text-align: center;
+        }
     </style>
 </head>
 <body>
+
     <div class="auth-card">
         <h2>Вхід</h2>
+
         <form asp-action="Login" method="post">
             <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
             <div class="form-group">
                 <label>Логін або Email</label>
-                @* ВІДПОВІДАЄ: UserNameOrEmail у DTO *@
-                <input asp-for="UserNameOrEmail" placeholder="Введіть логін або пошту" />
+                <input asp-for="UserNameOrEmail" placeholder="Введіть логін або пошту" required />
             </div>
 
             <div class="form-group">
                 <label>Пароль</label>
-                <input asp-for="Password" type="password" placeholder="••••••••" />
+                <div class="password-container">
+                    <input asp-for="Password" type="password" id="pass_main" placeholder="••••••••" required />
+                    <span class="toggle-password" onclick="togglePass('pass_main', this)">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                            <circle cx="12" cy="12" r="3"></circle>
+                        </svg>
+                    </span>
+                </div>
             </div>
 
             <button type="submit" class="btn-auth">Увійти</button>
         </form>
+
+        <div class="separator">або за допомогою</div>
+
+        <a asp-action="GoogleLogin" class="btn-google">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="18" height="18">
+            Продовжити з Google
+        </a>
+
         <div class="auth-footer">
             Немає акаунту? <a asp-action="Register">Створити</a>
         </div>
     </div>
+
+    <script>
+        function togglePass(inputId, icon) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                icon.style.opacity = "1";
+            } else {
+                input.type = "password";
+                icon.style.opacity = "0.5";
+            }
+        }
+    </script>
 </body>
 </html>
