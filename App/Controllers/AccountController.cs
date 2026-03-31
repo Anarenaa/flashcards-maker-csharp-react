@@ -79,7 +79,6 @@ namespace App.Controllers
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
 
-                // Додаємо токен в ViewBag для JavaScript
                 ViewBag.AuthToken = token;
 
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
@@ -107,10 +106,8 @@ namespace App.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Витягуємо унікальний Google ID (це і є наш ProviderKey)
             var googleId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Інші дані для створення профілю
             var email = result.Principal.FindFirstValue(ClaimTypes.Email);
             var name = result.Principal.FindFirstValue(ClaimTypes.Name);
             var avatar = result.Principal.FindFirstValue("picture")
@@ -139,78 +136,78 @@ namespace App.Controllers
             }
         }
 
-        [Authorize]
-        [HttpGet("my-profile")]
-        public async Task<IActionResult> MyProfile()
-        {
-            if (!int.TryParse(UserId, out int currentUserId))
-            {
-                Response.Cookies.Delete("AuthToken");
-                return RedirectToAction("Login");
-            }
-            try
-            {
-                var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
-                return View(userDto);
-            }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Index", "Home");
-            }
-        }
+        //[Authorize]
+        //[HttpGet("my-profile")]
+        //public async Task<IActionResult> MyProfile()
+        //{
+        //    if (!int.TryParse(UserId, out int currentUserId))
+        //    {
+        //        Response.Cookies.Delete("AuthToken");
+        //        return RedirectToAction("Login");
+        //    }
+        //    try
+        //    {
+        //        var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
+        //        return View(userDto);
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        return RedirectToAction("Index", "Home");
+        //    }
+        //}
 
-        [Authorize]
-        [HttpPost("update-avatar")]
-        [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
-        public async Task<IActionResult> UpdateAvatar(string newPath)
-        {
-            if (string.IsNullOrWhiteSpace(newPath))
-            {
-                TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
-                return RedirectToAction("MyProfile");
-            }
+        //[Authorize]
+        //[HttpPost("update-avatar")]
+        //[ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
+        //public async Task<IActionResult> UpdateAvatar(string newPath)
+        //{
+        //    if (string.IsNullOrWhiteSpace(newPath))
+        //    {
+        //        TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
+        //        return RedirectToAction("MyProfile");
+        //    }
 
-            try
-            {
-                await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
+        //    try
+        //    {
+        //        await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
 
-                TempData["SuccessMessage"] = "Аватар успішно оновлено!";
-            }
-            catch (NotFoundException)
-            {
-                return NotFound("Користувача не знайдено в системі.");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
-            }
+        //        TempData["SuccessMessage"] = "Аватар успішно оновлено!";
+        //    }
+        //    catch (NotFoundException)
+        //    {
+        //        return NotFound("Користувача не знайдено в системі.");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
+        //    }
 
-            return RedirectToAction("MyProfile");
-        }
-        [Authorize]
-        [HttpPost("delete-profile")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> DeleteProfile()
-        {
-            try
-            {
-                if (!int.TryParse(UserId, out int currentUserId))
-                {
-                    return RedirectToAction("Login");
-                }
+        //    return RedirectToAction("MyProfile");
+        //}
+        //[Authorize]
+        //[HttpPost("delete-profile")]
+        //[ValidateAntiForgeryToken]
+        //public async Task<IActionResult> DeleteProfile()
+        //{
+        //    try
+        //    {
+        //        if (!int.TryParse(UserId, out int currentUserId))
+        //        {
+        //            return RedirectToAction("Login");
+        //        }
 
-                await _userService.DeleteUserAsync(currentUserId);
-                Response.Cookies.Delete("AuthToken");
+        //        await _userService.DeleteUserAsync(currentUserId);
+        //        Response.Cookies.Delete("AuthToken");
 
-                TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
-                return RedirectToAction("Index", "Home");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
-                return RedirectToAction("MyProfile");
-            }
-        }
+        //        TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
+        //        return RedirectToAction("Index", "Home");
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
+        //        return RedirectToAction("MyProfile");
+        //    }
+        //}
 
         [HttpPost("logout")]
         public IActionResult Logout()

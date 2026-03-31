@@ -1,0 +1,169 @@
+﻿@using Core.DTOs
+@model UserEditDTO
+
+@{
+    ViewData["Title"] = "Профіль";
+}
+
+<style>
+    .profile-container {
+        max-width: 900px;
+        margin-top: 10px;
+    }
+
+    /* ВЕРХНЯ ПАНЕЛЬ */
+    .profile-header {
+        display: flex;
+        align-items: center;
+        gap: 30px;
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        padding: 40px;
+        border-radius: 20px;
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .profile-avatar {
+        width: 140px;
+        height: 140px;
+        border-radius: 50%;
+        border: 3px solid var(--accent-color);
+        background: white; /* Як на твоєму ескізі */
+        object-fit: cover;
+    }
+
+    .profile-main-info {
+        flex-grow: 1;
+    }
+
+    .label-small {
+        font-size: 0.8rem;
+        text-transform: lowercase;
+        opacity: 0.6;
+        margin: 0;
+    }
+
+    .info-value {
+        font-size: 1.6rem;
+        font-weight: bold;
+        color: #fff;
+        margin-bottom: 15px;
+    }
+
+    .edit-profile-btn {
+        position: absolute;
+        top: 30px;
+        right: 40px;
+        color: var(--accent-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+        transition: 0.3s;
+    }
+
+        .edit-profile-btn:hover {
+            text-decoration: underline;
+            opacity: 1;
+        }
+
+    /* СІТКА 2х2 */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .stat-card {
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        padding: 30px;
+        border-radius: 15px;
+        text-align: center;
+        transition: 0.3s;
+    }
+
+        .stat-card:hover {
+            border-color: var(--accent-color);
+            background: var(--btn-hover);
+        }
+
+    .stat-title {
+        display: block;
+        font-size: 0.9rem;
+        opacity: 0.5;
+        margin-bottom: 10px;
+    }
+
+    .stat-number {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: var(--accent-color);
+    }
+
+    @@media (max-width: 600px) {
+        .profile-header {
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .edit-profile-btn {
+            position: static;
+            margin-top: 10px;
+            display: block;
+        }
+
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
+<div class="content-area">
+    <div class="profile-container">
+
+        <div class="profile-header">
+            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+            {
+                <img src="@Model.AvatarUrl" class="profile-avatar" />
+            }
+            else
+            {
+                <div class="profile-avatar" style="display:flex; align-items:center; justify-content:center; color:#333; font-size:3rem;">👤</div>
+            }
+
+            <div class="profile-main-info">
+                <p class="label-small">нік нейм:</p>
+                <div class="info-value">@Model.UserName</div>
+
+                <p class="label-small">Email:</p>
+                <div class="info-value" style="font-size: 1.2rem;">@Model.Email</div>
+            </div>
+
+            @* Веде на Account/Settings *@
+            <a asp-controller="Account" asp-action="Settings" class="edit-profile-btn">Редагування інформації</a>
+        </div>
+
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-title">кількість сетів</span>
+              
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-title">країна</span>
+                <div class="stat-number">Україна</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-title">досягнення</span>
+                <div class="stat-number">12</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-title">реєстрація</span>
+               
+            </div>
+        </div>
+
+    </div>
+</div>

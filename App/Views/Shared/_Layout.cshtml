@@ -147,8 +147,8 @@
             <a asp-controller="Main" asp-action="Index" class="nav-btn @(action == "Index" && controller == "Main" ? "active" : "")">Головна</a>
             <a asp-controller="MySets" asp-action="Index" class="nav-btn @(controller == "MySets" ? "active" : "")">Мої сети</a>
             <a asp-controller="Collections" asp-action="Index" class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
-            <a asp-controller="Account" asp-action="Profile" class="nav-btn @(action == "Profile" ? "active" : "")">Профіль</a>
-            <a asp-controller="Account" asp-action="Settings" class="nav-btn @(action == "Settings" ? "active" : "")">Налаштування</a>
+            <a asp-controller="MyProfile" asp-action="Index" class="nav-btn @(action == "Profile" ? "active" : "")">Профіль</a>
+            <a asp-controller="Settings" asp-action="Index" class="nav-btn @(action == "Settings" ? "active" : "")">Налаштування</a>
             <a asp-controller="Home" asp-action="Index" class="nav-btn btn-exit">Початок</a>
         </nav>
     </aside>
