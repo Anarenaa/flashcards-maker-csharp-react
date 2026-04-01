@@ -30,7 +30,7 @@ namespace App.Controllers
                 var setDetail = await _setService.GetSetByIdAsync(id);
 
                 
-                ViewBag.AllCategories = await _categoryService.GetCategoriesByUserIdAsync();
+                ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
 
                 return View(setDetail);
             }
@@ -74,7 +74,7 @@ namespace App.Controllers
             int categoryId = 0;
             if (!string.IsNullOrWhiteSpace(newCategoryName))
             {
-                var userCats = await _categoryService.GetCategoriesByUserIdAsync();
+                var userCats = await _categoryService.GetAllCategoriesAsync();
                 var existing = userCats.FirstOrDefault(c => c.Name.Equals(newCategoryName.Trim(), StringComparison.OrdinalIgnoreCase));
 
                 if (existing == null)
@@ -82,7 +82,7 @@ namespace App.Controllers
                     var newCat = new CategoryDTO { Name = newCategoryName.Trim() };
                     await _categoryService.CreateCategoryAsync(newCat);
                     
-                    var updated = await _categoryService.GetCategoriesByUserIdAsync();
+                    var updated = await _categoryService.GetAllCategoriesAsync();
                     categoryId = updated.First(c => c.Name.Equals(newCategoryName.Trim())).Id.Value;
                 }
                 else { categoryId = existing.Id.Value; }

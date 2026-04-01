@@ -1,13 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Services;
-using Core.DTOs;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace App.Controllers
 {
-    public class MainController : Controller
+    public class MainController : BaseController
     {
         private readonly SetService _setService;
         private readonly CollectionService _collectionService;
@@ -18,7 +16,6 @@ namespace App.Controllers
             _collectionService = collectionService;
         }
 
-        // ТІЛЬКИ ОДИН МЕТОД INDEX
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
             // 1. Отримуємо всі публічні сети з урахуванням пошуку
@@ -36,13 +33,17 @@ namespace App.Controllers
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentSort"] = sortOrder;
 
-            // Завантажуємо колекції для модалки збереження (userId = 1)
-            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(1);
+            // Завантажуємо колекції для модалки збереження
+            if (!string.IsNullOrEmpty(UserId))
+            {
+                ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId));
+            }
 
             return View(sets);
         }
 
         [HttpPost]
+        [Authorize]  // Тільки авторизовані користувачі можуть додавати в колекції
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
         {
             int finalCollectionId = collectionId ?? 0;
@@ -51,9 +52,9 @@ namespace App.Controllers
             if (!string.IsNullOrWhiteSpace(newCollectionName))
             {
                 var newCol = new CollectionDTO { Name = newCollectionName.Trim() };
-                await _collectionService.CreateCollectionAsync(newCol);
+                await _collectionService.CreateCollectionAsync(newCol, int.Parse(UserId));
 
-                var userCollections = await _collectionService.GetCollectionsByUserIdAsync(1);
+                var userCollections = await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId));
                 var createdCol = userCollections.FirstOrDefault(c => c.Name == newCollectionName.Trim());
 
                 if (createdCol != null) finalCollectionId = createdCol.Id.Value;

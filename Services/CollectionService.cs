@@ -12,10 +12,10 @@ namespace Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<IEnumerable<CollectionDTO>> GetCollectionsByUserIdAsync(int userId = 0)
+        public async Task<IEnumerable<CollectionDTO>> GetCollectionsByUserIdAsync(int userId)
         {
             var collections = await _unitOfWork.Collections.GetAllAsync(
-             //filter: c => c.UserId == userId
+                filter: c => c.UserId == userId
              );
 
             return collections.Select(
@@ -23,7 +23,9 @@ namespace Services
                 {
                     Id = c.Id,
                     Name = c.Name,
-                    Description = c.Description
+                    Description = c.Description,
+                    CreatedAt = c.CreatedAt,
+                    LastUpdatedAt = c.UpdatedAt
                 }
             );
         }
@@ -56,12 +58,13 @@ namespace Services
                 }).ToList()
             };
         }
-        public async Task CreateCollectionAsync(CollectionDTO collectionDto)
+        public async Task CreateCollectionAsync(CollectionDTO collectionDto, int userId)
         {
             var collection = new Collection
             {
                 Name = collectionDto.Name,
-                Description = collectionDto.Description
+                Description = collectionDto.Description,
+                UserId = userId
             };
             await _unitOfWork.Collections.AddAsync(collection);
             await _unitOfWork.SaveChangesAsync();

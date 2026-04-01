@@ -5,6 +5,7 @@ using Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -13,11 +14,13 @@ namespace App.Controllers
     public class AccountController : BaseController
     {
         private readonly IAuthService _authService;
+        private readonly UserManager<User> _userManager;
         private readonly UserService _userService;
 
-        public AccountController(IAuthService authService, UserService userService)
+        public AccountController(IAuthService authService, UserManager<User> userManager, UserService userService)
         {
             _authService = authService;
+            _userManager = userManager;
             _userService = userService;
         }
 
@@ -30,13 +33,32 @@ namespace App.Controllers
         [HttpPost("register")]
         public async Task<IActionResult> Register(RegisterDto dto, string? confirm)
         {
+            // Спочатку перевіряємо базову валідацію
+            if (!ModelState.IsValid)
+            {
+                return View(dto);
+            }
+
+            // Потім перевіряємо підтвердження пароля
             if (dto.Password != confirm)
             {
                 ModelState.AddModelError(string.Empty, "Паролі не збігаються");
+                return View(dto);
             }
 
-            if (!ModelState.IsValid)
+            // Перевірка унікальності email
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingUser != null)
             {
+                ModelState.AddModelError(string.Empty, "Користувач з таким email вже існує");
+                return View(dto);
+            }
+
+            // Перевірка унікальності імені користувача
+            var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
+            if (existingUserName != null)
+            {
+                ModelState.AddModelError(string.Empty, "Користувач з таким іменем вже існує");
                 return View(dto);
             }
 
@@ -174,78 +196,60 @@ namespace App.Controllers
 
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
-        //[Authorize]
-        //[HttpGet("my-profile")]
-        //public async Task<IActionResult> MyProfile()
-        //{
-        //    if (!int.TryParse(UserId, out int currentUserId))
-        //    {
-        //        Response.Cookies.Delete("AuthToken");
-        //        return RedirectToAction("Login");
-        //    }
-        //    try
-        //    {
-        //        var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
-        //        return View(userDto);
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        return RedirectToAction("Index", "Home");
-        //    }
-        //}
+        
+        [Authorize]
+        [HttpPost("update-avatar")]
+        [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
+        public async Task<IActionResult> UpdateAvatar(string newPath)
+        {
+            if (string.IsNullOrWhiteSpace(newPath))
+            {
+                TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
+                return RedirectToAction("MyProfile");
+            }
 
-        //[Authorize]
-        //[HttpPost("update-avatar")]
-        //[ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
-        //public async Task<IActionResult> UpdateAvatar(string newPath)
-        //{
-        //    if (string.IsNullOrWhiteSpace(newPath))
-        //    {
-        //        TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
-        //        return RedirectToAction("MyProfile");
-        //    }
+            try
+            {
+                await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
 
-        //    try
-        //    {
-        //        await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
+                TempData["SuccessMessage"] = "Аватар успішно оновлено!";
+            }
+            catch (NotFoundException)
+            {
+                return NotFound("Користувача не знайдено в системі.");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
+            }
 
-        //        TempData["SuccessMessage"] = "Аватар успішно оновлено!";
-        //    }
-        //    catch (NotFoundException)
-        //    {
-        //        return NotFound("Користувача не знайдено в системі.");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
-        //    }
+            return RedirectToAction("MyProfile");
+        }
 
-        //    return RedirectToAction("MyProfile");
-        //}
-        //[Authorize]
-        //[HttpPost("delete-profile")]
-        //[ValidateAntiForgeryToken]
-        //public async Task<IActionResult> DeleteProfile()
-        //{
-        //    try
-        //    {
-        //        if (!int.TryParse(UserId, out int currentUserId))
-        //        {
-        //            return RedirectToAction("Login");
-        //        }
+        [Authorize]
+        [HttpPost("delete-profile")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProfile()
+        {
+            try
+            {
+                if (!int.TryParse(UserId, out int currentUserId))
+                {
+                    return RedirectToAction("Login");
+                }
 
-        //        await _userService.DeleteUserAsync(currentUserId);
-        //        Response.Cookies.Delete("AuthToken");
+                await _userService.DeleteUserAsync(currentUserId);
+                Response.Cookies.Delete("AuthToken");
 
-        //        TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
-        //        return RedirectToAction("Index", "Home");
-        //    }
-        //    catch (Exception ex)
-        //    {
-        //        TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
-        //        return RedirectToAction("MyProfile");
-        //    }
-        //}
+                TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
+                return RedirectToAction("MyProfile");
+            }
+        }
         [Authorize]
         [HttpPost("save-theme")]
         public async Task<IActionResult> SaveTheme(string bg, string accent, string btn)

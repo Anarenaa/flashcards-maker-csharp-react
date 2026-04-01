@@ -5,7 +5,7 @@ using Services;
 
 namespace App.Controllers
 {
-    public class CollectionsController : Controller
+    public class CollectionsController : BaseController
     {
         private readonly CollectionService _collectionService;
         private readonly SetService _setService; 
@@ -22,7 +22,7 @@ namespace App.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var collections = (await _collectionService.GetCollectionsByUserIdAsync()).ToList();
+            var collections = (await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId))).ToList();
 
             foreach (var item in collections)
             {
@@ -32,9 +32,6 @@ namespace App.Controllers
                         filter: s => s.Collections.Any(c => c.Id == item.Id.Value)
                     );
                     item.SetsCount = setsInCollection.Count();
-
-                    if (item.CreatedAt == default) item.CreatedAt = DateTime.Now;
-                    if (item.LastUpdatedAt == default) item.LastUpdatedAt = DateTime.Now;
                 }
             }
 
@@ -59,7 +56,7 @@ namespace App.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _collectionService.CreateCollectionAsync(collectionDto);
+                await _collectionService.CreateCollectionAsync(collectionDto, int.Parse(UserId));
             }
             return RedirectToAction(nameof(Index));
         }

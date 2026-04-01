@@ -38,11 +38,11 @@ namespace Services
 
             return setDtos;
         }
-        public async Task<List<SetDTO>> GetAllUserSetsAsync(int? userId, List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
-                    //filter: s => s.UserId == userId &&
-                    s => (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
+                    filter: s => s.UserId == userId &&
+                    (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
 
@@ -116,14 +116,14 @@ namespace Services
             };
         }
 
-        public async Task AddSetAsync(SetDTO setDto)
+        public async Task AddSetAsync(SetDTO setDto, int userId)
         {
             var set = new Set
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
-                IsPublic = setDto.IsPublic
-                //UserId should be set based on the authenticated user
+                IsPublic = setDto.IsPublic,
+                UserId = userId
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
@@ -206,6 +206,7 @@ namespace Services
             if (collection == null) throw new NotFoundException("Колекцію не знайдено");
 
             collection.Sets.Add(set);
+            collection.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
         }

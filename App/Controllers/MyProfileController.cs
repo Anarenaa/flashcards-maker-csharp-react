@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace App.Controllers
 {
     [Authorize]
-    public class MyProfileController : Controller
+    public class MyProfileController : BaseController
     {
         private readonly UserService _userService;
         private readonly IUnitOfWork _unitOfWork;
@@ -21,9 +21,9 @@ namespace App.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userIdClaim = User.FindFirstValue(ClaimTypes.NameIdentifier);
-            if (!int.TryParse(userIdClaim, out int currentUserId))
+            if (!int.TryParse(UserId, out int currentUserId))
             {
+                Response.Cookies.Delete("AuthToken");
                 return RedirectToAction("Login", "Account");
             }
 

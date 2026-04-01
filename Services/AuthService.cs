@@ -92,6 +92,14 @@ namespace Services
                 if (!addLoginResult.Succeeded)
                     throw new Exception("Не вдалося прив'язати Google-акаунт");
             }
+            else
+            {
+                if (!user.EmailConfirmed)
+                {
+                    user.EmailConfirmed = true;
+                    await _userManager.UpdateAsync(user);
+                }
+            }
 
             if (!string.IsNullOrEmpty(avatarUrl) && user.AvatarUrl != avatarUrl)
             {

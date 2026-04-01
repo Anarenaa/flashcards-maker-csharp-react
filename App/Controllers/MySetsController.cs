@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 using System.Linq;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace App.Controllers
 {
-    public class MySetsController : Controller
+    public class MySetsController : BaseController
     {
         private readonly SetService _setService;
         private readonly CollectionService _collectionService; 
@@ -19,7 +20,7 @@ namespace App.Controllers
 
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
-            var sets = await _setService.GetAllUserSetsAsync(null, null, searchText);
+            var sets = await _setService.GetAllUserSetsAsync(int.Parse(UserId), null, searchText);
 
             sets = sortOrder switch
             {
@@ -31,7 +32,7 @@ namespace App.Controllers
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentSort"] = sortOrder;
 
-            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(1);
+            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId));
 
             return View(sets);
         }
@@ -44,7 +45,7 @@ namespace App.Controllers
                 setDto.CreatedAt = DateTime.Now;
                 setDto.LastUpdatedAt = DateTime.Now;
 
-                await _setService.AddSetAsync(setDto);
+                await _setService.AddSetAsync(setDto, int.Parse(UserId));
                 return RedirectToAction(nameof(Index));
             }
             return await Index(null);
