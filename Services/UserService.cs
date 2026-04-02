@@ -15,12 +15,12 @@ namespace Services
             _userManager = userManager;
             _unitOfWork = unitOfWork;
         }
-        public async Task<UserEditDTO> GetMyPrivateProfileAsync(int myId)
+        public async Task<PrivateUserDTO> GetMyPrivateProfileAsync(int myId)
         {
             var user = await _userManager.FindByIdAsync(myId.ToString());
             if (user == null) throw new NotFoundException("Користувача не знайдено");
 
-            return new UserEditDTO
+            return new PrivateUserDTO
             {
                 Id = user.Id,
                 AvatarUrl = user.AvatarUrl,

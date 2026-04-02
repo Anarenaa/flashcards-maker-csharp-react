@@ -1,6 +1,6 @@
 ﻿namespace Core.DTOs
 {
-    public class UserEditDTO
+    public class PrivateUserDTO
     {
         public int Id { get; set; }
         public string? AvatarUrl { get; set; }

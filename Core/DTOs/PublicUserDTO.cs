@@ -2,7 +2,7 @@
 
 namespace Core.DTOs
 {
-    public class PublicUserDTO : UserEditDTO
+    public class PublicUserDTO : PrivateUserDTO
     {
         public List<SetDTO> Sets { get; set; } = new List<SetDTO>();
     }

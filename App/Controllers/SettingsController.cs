@@ -25,12 +25,12 @@ namespace App.Controllers
             }
             catch
             {
-                var fallbackModel = new UserEditDTO
+                var fallbackModel = new PrivateUserDTO
                 {
                     UserName = "Користувач",
                     Email = "email@example.com",
                     AvatarUrl = ""
-                };
+				};
                 return View(fallbackModel);
             }
         }
