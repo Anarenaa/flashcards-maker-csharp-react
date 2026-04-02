@@ -25,7 +25,11 @@ namespace Services
                 Id = user.Id,
                 AvatarUrl = user.AvatarUrl,
                 UserName = user.UserName,
-                Email = user.Email
+                Email = user.Email,
+                CollectionsCount = await _unitOfWork.Collections.GetUserCollectionsCount(user.Id),
+                SetsCount = await _unitOfWork.Sets.GetUserSetsCount(user.Id),
+                FlashcardsCount = await _unitOfWork.Flashcards.GetUserFlashcardsCount(user.Id),
+                CreatedAt = user.CreatedAt
             };
         }
         public async Task UpdateMyProfileAvatarAsync(int id, string path)
@@ -72,6 +76,10 @@ namespace Services
                 Id = user.Id,
                 AvatarUrl = user.AvatarUrl,
                 UserName = user.UserName,
+                Email = user.Email,
+                SetsCount = await _unitOfWork.Sets.GetUserSetsCount(userId),
+                FlashcardsCount = await _unitOfWork.Flashcards.GetUserFlashcardsCount(userId),
+                CreatedAt = user.CreatedAt,
                 Sets = sets.Select(s => new SetDTO
                     {
                         Id = s.Id,

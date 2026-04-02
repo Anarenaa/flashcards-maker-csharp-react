@@ -223,5 +223,29 @@ namespace Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task CopySetToUser(int setId, int userId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards, Categories");
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+            var newSet = new Set
+            {
+                Name = set.Name + " (Копія)",
+                Description = set.Description,
+                IsPublic = false,
+                UserId = userId,
+                Categories = set.Categories.ToList()
+            };
+            foreach (var flashcard in set.Flashcards)
+            {
+                var newFlashcard = new Flashcard
+                {
+                    Term = flashcard.Term,
+                    Definition = flashcard.Definition
+                };
+                newSet.Flashcards.Add(newFlashcard);
+            }
+            await _unitOfWork.Sets.AddAsync(newSet);
+            await _unitOfWork.SaveChangesAsync();
+        }
     }
 }

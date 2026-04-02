@@ -6,5 +6,6 @@ namespace Repositories.Interfaces
     {
         Task DeleteUnusedUserSetsAsync(int userId);
         Task UnableSetsWithoutUserInCollections();
+        Task<int> GetUserSetsCount(int userId);
     }
 }

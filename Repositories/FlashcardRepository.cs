@@ -19,5 +19,9 @@ namespace Repositories
                 .GroupBy(f => f.SetId)
                 .ToDictionaryAsync(g => g.Key, g => g.Count());
         }
+        public async Task<int> GetUserFlashcardsCount(int userId)
+        {
+            return await _dbSet.CountAsync(f => f.Set.UserId == userId);
+        }
     }
 }

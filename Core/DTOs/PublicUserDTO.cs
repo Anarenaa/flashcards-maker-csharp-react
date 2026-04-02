@@ -1,11 +1,9 @@
-﻿namespace Core.DTOs
-{
-    public class PublicUserDTO
-    {
-        public int Id { get; set; }
-        public string? AvatarUrl { get; set; }
-        public required string UserName { get; set; }
+﻿using System.Reflection.Metadata;
 
+namespace Core.DTOs
+{
+    public class PublicUserDTO : UserEditDTO
+    {
         public List<SetDTO> Sets { get; set; } = new List<SetDTO>();
     }
 }

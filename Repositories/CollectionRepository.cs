@@ -25,5 +25,9 @@ namespace Repositories
 
             return await query.FirstOrDefaultAsync();
         }
+        public async Task<int> GetUserCollectionsCount(int userId)
+        {
+            return await _dbSet.CountAsync(c => c.UserId == userId);
+        }
     }
 }

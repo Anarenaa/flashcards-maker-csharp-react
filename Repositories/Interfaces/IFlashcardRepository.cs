@@ -6,5 +6,6 @@ namespace Repositories.Interfaces
     {
         Task<int> GetCountBySetIdAsync(int setId);
         Task<Dictionary<int, int>> GetCountsBySetIdsAsync(IEnumerable<int> setIds);
+        Task<int> GetUserFlashcardsCount(int userId);
     }
 }

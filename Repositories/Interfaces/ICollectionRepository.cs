@@ -6,5 +6,6 @@ namespace Repositories.Interfaces
     {
         Task<bool> AnySetInCollectionAsync(int collectionId, int setId);
         Task<Set?> LoadSingleSetAsync(Collection collection, int setId);
+        Task<int> GetUserCollectionsCount(int userId);
     }
 }
