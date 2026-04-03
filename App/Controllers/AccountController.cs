@@ -197,34 +197,34 @@ namespace App.Controllers
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
         
-        [Authorize]
-        [HttpPost("update-avatar")]
-        [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
-        public async Task<IActionResult> UpdateAvatar(string newPath)
-        {
-            if (string.IsNullOrWhiteSpace(newPath))
-            {
-                TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
-                return RedirectToAction("MyProfile");
-            }
+       // [Authorize]
+       // [HttpPost("update-avatar")]
+       // [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
+       // public async Task<IActionResult> UpdateAvatar(string newPath)
+       // {
+         //   if (string.IsNullOrWhiteSpace(newPath))
+         //   {
+          //      TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
+          //      return RedirectToAction("MyProfile");
+          //  }
 
-            try
-            {
-                await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
+          //  try
+          //  {
+             //   await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
 
-                TempData["SuccessMessage"] = "Аватар успішно оновлено!";
-            }
-            catch (NotFoundException)
-            {
-                return NotFound("Користувача не знайдено в системі.");
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
-            }
+              //  TempData["SuccessMessage"] = "Аватар успішно оновлено!";
+          //  }
+          //  catch (NotFoundException)
+           // {
+           //     return NotFound("Користувача не знайдено в системі.");
+           // }
+           // catch (Exception ex)
+           // {
+             //   TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
+           // }
 
-            return RedirectToAction("MyProfile");
-        }
+//return RedirectToAction("MyProfile");
+      //  }
 
         [Authorize]
         [HttpPost("delete-profile")]

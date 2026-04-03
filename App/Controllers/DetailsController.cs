@@ -65,7 +65,29 @@ namespace App.Controllers
 
             return RedirectToAction("Index", new { id = setId });
         }
+        [HttpPost("DeleteCard")]
+        public async Task<IActionResult> DeleteCard(int cardId, int setId)
+        {
+            // 1. Видаляємо саму картку через сервіс
+            await _flashcardService.DeleteFlashcardAsync(cardId);
 
+            // 2. СИНХРОНІЗАЦІЯ ЧАСУ: Оновлюємо дату останньої зміни сету
+            var setDetail = await _setService.GetSetByIdAsync(setId);
+            if (setDetail != null)
+            {
+                var setUpdate = new SetDTO
+                {
+                    Id = setDetail.Id,
+                    Name = setDetail.Name,
+                    Description = setDetail.Description,
+                    IsPublic = setDetail.IsPublic,
+                };
+                await _setService.UpdateSetAsync(setUpdate);
+            }
+
+            // 3. Повертаємось назад у цей же сет
+            return RedirectToAction("Index", new { id = setId });
+        }
         // --- РОБОТА З КАТЕГОРІЯМИ ---
 
         [HttpPost("SaveCategory")]
