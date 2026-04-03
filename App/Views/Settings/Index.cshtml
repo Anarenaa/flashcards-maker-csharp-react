@@ -18,6 +18,7 @@
         border-radius: 15px;
         padding: 25px;
         margin-bottom: 25px;
+        transition: background 0.3s ease, border-color 0.3s ease;
     }
 
         .settings-card h3 {
@@ -52,14 +53,14 @@
         .setting-info label {
             font-weight: 600;
             font-size: 1rem;
-            color: #fff;
+            color: var(--text-color);
         }
 
         .setting-info p {
             margin: 0;
             font-size: 0.85rem;
-            opacity: 0.5;
-            color: #DEE4C7;
+            opacity: 0.6;
+            color: var(--text-color);
         }
 
     /* --- ПЕРЕМИКАЧ (SWITCH) --- */
@@ -120,7 +121,7 @@
     }
 
     .theme-item {
-        background: #1C2531;
+        background: rgba(255, 255, 255, 0.03);
         border: 2px solid var(--btn-border);
         border-radius: 12px;
         padding: 20px;
@@ -174,8 +175,8 @@
     .color-input {
         -webkit-appearance: none;
         appearance: none;
-        width: 35px;
-        height: 35px;
+        width: 38px;
+        height: 38px;
         background-color: transparent;
         border: none;
         cursor: pointer;
@@ -186,11 +187,10 @@
             border: 2px solid var(--btn-border);
         }
 
-    /* --- СТАНДАРТНА КНОПКА (ЯК У ВСІЙ ПРОГРАМІ) --- */
     .btn-main {
         background-color: var(--btn-bg);
         border: 1px solid var(--btn-border);
-        color: var(--text-color);
+        color: var(--btn-text) !important;
         padding: 10px 25px;
         border-radius: 8px;
         font-weight: 600;
@@ -204,14 +204,8 @@
         .btn-main:hover {
             background-color: var(--btn-hover);
             border-color: var(--accent-color);
-            color: white;
             transform: translateY(-2px);
         }
-
-    /* --- НЕБЕЗПЕЧНА ЗОНА --- */
-    .danger-card {
-        border-color: rgba(255, 100, 100, 0.2);
-    }
 
     .btn-danger-outline {
         background: transparent;
@@ -262,22 +256,12 @@
 
             <div class="setting-row">
                 <div class="setting-info">
-                    <label>Мотиваційні листи</label>
-                    <p>Отримувати звіти після 5 вдалих/недалих відповідей у тестах</p>
-                </div>
-                <label class="switch">
-                    <input type="checkbox">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div class="setting-row">
-                <div class="setting-info">
                     <label>Темна тема</label>
-                    <p>Завжди увімкнено (Storm Edition)</p>
+                    <p>Перемикання між темним Storm та світлим Azure режимом</p>
                 </div>
                 <label class="switch">
-                    <input type="checkbox" checked disabled>
+                    @* ПЕРЕМИКАЧ ДЛЯ ТЕМИ *@
+                    <input type="checkbox" id="themeToggle" onchange="toggleDarkLight(this)">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -285,24 +269,40 @@
 
         <!-- РОЗДІЛ 2: КАСТОМІЗАЦІЯ ТЕМИ -->
         <div class="settings-card">
-            <h3>🎨 Кастомізація теми</h3>
+            <h3>🎨 Кастомізація кольорів</h3>
 
             <div class="setting-info">
                 <label>Оберіть кольорову схему</label>
-                <p>Швидкі пресети для зміни вигляду додатку</p>
+                <p>Швидкі пресети для миттєвої зміни вигляду</p>
             </div>
 
             <div class="theme-grid">
-                <div class="theme-item active">
+                <div class="theme-item" onclick="setThemePreset('#141B25', '#F0FFFF', '#6B8789')">
                     <div class="theme-preview">
                         <div class="preview-circle" style="background: #141B25;"></div>
                         <div class="preview-circle" style="background: #F0FFFF;"></div>
                         <div class="preview-circle" style="background: #6B8789;"></div>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: bold;">Storm Azure</span>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Storm Dark</span>
                 </div>
 
-                <div class="theme-item">
+                <div class="theme-item" onclick="setThemePreset('#113223', '#748E47', '#C8DAC8')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #113223;"></div>
+                        <div class="preview-circle" style="background: #748E47;"></div>
+                        <div class="preview-circle" style="background: #C8DAC8;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Soft Light</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#511B24', '#D9AC8D', '#EDAD85')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #511B24;"></div>
+                        <div class="preview-circle" style="background: #D9AC8D;"></div>
+                        <div class="preview-circle" style="background: #EDAD85;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Soft Light</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#0D0D0D', '#BB86FC', '#3700B3')">
                     <div class="theme-preview">
                         <div class="preview-circle" style="background: #0D0D0D;"></div>
                         <div class="preview-circle" style="background: #BB86FC;"></div>
@@ -310,82 +310,25 @@
                     </div>
                     <span style="font-size: 0.9rem; font-weight: bold;">Midnight Purple</span>
                 </div>
-
-                <div class="theme-item">
-                    <div class="theme-preview">
-                        <div class="preview-circle" style="background: #0B1410;"></div>
-                        <div class="preview-circle" style="background: #81C784;"></div>
-                        <div class="preview-circle" style="background: #2E7D32;"></div>
-                    </div>
-                    <span style="font-size: 0.9rem; font-weight: bold;">Deep Forest</span>
-                </div>
             </div>
 
             <div class="custom-colors-box">
                 <div style="display: flex; gap: 25px; flex-wrap: wrap;">
                     <div class="color-picker-group">
-                        <input type="color" class="color-input" value="#141B25">
-                        <label style="font-size: 0.85rem; opacity: 0.7;">Фон</label>
+                        <input type="color" id="bgPicker" class="color-input" value="#141B25">
+                        <label>Фон</label>
                     </div>
                     <div class="color-picker-group">
-                        <input type="color" class="color-input" value="#F0FFFF">
-                        <label style="font-size: 0.85rem; opacity: 0.7;">Акцент</label>
+                        <input type="color" id="accentPicker" class="color-input" value="#F0FFFF">
+                        <label>Акцент</label>
                     </div>
                     <div class="color-picker-group">
-                        <input type="color" class="color-input" value="#6B8789">
-                        <label style="font-size: 0.85rem; opacity: 0.7;">Кнопки</label>
+                        <input type="color" id="btnPicker" class="color-input" value="#6B8789">
+                        <label>Кнопки</label>
                     </div>
                 </div>
-                @section Scripts {
-                    <script>
 
-                        const themePresets = {
-                            storm: { bg: '#141B25', accent: '#F0FFFF', btn: '#6B8789' },
-                            midnight: { bg: '#0D0D0D', accent: '#BB86FC', btn: '#3700B3' },
-                            forest: { bg: '#0B1410', accent: '#81C784', btn: '#2E7D32' }
-                        };
-
-                        document.querySelectorAll('.theme-item').forEach(item => {
-                            item.addEventListener('click', function() {
-                                document.querySelectorAll('.theme-item').forEach(i => i.classList.remove('active'));
-                                this.classList.add('active');
-
-                                const themeName = this.querySelector('span').innerText.toLowerCase();
-                                let themeData;
-                                if (themeName.includes('storm')) themeData = themePresets.storm;
-                                if (themeName.includes('midnight')) themeData = themePresets.midnight;
-                                if (themeName.includes('forest')) themeData = themePresets.forest;
-
-                                if (themeData) {
-                                    applyTheme(themeData);
-                                    localStorage.setItem('user-theme', JSON.stringify(themeData));
-                                }
-                            });
-                        });
-
-                        document.querySelector('.btn-main').addEventListener('click', function() {
-                            const customTheme = {
-                                bg: document.querySelectorAll('.color-input')[0].value,
-                                accent: document.querySelectorAll('.color-input')[1].value,
-                                btn: document.querySelectorAll('.color-input')[2].value
-                            };
-
-                            applyTheme(customTheme);
-                            localStorage.setItem('user-theme', JSON.stringify(customTheme));
-                            alert("Кастомну тему застосовано!");
-                        });
-
-                        function applyTheme(themeData) {
-                            const root = document.documentElement;
-                            root.style.setProperty('--bg-color', themeData.bg);
-                            root.style.setProperty('--accent-color', themeData.accent);
-                            root.style.setProperty('--btn-border', themeData.accent + '4D');
-                            root.style.setProperty('--btn-hover', themeData.btn);
-                        }
-                    </script>
-                }
-                @* СТАНДАРТНА КНОПКА *@
-                <button type="button" class="btn-main">
+                <button type="button" class="btn-main" onclick="applyCustomColors()">
                     Застосувати стиль
                 </button>
             </div>
@@ -394,7 +337,6 @@
         <!-- РОЗДІЛ 3: НЕБЕЗПЕЧНА ЗОНА -->
         <div class="settings-card danger-card">
             <h3 style="color: #ff8080 !important;">⚠️ Небезпечна зона</h3>
-
             <div class="setting-row">
                 <div class="setting-info">
                     <label style="color: #ff8080;">Видалити профіль</label>
@@ -406,6 +348,74 @@
                 </form>
             </div>
         </div>
-
     </div>
 </div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+
+    <script>
+        // Пресети для перемикача Світла/Темна
+        const baseThemes = {
+            dark:  { bg: '#141B25', accent: '#F0FFFF', btn: '#6B8789' },
+            light: { bg: '#F8FAFC', accent: '#1E293B', btn: '#CBD5E1' }
+        };
+
+        // Встановлюємо стан перемикача при завантаженні на основі поточного фону
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim().toUpperCase();
+            const lightColors = ["#F8FAFC", "#FFFFFF", "#F0F2F5", "#EDE6D4"];
+            const toggle = document.getElementById('themeToggle');
+
+            if (toggle) {
+                // Якщо фон НЕ світлий, значить тема ТЕМНА (checked = true)
+                toggle.checked = !lightColors.includes(currentBg);
+            }
+        });
+
+        // 1. Логіка перемикача
+        function toggleDarkLight(checkbox) {
+            const selected = checkbox.checked ? baseThemes.dark : baseThemes.light;
+            saveThemeToServer(selected.bg, selected.accent, selected.btn);
+        }
+
+        // 2. Логіка пресетів
+        function setThemePreset(bg, accent, btn) {
+            saveThemeToServer(bg, accent, btn);
+        }
+
+        // 3. Логіка кастомних пікерів
+        function applyCustomColors() {
+            const bg = document.getElementById('bgPicker').value;
+            const accent = document.getElementById('accentPicker').value;
+            const btn = document.getElementById('btnPicker').value;
+            saveThemeToServer(bg, accent, btn);
+        }
+
+        // ОСНОВНА ФУНКЦІЯ: Оновлення UI та збереження на сервер
+        async function saveThemeToServer(bg, accent, btn) {
+            // Викликаємо функцію з _Layout для миттєвої зміни (включаючи колір ТЕКСТУ)
+            if (typeof applyTheme === "function") {
+                applyTheme(bg, accent, btn);
+            }
+
+            const formData = new FormData();
+            formData.append('bg', bg);
+            formData.append('accent', accent);
+            formData.append('btn', btn);
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            try {
+                await fetch('/Account/save-theme', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'RequestVerificationToken': token }
+                });
+                console.log("Тему синхронізовано з профілем");
+            } catch (e) {
+                console.error("Помилка відправки теми на сервер", e);
+            }
+        }
+    </script>
+}
