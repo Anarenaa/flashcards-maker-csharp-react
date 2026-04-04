@@ -120,15 +120,26 @@ namespace App.Controllers
             try
             {
                 var token = await _authService.LoginAsync(dto);
-                
-                // Зберігаємо JWT токен в cookie для Razor
-                Response.Cookies.Append("AuthToken", token, new CookieOptions
+
+                // --- ЛОГІКА REMEMBER ME ---
+                var cookieOptions = new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
                     SameSite = SameSiteMode.Strict,
-                    Expires = DateTime.UtcNow.AddDays(7)
-                });
+                    Path = "/" // Важливо для доступу з усіх сторінок
+                };
+
+                if (dto.RememberMe)
+                {
+                    // Якщо галочка стоїть — зберігаємо на 30 днів
+                    cookieOptions.Expires = DateTime.UtcNow.AddDays(30);
+                }
+                // Якщо не стоїть — Expires не задаємо, і кука стає "сесійною" 
+                // (видалиться після закриття браузера)
+
+                Response.Cookies.Append("AuthToken", token, cookieOptions);
+                // --------------------------
 
                 ViewBag.AuthToken = token;
 
@@ -196,35 +207,35 @@ namespace App.Controllers
 
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
-        
-       // [Authorize]
-       // [HttpPost("update-avatar")]
-       // [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
-       // public async Task<IActionResult> UpdateAvatar(string newPath)
-       // {
-         //   if (string.IsNullOrWhiteSpace(newPath))
-         //   {
-          //      TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
-          //      return RedirectToAction("MyProfile");
-          //  }
 
-          //  try
-          //  {
-             //   await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
+        // [Authorize]
+        // [HttpPost("update-avatar")]
+        // [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
+        // public async Task<IActionResult> UpdateAvatar(string newPath)
+        // {
+        //   if (string.IsNullOrWhiteSpace(newPath))
+        //   {
+        //      TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
+        //      return RedirectToAction("MyProfile");
+        //  }
 
-              //  TempData["SuccessMessage"] = "Аватар успішно оновлено!";
-          //  }
-          //  catch (NotFoundException)
-           // {
-           //     return NotFound("Користувача не знайдено в системі.");
-           // }
-           // catch (Exception ex)
-           // {
-             //   TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
-           // }
+        //  try
+        //  {
+        //   await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
 
-//return RedirectToAction("MyProfile");
-      //  }
+        //  TempData["SuccessMessage"] = "Аватар успішно оновлено!";
+        //  }
+        //  catch (NotFoundException)
+        // {
+        //     return NotFound("Користувача не знайдено в системі.");
+        // }
+        // catch (Exception ex)
+        // {
+        //   TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
+        // }
+
+        //return RedirectToAction("MyProfile");
+        //  }
 
         [Authorize]
         [HttpPost("delete-profile")]
@@ -238,18 +249,39 @@ namespace App.Controllers
                     return RedirectToAction("Login");
                 }
 
+                // 1. Видаляємо з бази
                 await _userService.DeleteUserAsync(currentUserId);
-                Response.Cookies.Delete("AuthToken");
 
-                TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
+                // 2. ЯВНЕ РОЗЛОГІНЮВАННЯ (скидає сесію в пам'яті сервера)
+                await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+                // 3. ПРИМУСОВЕ ВИДАЛЕННЯ КУКИ (вказуємо Path і ставимо дату в минулому)
+                Response.Cookies.Delete("AuthToken", new CookieOptions
+{
+                    Path = "/",
+                   Expires = DateTime.UtcNow.AddDays(-1)
+                });
+
+                TempData["SuccessMessage"] = "Профіль видалено.";
+
+                // 4. ПЕРЕХІД НА ЛЕНДІНГ (сторінка з квадратами)
                 return RedirectToAction("Index", "Home");
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
-                return RedirectToAction("MyProfile");
+                TempData["ErrorMessage"] = "Помилка: " + ex.Message;
+                return RedirectToAction("Settings");
             }
         }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+            Response.Cookies.Delete("AuthToken", new CookieOptions { Path = "/" });
+            return RedirectToAction("Index", "Home");
+        }
+
         [Authorize]
         [HttpPost("save-theme")]
         public async Task<IActionResult> SaveTheme(string bg, string accent, string btn)
@@ -270,13 +302,7 @@ namespace App.Controllers
             }
             catch { return BadRequest(); }
         }
-        [HttpPost("logout")]
-        public IActionResult Logout()
-        {
-            Response.Cookies.Delete("AuthToken");
-            
-            return RedirectToAction("Login");
-        }
+       
 
         [HttpGet("access-denied")]
         public IActionResult AccessDenied()

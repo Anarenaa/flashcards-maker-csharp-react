@@ -9,5 +9,7 @@ namespace Core.DTOs
 
         [Required]
         public required string Password { get; set; }
+        [Required]
+        public bool RememberMe { get; set; }
     }
 }
