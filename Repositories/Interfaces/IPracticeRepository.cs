@@ -17,5 +17,17 @@ namespace Repositories.Interfaces
 
         // Допоміжний метод для Quiz
         Task<List<string>> GetDistractorsAsync(int setId, int excludeCardId, int count);
+
+        // Новий метод для отримання конкретного прогресу картки
+        Task<CardProgress> GetCardProgressAsync(int userId, int flashcardId);
+
+        // Новий метод для створення прогресу
+        Task CreateProgressAsync(CardProgress progress);
+
+        // Отримати всі прогреси користувача (з усіх сетів, які він практикував)
+        Task<List<CardProgress>> GetAllUserProgressAsync(int userId);
+
+        // Batch метод для отримання дестракторів для множини карток
+        Task<Dictionary<int, List<string>>> GetBatchDistractorsAsync(int setId, List<int> excludeCardIds, int count);
     }
 }

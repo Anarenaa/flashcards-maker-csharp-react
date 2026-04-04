@@ -1,79 +1,44 @@
 ﻿using Core.DTOs.Practice;
-using Repositories.Interfaces;
+using Services.Practice;
 
 namespace Services
 {
-    public class PracticeService
+    public class PracticeService : IPracticeService
     {
-        private readonly IUnitOfWork _unitOfWork;
-        private readonly Random _random = new();
+        private readonly ISessionService _sessionService;
+        private readonly IProgressService _progressService;
+        private readonly IAnswerService _answerService;
 
-        public PracticeService(IUnitOfWork practiceRepo) => _unitOfWork = practiceRepo;
+        public PracticeService(ISessionService sessionService, IProgressService progressService, IAnswerService answerService)
+        {
+            _sessionService = sessionService;
+            _progressService = progressService;
+            _answerService = answerService;
+        }
 
         public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode)
         {
-            var cardProgresses = await _unitOfWork.Practice.GetNewBatchForPracticeAsync(setId, userId, 20);
-            if (!cardProgresses.Any()) return null;
-
-            // Розраховуємо динамічний BatchSize
-            int batchSize = CalculateOptimalBatchSize(cardProgresses.Count);
-            int totalToTake = (cardProgresses.Count / batchSize) * batchSize;
-            var selectedData = cardProgresses.Take(totalToTake).ToList();
-
-            var minProgress = selectedData.Min(cp => cp.Progress);
-            var sessionMode = requestedMode ?? DetermineMode(minProgress);
-
-            var dto = new PracticeSessionDTO
-            {
-                SetId = setId,
-                SetTitle = selectedData.First().Flashcard.Set.Name,
-                BatchSize = batchSize,
-                SelectedActivity = sessionMode
-            };
-
-            foreach (var cp in selectedData)
-            {
-                var currentType = (sessionMode == PracticeActivityType.Mixed)
-                    ? (PracticeActivityType)_random.Next(1, 5)
-                    : sessionMode;
-
-                var cardDto = new FlashcardPracticeDTO
-                {
-                    Id = cp.FlashcardId,
-                    Term = cp.Flashcard.Term,
-                    Definition = cp.Flashcard.Definition,
-                    CardType = currentType
-                };
-
-                if (currentType == PracticeActivityType.Quiz)
-                {
-                    var distractors = await _unitOfWork.Practice.GetDistractorsAsync(setId, cp.FlashcardId, 3);
-                    distractors.Add(cardDto.Definition);
-                    cardDto.Distractors = distractors.OrderBy(x => _random.Next()).ToList();
-                }
-
-                dto.Flashcards.Add(cardDto);
-            }
-
-            return dto;
+            return await _sessionService.GetPracticeSessionAsync(setId, userId, requestedMode);
         }
 
-        private int CalculateOptimalBatchSize(int total)
+        public async Task<List<int>> SavePracticeResultsAsync(int userId, PracticeResultsDTO results)
         {
-            if (total <= 5) return total;
-            if (total % 5 == 0) return 5;
-            if (total % 4 == 0) return 4;
-            if (total % 3 == 0) return 3;
-            return 4;
+            return await _progressService.SavePracticeResultsAsync(userId, results);
         }
 
-        private PracticeActivityType DetermineMode(float progress) => progress switch
+        public async Task<SetProgressDTO> GetSetProgressAsync(int setId, int userId)
         {
-            < 0.2f => PracticeActivityType.Quiz,
-            < 0.4f => PracticeActivityType.Matching,
-            < 0.6f => PracticeActivityType.Writing,
-            < 0.8f => PracticeActivityType.Context,
-            _ => PracticeActivityType.Mixed
-        };
+            return await _progressService.GetSetProgressAsync(setId, userId);
+        }
+
+        public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
+        {
+            return await _progressService.GetUserProgressAsync(userId);
+        }
+
+        public async Task<bool> CheckAnswerAsync(int flashcardId, string userAnswer, PracticeActivityType activityType)
+        {
+            return await _answerService.CheckAnswerAsync(flashcardId, userAnswer, activityType);
+        }
     }
 }

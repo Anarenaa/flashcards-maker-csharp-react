@@ -39,6 +39,28 @@ namespace Repositories
             _context.CardProgresses.Update(progress);
             await _context.SaveChangesAsync();
         }
+
+        public async Task<CardProgress> GetCardProgressAsync(int userId, int flashcardId)
+        {
+            return await _dbSet
+                .Include(cp => cp.Flashcard)
+                .FirstOrDefaultAsync(cp => cp.UserId == userId && cp.FlashcardId == flashcardId);
+        }
+
+        public async Task CreateProgressAsync(CardProgress progress)
+        {
+            await _context.CardProgresses.AddAsync(progress);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task<List<CardProgress>> GetAllUserProgressAsync(int userId)
+        {
+            return await _dbSet
+                .Include(cp => cp.Flashcard)
+                .Include(cp => cp.Flashcard.Set)
+                .Where(cp => cp.UserId == userId)
+                .ToListAsync();
+        }
         
         public async Task<List<string>> GetDistractorsAsync(int setId, int excludeCardId, int count)
         {
@@ -48,6 +70,32 @@ namespace Repositories
                 .Take(count)
                 .Select(c => c.Definition)
                 .ToListAsync();
+        }
+
+        public async Task<Dictionary<int, List<string>>> GetBatchDistractorsAsync(int setId, List<int> excludeCardIds, int count)
+        {
+            var result = new Dictionary<int, List<string>>();
+            
+            // Отримуємо всі можливі дестрактори для сету
+            var allPossibleDistractors = await _context.Flashcards
+                .Where(c => c.SetId == setId && !excludeCardIds.Contains(c.Id))
+                .Select(c => new { c.Id, c.Definition })
+                .ToListAsync();
+
+            foreach (var excludeCardId in excludeCardIds)
+            {
+                // Беремо випадкові дестрактори, які не є самою карткою
+                var distractors = allPossibleDistractors
+                    .Where(d => d.Id != excludeCardId)
+                    .OrderBy(d => Guid.NewGuid())
+                    .Take(count)
+                    .Select(d => d.Definition)
+                    .ToList();
+                    
+                result[excludeCardId] = distractors;
+            }
+            
+            return result;
         }
     }
 }
