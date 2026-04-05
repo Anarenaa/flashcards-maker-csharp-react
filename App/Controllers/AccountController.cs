@@ -15,13 +15,20 @@ namespace App.Controllers
     {
         private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly UserService _userService;
 
-        public AccountController(IAuthService authService, UserManager<User> userManager, UserService userService)
+        public AccountController(
+            IAuthService authService, 
+            UserManager<User> userManager, 
+            UserService userService,
+            SignInManager<User> signInManager
+        )
         {
             _authService = authService;
             _userManager = userManager;
             _userService = userService;
+            _signInManager = signInManager;
         }
 
         [HttpGet("register")]
@@ -271,11 +278,18 @@ namespace App.Controllers
             catch { return BadRequest(); }
         }
         [HttpPost("logout")]
-        public IActionResult Logout()
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Logout()
         {
             Response.Cookies.Delete("AuthToken");
-            
-            return RedirectToAction("Login");
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+            Response.Cookies.Delete(".AspNetCore.Identity.External");
+
+            await _signInManager.SignOutAsync();
+
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpGet("access-denied")]

@@ -15,6 +15,10 @@ namespace App.Controllers
 
         public IActionResult Index()
         {
+            if (Request.Cookies.ContainsKey("AuthToken") || User.Identity?.IsAuthenticated == true)
+            {
+                return RedirectToAction("Index", "Main");
+            }
             return View();
         }
 

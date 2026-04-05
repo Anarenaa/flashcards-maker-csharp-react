@@ -216,7 +216,9 @@
             <a asp-controller="Collections" asp-action="Index" class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
             <a asp-controller="MyProfile" asp-action="Index" class="nav-btn @(controller == "MyProfile" ? "active" : "")">Профіль</a>
             <a asp-controller="Settings" asp-action="Index" class="nav-btn @(action == "Settings" ? "active" : "")">Налаштування</a>
-            <a asp-controller="Home" asp-action="Index" class="nav-btn btn-exit">Початок</a>
+            <form asp-controller="Account" asp-action="Logout" method="post" style="margin-top: auto;">
+				<button type="submit" class="nav-btn btn-exit" style="width:100%; text-align:center; cursor: pointer;">Вийти</button>
+            </form>
         </nav>
     </aside>
 
