@@ -1,83 +1,155 @@
 ﻿@using Core.DTOs
 @model PrivateUserDTO
 
-
 @{
-    ViewData["Title"] = "Профіль";
+    ViewData["Title"] = "Мій профіль";
 }
 
 <style>
     .profile-container {
-        max-width: 900px;
-        margin-top: 10px;
+        max-width: 1000px;
+        margin: 0 auto;
+        position: relative;
     }
 
-    /* ВЕРХНЯ ПАНЕЛЬ */
+    /* --- ВЕРХНЯ ПАНЕЛЬ (ІНТЕРАКТИВНА) --- */
     .profile-header {
         display: flex;
         align-items: center;
-        gap: 30px;
         background: var(--btn-bg);
         border: 1px solid var(--btn-border);
         padding: 40px;
         border-radius: 20px;
+        margin-bottom: 40px;
         position: relative;
-        margin-bottom: 30px;
+        gap: 40px;
+    }
+
+    /* Аватар */
+    .avatar-wrapper {
+        position: relative;
+        cursor: pointer;
+        transition: 0.3s;
     }
 
     .profile-avatar {
-        width: 140px;
-        height: 140px;
+        width: 150px;
+        height: 150px;
         border-radius: 50%;
-        border: 3px solid var(--accent-color);
-        background: white; /* Як на твоєму ескізі */
-        object-fit: cover;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 4px solid var(--accent-color);
+    }
+
+        .profile-avatar img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .avatar-overlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.5);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: 0.3s;
+        color: white;
+        font-size: 0.8rem;
+        font-weight: bold;
+    }
+
+    .avatar-wrapper:hover .avatar-overlay {
+        opacity: 1;
     }
 
     .profile-main-info {
         flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    .info-row {
+        display: flex;
+        align-items: center;
+        gap: 15px;
     }
 
     .label-small {
-        font-size: 0.8rem;
-        text-transform: lowercase;
+        font-size: 0.9rem;
         opacity: 0.6;
-        margin: 0;
+        min-width: 90px;
     }
 
-    .info-value {
-        font-size: 1.6rem;
+    .info-value-clickable {
+        font-size: 1.5rem;
         font-weight: bold;
         color: #fff;
-        margin-bottom: 15px;
+        cursor: pointer;
+        border-bottom: 1px dashed transparent;
+        transition: 0.2s;
     }
 
-    .edit-profile-btn {
-        position: absolute;
-        top: 30px;
-        right: 40px;
-        color: var(--accent-color);
-        text-decoration: none;
-        font-size: 0.9rem;
-        transition: 0.3s;
-    }
-
-        .edit-profile-btn:hover {
-            text-decoration: underline;
-            opacity: 1;
+        .info-value-clickable:hover {
+            border-bottom-color: var(--accent-color);
+            color: var(--accent-color);
         }
 
-    /* СІТКА 2х2 */
+    .inline-input {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid var(--accent-color);
+        color: white;
+        font-size: 1.5rem;
+        font-weight: bold;
+        width: 250px;
+        outline: none;
+        display: none; 
+    }
+
+    .floating-save-btn {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        background: var(--accent-color);
+        color: #141B25;
+        padding: 15px 30px;
+        border-radius: 30px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+        display: none;
+        z-index: 100;
+        transition: 0.3s ease;
+    }
+
+        .floating-save-btn:hover {
+            transform: scale(1.05);
+            background: white;
+        }
+
+    /* СТАТИСТИКА */
     .stats-grid {
         display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 25px;
     }
 
     .stat-card {
         background: var(--btn-bg);
         border: 1px solid var(--btn-border);
-        padding: 30px;
+        padding: 30px 20px;
         border-radius: 15px;
         text-align: center;
         transition: 0.3s;
@@ -85,135 +157,159 @@
 
         .stat-card:hover {
             border-color: var(--accent-color);
-            background: var(--btn-hover);
+            transform: translateY(-5px);
         }
 
-    .stat-title {
-        display: block;
-        font-size: 0.9rem;
-        opacity: 0.5;
-        margin-bottom: 10px;
-    }
-
     .stat-number {
-        font-size: 1.5rem;
+        font-size: 1.8rem;
         font-weight: bold;
         color: var(--accent-color);
     }
 
-    @@media (max-width: 600px) {
-        .profile-header {
-            flex-direction: column;
-            text-align: center;
+    .edit-link-top {
+        position: absolute;
+        top: 40px;
+        right: 40px;
+        color: var(--accent-color);
+        text-decoration: none;
+        font-size: 0.9rem;
+        opacity: 0.7;
+    }
+
+        .edit-link-top:hover {
+            opacity: 1;
+            text-decoration: underline;
         }
 
-        .edit-profile-btn {
-            position: static;
-            margin-top: 10px;
-            display: block;
-        }
-
+    @@media (max-width: 850px) {
         .stats-grid {
-            grid-template-columns: 1fr;
+            grid-template-columns: 1fr 1fr;
         }
     }
 </style>
+
 <div class="content-area">
     <div class="profile-container">
 
-        <div class="profile-header">
-            <div class="profile-avatar" style="overflow: hidden; background: white; display: flex; align-items: center; justify-content: center;">
-                @if (!string.IsNullOrEmpty(Model.AvatarUrl))
-                {
-                    <img src="@Model.AvatarUrl" style="width: 100%; height: 100%; object-fit: cover;" />
-                }
-                else
-                {
-                    <span style="font-size: 3rem; color: #333;">👤</span>
-                }
+        @if (TempData["Error"] != null)
+        {
+            <div style="background: rgba(255,100,100,0.1); border: 1px solid #ff8080; color: #ff8080; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                @TempData["Error"]
+            </div>
+        }
+
+        <form id="profileForm" asp-action="UpdateProfile" method="post" enctype="multipart/form-data">
+            @Html.AntiForgeryToken()
+
+            <div class="profile-header">
+                <!-- КЛІКАБЕЛЬНИЙ АВАТАР -->
+                <div class="avatar-wrapper" onclick="document.getElementById('avatarFileInput').click()">
+                    <div class="profile-avatar">
+                        @if (!string.IsNullOrEmpty(Model.AvatarUrl))
+                        {
+                            <img src="@Model.AvatarUrl" id="avatarPreview" alt="Avatar" />
+                        }
+                        else
+                        {
+                            <div id="avatarPlaceholder" style="font-size: 4rem; color: #333;">👤</div>
+                        }
+                    </div>
+                    <div class="avatar-overlay">ЗМІНИТИ</div>
+                    <input type="file" id="avatarFileInput" name="avatarFile" hidden accept="image/*" onchange="handleImageChange(this)" />
+                </div>
+
+                <!-- ІНФОРМАЦІЯ ПОСЕРЕДИНІ -->
+                <div class="profile-main-info">
+                    <div class="info-row">
+                        <span class="label-small">Нікнейм:</span>
+                        <span id="userNameText" class="info-value-clickable" onclick="enableNameEdit()">@Model.UserName</span>
+                        <input type="text" id="userNameInput" name="userName" class="inline-input" value="@Model.UserName" oninput="toggleSaveBtn(true)" />
+                    </div>
+                    <div class="info-row">
+                        <span class="label-small">Email:</span>
+                        <span class="info-value" style="font-size: 1.1rem; opacity: 0.8;">@Model.Email</span>
+                    </div>
+                    <div class="info-row">
+                        <span class="label-small">Реєстрація:</span>
+                        <span class="info-value" style="font-size: 1rem; opacity: 0.6;">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                    </div>
+                </div>
+
             </div>
 
-            <div class="profile-main-info">
-                <p class="label-small">нік нейм:</p>
-                <div class="info-value">@Model.UserName</div> @* РЕАЛЬНИЙ НІК *@
+            <!-- ПЛАВАЮЧА КНОПКА ЗБЕРЕЖЕННЯ -->
+            <button type="submit" id="saveChangesBtn" class="floating-save-btn">Зберегти зміни</button>
+        </form>
 
-                <p class="label-small">Email:</p>
-                <div class="info-value" style="font-size: 1.2rem;">@Model.Email</div> @* РЕАЛЬНА ПОШТА *@
-            </div>
-
-            <a asp-controller="Account" asp-action="Settings" class="edit-profile-btn">Редагування інформації</a>
-        </div>
-
+        <!-- СІТКА СТАТИСТИКИ (РЕАЛЬНІ ДАНІ) -->
         <div class="stats-grid">
             <div class="stat-card">
-                <span class="stat-title">кількість сетів</span>
-                <div class="stat-number">@ViewBag.SetsCount</div> @* РЕАЛЬНА КІЛЬКІСТЬ *@
+                <span class="label-small">Кількість ваших сетів</span>
+                <div class="stat-number">@Model.SetsCount</div>
             </div>
-
             <div class="stat-card">
-                <span class="stat-title">країна</span>
-                <div class="stat-number">Україна</div>
+                <span class="label-small">Кількість ваших колекцій</span>
+                <div class="stat-number">@Model.CollectionsCount</div>
             </div>
-
             <div class="stat-card">
-                <span class="stat-title">досягнення</span>
-                <div class="stat-number">--</div>
+                <span class="label-small">Кількість ваших карток</span>
+                <div class="stat-number">@Model.FlashcardsCount</div>
             </div>
-
             <div class="stat-card">
-                <span class="stat-title">реєстрація</span>
-                <div class="stat-number">@DateTime.Now.ToString("dd.MM.yyyy")</div>
+                <span class="label-small">Кількість пройдених тестів</span>
+                <div class="stat-number">0</div>
+            </div>
+            <div class="stat-card" style="grid-column: span 2;">
+                <span class="label-small">Вивчено карток</span>
+                <div class="stat-number">0</div>
             </div>
         </div>
 
     </div>
 </div>
-<div class="content-area">
-    <div class="profile-container">
 
-        <div class="profile-header">
-            @if (!string.IsNullOrEmpty(Model.AvatarUrl))
-            {
-                <img src="@Model.AvatarUrl" class="profile-avatar" />
+@section Scripts {
+    <script>
+        const nameText = document.getElementById('userNameText');
+        const nameInput = document.getElementById('userNameInput');
+        const saveBtn = document.getElementById('saveChangesBtn');
+
+        function enableNameEdit() {
+            nameText.style.display = 'none';
+            nameInput.style.display = 'inline-block';
+            nameInput.focus();
+        }
+
+        function handleImageChange(input) {
+            if (input.files && input.files[0]) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const preview = document.getElementById('avatarPreview');
+                    const placeholder = document.getElementById('avatarPlaceholder');
+
+                    if (preview) {
+                        preview.src = e.target.result;
+                    } else if (placeholder) {
+                        placeholder.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;">`;
+                    }
+                };
+                reader.readAsDataURL(input.files[0]);
+                toggleSaveBtn(true);
             }
-            else
-            {
-                <div class="profile-avatar" style="display:flex; align-items:center; justify-content:center; color:#333; font-size:3rem;">👤</div>
-            }
+        }
 
-            <div class="profile-main-info">
-                <p class="label-small">нік нейм:</p>
-                <div class="info-value">@Model.UserName</div>
+        function toggleSaveBtn(show) {
+            if (show) saveBtn.style.display = 'block';
+        }
 
-                <p class="label-small">Email:</p>
-                <div class="info-value" style="font-size: 1.2rem;">@Model.Email</div>
-            </div>
-
-            @* Веде на Account/Settings *@
-            <a asp-controller="Account" asp-action="Settings" class="edit-profile-btn">Редагування інформації</a>
-        </div>
-
-        <div class="stats-grid">
-            <div class="stat-card">
-                <span class="stat-title">кількість сетів</span>
-              
-            </div>
-
-            <div class="stat-card">
-                <span class="stat-title">країна</span>
-                <div class="stat-number">Україна</div>
-            </div>
-
-            <div class="stat-card">
-                <span class="stat-title">досягнення</span>
-                <div class="stat-number">12</div>
-            </div>
-
-            <div class="stat-card">
-                <span class="stat-title">реєстрація</span>
-               
-            </div>
-        </div>
-
-    </div>
-</div>
+        document.querySelectorAll('.stat-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = '0.5s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 100);
+        });
+    </script>
+}

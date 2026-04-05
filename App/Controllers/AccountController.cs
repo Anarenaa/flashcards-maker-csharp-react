@@ -203,36 +203,53 @@ namespace App.Controllers
 
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
-        
-       // [Authorize]
-       // [HttpPost("update-avatar")]
-       // [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
-       // public async Task<IActionResult> UpdateAvatar(string newPath)
-       // {
-         //   if (string.IsNullOrWhiteSpace(newPath))
-         //   {
-          //      TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
-          //      return RedirectToAction("MyProfile");
-          //  }
 
-          //  try
-          //  {
-             //   await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
+        [Authorize]
+        [HttpPost("update-general-profile")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateGeneralProfile(string? userName, IFormFile? avatarFile)
+        {
+            if (!int.TryParse(UserId, out int currentUserId))
+            {
+                return RedirectToAction("Login");
+            }
 
-              //  TempData["SuccessMessage"] = "Аватар успішно оновлено!";
-          //  }
-          //  catch (NotFoundException)
-           // {
-           //     return NotFound("Користувача не знайдено в системі.");
-           // }
-           // catch (Exception ex)
-           // {
-             //   TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
-           // }
+            try
+            {
+             
+                await _userService.UpdateUserProfileAsync(currentUserId, userName, null, avatarFile);
 
-//return RedirectToAction("MyProfile");
-      //  }
+                TempData["SuccessMessage"] = "Профіль успішно оновлено!";
+            }
+            catch (Exception ex)
+            {
+     
+                TempData["ErrorMessage"] = ex.Message;
+            }
 
+            return RedirectToAction("Index", "Settings");
+        }
+        [Authorize]
+        [HttpPost("update-profile")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(string? userName, IFormFile? avatarFile)
+        {
+            if (!int.TryParse(UserId, out int currentUserId)) return Unauthorized();
+
+            try
+            {
+              
+                await _userService.UpdateUserProfileAsync(currentUserId, userName, null, avatarFile);
+
+                TempData["SuccessMessage"] = "Профіль успішно оновлено!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction("Settings");
+        }
         [Authorize]
         [HttpPost("delete-profile")]
         [ValidateAntiForgeryToken]
