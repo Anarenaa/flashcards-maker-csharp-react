@@ -55,6 +55,11 @@ namespace App.Controllers
         {
             if (ModelState.IsValid)
             {
+                if (!await _setService.IsSetMine(setDto.Id.Value, UserId))
+                {
+                    return Forbid();
+                }
+
                 setDto.LastUpdatedAt = DateTime.Now;
 
                 await _setService.UpdateSetAsync(setDto);
@@ -65,6 +70,11 @@ namespace App.Controllers
 
         public async Task<IActionResult> Delete(int id)
         {
+            if (!await _setService.IsSetMine(id, UserId))
+            {
+                return Forbid();
+            }
+
             await _setService.DeleteSetAsync(id);
             return RedirectToAction(nameof(Index));
         }

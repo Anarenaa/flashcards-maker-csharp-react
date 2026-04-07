@@ -247,5 +247,12 @@ namespace Services
             await _unitOfWork.Sets.AddAsync(newSet);
             await _unitOfWork.SaveChangesAsync();
         }
+
+        public async Task<bool> IsSetMine(int setId, int userId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+            return set.UserId == userId;
+        }
     }
 }
