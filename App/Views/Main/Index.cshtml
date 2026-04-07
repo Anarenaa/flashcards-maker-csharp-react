@@ -3,10 +3,11 @@
 
 @{
     ViewData["Title"] = "Головна";
-    var currentUserName = "Admin";
+    var currentUserName = "Admin"; // Потім заміниш на реальне ім'я залогіненого юзера
 }
 
 <style>
+    /* --- СТИЛІ ПОШУКУ ТА СІТКИ --- */
     .search-container {
         display: flex;
         gap: 15px;
@@ -63,12 +64,13 @@
         gap: 25px;
     }
 
+    /* --- КАРТКА СЕТУ --- */
     .set-card {
         background-color: var(--btn-bg);
         border: 1px solid var(--btn-border);
         border-radius: 12px;
         padding: 25px;
-        min-height: 160px;
+        min-height: 220px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -101,6 +103,7 @@
         justify-content: space-between;
     }
 
+    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -113,6 +116,11 @@
         opacity: 0.5;
         transition: 0.3s;
     }
+
+        .card-menu-btn:hover {
+            opacity: 1;
+            color: var(--accent-color);
+        }
 
     .dropdown {
         position: absolute;
@@ -139,6 +147,11 @@
             font-size: 0.9rem;
         }
 
+            .dropdown button:hover {
+                background-color: #6B8789;
+            }
+
+    /* --- БЕДЖІ --- */
     .my-set-tag {
         position: absolute;
         top: -10px;
@@ -163,6 +176,7 @@
         display: block;
     }
 
+    /* --- МОДАЛКА --- */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -187,11 +201,23 @@
         flex-direction: column;
         gap: 15px;
     }
+
+        .modal select, .modal input {
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+            font-family: inherit;
+        }
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Всі навчальні сети</h2>
 
+    <!-- ФОРМА ПОШУКУ ТА СОРТУВАННЯ -->
     <div class="search-container">
         <form asp-controller="Main" asp-action="Index" method="get" class="search-bar-form">
             <input type="text" name="searchText" placeholder="Шукати сети..." value="@ViewData["CurrentFilter"]" />
@@ -207,12 +233,20 @@
         @foreach (var set in Model)
         {
             bool isMine = set.UserName == currentUserName;
+
             <div class="set-card @(isMine ? "owner-border" : "")"
                  onclick="handleCardClick(event, '@Url.Action("Sets", "DetailsInMain", new { id = set.Id })')">
-
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
+
                 <div class="dropdown" onclick="event.stopPropagation()">
-                    <button type="button" onclick="openCollectModal(event, '@set.Id')">Зберегти в колекцію</button>
+                    @* Кнопка перегляду акаунту автора *@
+                    <button type="button" onclick="location.href='@Url.Action("UserProfile", "MyProfile", new { id = set.UserName })'">
+                        Переглянути акаунт користувача
+                    </button>
+                    @* Кнопка збереження в колекцію *@
+                    <button type="button" onclick="openCollectModal(event, '@set.Id')">
+                        Зберегти в колекцію
+                    </button>
                 </div>
 
                 @if (isMine)
@@ -239,7 +273,7 @@
     </div>
 </div>
 
-@* Модалка збереження в колекцію *@
+<!-- МОДАЛКА ЗБЕРЕЖЕННЯ -->
 <div class="modal-overlay" id="collectModal">
     <div class="modal">
         <form asp-controller="Main" asp-action="AddToCollection" method="post">
@@ -269,10 +303,12 @@
 @section Scripts {
     <script>
         const collectModal = document.getElementById('collectModal');
+
         function handleCardClick(event, url) {
             if (event.target.closest('.card-menu-btn') || event.target.closest('.dropdown')) return;
             window.location.href = url;
         }
+
         function toggleMenu(event) {
             event.stopPropagation();
             const btn = event.currentTarget;
@@ -280,16 +316,30 @@
             document.querySelectorAll('.dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
             dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
         }
+
         function openCollectModal(event, setId) {
             event.stopPropagation();
             document.getElementById('modalSetId').value = setId;
             collectModal.style.display = 'flex';
             document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
         }
+
         function closeCollectModal() { collectModal.style.display = 'none'; }
+
         window.onclick = (e) => {
             if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
             if (e.target === collectModal) closeCollectModal();
         };
+
+        // Анімація появи карток
+        document.querySelectorAll('.set-card').forEach((card, index) => {
+            card.style.opacity = '0';
+            card.style.transform = 'translateY(20px)';
+            setTimeout(() => {
+                card.style.transition = 'all 0.4s ease';
+                card.style.opacity = '1';
+                card.style.transform = 'translateY(0)';
+            }, index * 50);
+        });
     </script>
 }
