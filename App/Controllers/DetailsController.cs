@@ -23,18 +23,13 @@ namespace App.Controllers
             _flashcardService = flashcardService;
             _categoryService = categoryService;
         }
-
-
         [HttpGet("{id}")]
         public async Task<IActionResult> Index(int id)
         {
             try
             {
                 var setDetail = await _setService.GetSetByIdAsync(id);
-
-                
                 ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
-
                 return View(setDetail);
             }
             catch
@@ -43,26 +38,7 @@ namespace App.Controllers
                 return RedirectToAction("Index", "MySets");
             }
         }
-        [HttpGet("Details/Sets/{id}")]
-        public async Task<IActionResult> Sets(int id)
-        {
-            try
-            {
-                var setDetail = await _setService.GetSetByIdAsync(id);
-                if (setDetail == null) return NotFound();
-
-                // ПЕРЕВІРКА: чи я власник? (UserId з BaseController)
-               // ViewBag.IsOwner = setDetail.OwnerId == UserId;
-
-                ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
-
-                return View(setDetail); 
-            }
-            catch
-            {
-                return RedirectToAction("Index", "Main");
-            }
-        }
+        
         // --- РОБОТА З КАРТКАМИ ---
         [HttpPost("SaveCard")]
         [SetOwnerAuthorize]

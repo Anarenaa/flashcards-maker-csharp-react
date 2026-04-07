@@ -20,17 +20,13 @@ namespace App.Controllers
             _categoryService = categoryService;
         }
 
-        [HttpGet("Details/Sets/{id}")]
+        [HttpGet("DetailsInMain/Sets/{id}")]
         public async Task<IActionResult> Sets(int id)
         {
             try
             {
                 var setDetail = await _setService.GetSetByIdAsync(id);
                 if (setDetail == null) return NotFound();
-
-                // ПЕРЕВІРКА: чи я власник? (UserId з BaseController)
-               // ViewBag.IsOwner = setDetail.OwnerId == UserId;
-
                 ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
 
                 return View(setDetail);

@@ -208,7 +208,7 @@
         {
             bool isMine = set.UserName == currentUserName;
             <div class="set-card @(isMine ? "owner-border" : "")"
-                 onclick="handleCardClick(event, '@Url.Action("Sets", "Details", new { id = set.Id })')">
+                 onclick="handleCardClick(event, '@Url.Action("Sets", "DetailsInMain", new { id = set.Id })')">
 
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown" onclick="event.stopPropagation()">

@@ -212,7 +212,7 @@
                 string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
             }
             <a asp-controller="Main" asp-action="Index"
-               class="nav-btn @(controller == "Main" || controller == "Details" ? "active" : "")">Головна </a>
+               class="nav-btn @(controller == "Main" || controller == "DetailsInMain" ? "active" : "")">Головна</a>
             <a asp-controller="MySets" asp-action="Index"
                class="nav-btn @(controller == "MySets" ? "active" : "")">Мої сети</a>
             <a asp-controller="Collections" asp-action="Index"
