@@ -1,11 +1,12 @@
 ﻿using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
 namespace App.Controllers
 {
     [Route("MySets/[controller]")]
-    public class DetailsController : Controller
+    public class DetailsController : BaseController
     {
         private readonly SetService _setService;
         private readonly FlashcardService _flashcardService;
@@ -40,7 +41,26 @@ namespace App.Controllers
                 return RedirectToAction("Index", "MySets");
             }
         }
+        [HttpGet("Details/Sets/{id}")]
+        public async Task<IActionResult> Sets(int id)
+        {
+            try
+            {
+                var setDetail = await _setService.GetSetByIdAsync(id);
+                if (setDetail == null) return NotFound();
 
+                // ПЕРЕВІРКА: чи я власник? (UserId з BaseController)
+               // ViewBag.IsOwner = setDetail.OwnerId == UserId;
+
+                ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
+
+                return View(setDetail); 
+            }
+            catch
+            {
+                return RedirectToAction("Index", "Main");
+            }
+        }
         // --- РОБОТА З КАРТКАМИ ---
         [HttpPost("SaveCard")]
         public async Task<IActionResult> SaveCard(int setId, FlashcardDTO cardDto)

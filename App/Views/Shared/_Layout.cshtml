@@ -211,14 +211,17 @@
                 string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
                 string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
             }
-            <a asp-controller="Main" asp-action="Index" class="nav-btn @(controller == "Main" ? "active" : "")">Головна</a>
-            <a asp-controller="MySets" asp-action="Index" class="nav-btn @(controller == "MySets" || controller == "Details" ? "active" : "")">Мої сети</a>
-            <a asp-controller="Collections" asp-action="Index" class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
-            <a asp-controller="MyProfile" asp-action="Index" class="nav-btn @(controller == "MyProfile" ? "active" : "")">Профіль</a>
-            <a asp-controller="Settings" asp-action="Index" class="nav-btn @(action == "Settings" ? "active" : "")">Налаштування</a>
-            <form asp-controller="Account" asp-action="Logout" method="post" style="margin-top: auto;">
-				<button type="submit" class="nav-btn btn-exit" style="width:100%; text-align:center; cursor: pointer;">Вийти</button>
-            </form>
+            <a asp-controller="Main" asp-action="Index"
+               class="nav-btn @(controller == "Main" || controller == "Details" ? "active" : "")">Головна </a>
+            <a asp-controller="MySets" asp-action="Index"
+               class="nav-btn @(controller == "MySets" ? "active" : "")">Мої сети</a>
+            <a asp-controller="Collections" asp-action="Index"
+               class="nav-btn @(controller == "Collections" ? "active" : "")"> Колекції </a>
+            <a asp-controller="MyProfile" asp-action="Index"
+               class="nav-btn @(controller == "MyProfile" ? "active" : "")">Профіль</a>
+            <a asp-controller="Settings" asp-action="Index"
+               class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
+            <a asp-controller="Home" asp-action="Index" class="nav-btn btn-exit">Вийти</a>
         </nav>
     </aside>
 
