@@ -21,7 +21,7 @@ namespace App.Controllers
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
             // 1. Отримуємо всі публічні сети з урахуванням пошуку
-            var sets = await _setService.GetAllSetsAsync(null, searchText);
+            var sets = await _setService.GetAllSetsAsync(UserId, null, searchText);
 
             // 2. Логіка сортування
             sets = sortOrder switch

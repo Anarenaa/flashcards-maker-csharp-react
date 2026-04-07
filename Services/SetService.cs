@@ -12,10 +12,11 @@ namespace Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<List<SetDTO>> GetAllSetsAsync(List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllSetsAsync(int currentUserId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.IsPublic
+                    && s.UserId != currentUserId
                     && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
                     includeProperties: "User"
