@@ -18,12 +18,7 @@ namespace App.Controllers
         [HttpGet]
         public async Task<IActionResult> Index()
         {
-            if (!int.TryParse(UserId, out int currentUserId))
-            {
-                return RedirectToAction("Login", "Account");
-            }
-
-            var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
+            var userDto = await _userService.GetMyPrivateProfileAsync(UserId);
             return View(userDto);
         }
 
@@ -32,11 +27,9 @@ namespace App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(string? userName, IFormFile? avatarFile)
         {
-            if (!int.TryParse(UserId, out int currentUserId)) return Unauthorized();
-
             try
             {
-                await _userService.UpdateUserProfileAsync(currentUserId, userName, null, avatarFile);
+                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
                 TempData["Success"] = "Профіль оновлено!";
             }
             catch (System.Exception ex)

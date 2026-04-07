@@ -19,7 +19,7 @@ namespace App.Controllers
 
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
-            var sets = await _setService.GetAllUserSetsAsync(int.Parse(UserId), null, searchText);
+            var sets = await _setService.GetAllUserSetsAsync(UserId, null, searchText);
 
             sets = sortOrder switch
             {
@@ -31,7 +31,7 @@ namespace App.Controllers
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentSort"] = sortOrder;
 
-            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId));
+            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
 
             return View(sets);
         }
@@ -44,7 +44,7 @@ namespace App.Controllers
                 setDto.CreatedAt = DateTime.Now;
                 setDto.LastUpdatedAt = DateTime.Now;
 
-                await _setService.AddSetAsync(setDto, int.Parse(UserId));
+                await _setService.AddSetAsync(setDto, UserId);
                 return RedirectToAction(nameof(Index));
             }
             return await Index(null);

@@ -211,7 +211,7 @@ namespace App.Controllers
             try
             {
              
-                await _userService.UpdateUserProfileAsync(currentUserId, userName, null, avatarFile);
+                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
 
                 TempData["SuccessMessage"] = "Профіль успішно оновлено!";
             }
@@ -231,7 +231,7 @@ namespace App.Controllers
             try
             {
               
-                await _userService.UpdateUserProfileAsync(currentUserId, userName, null, avatarFile);
+                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
 
                 TempData["SuccessMessage"] = "Профіль успішно оновлено!";
             }
@@ -249,12 +249,7 @@ namespace App.Controllers
         {
             try
             {
-                if (!int.TryParse(UserId, out int currentUserId))
-                {
-                    return RedirectToAction("Login");
-                }
-
-                await _userService.DeleteUserAsync(currentUserId);
+                await _userService.DeleteUserAsync(UserId);
                 Response.Cookies.Delete("AuthToken");
 
                 TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
@@ -270,8 +265,6 @@ namespace App.Controllers
         [HttpPost("save-theme")]
         public async Task<IActionResult> SaveTheme(string bg, string accent, string btn)
         {
-            if (!int.TryParse(UserId, out int currentUserId)) return Unauthorized();
-
             try
             {
                 

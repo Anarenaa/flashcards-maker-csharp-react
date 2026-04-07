@@ -1,4 +1,4 @@
-using Core.DTOs;
+﻿using Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
@@ -26,7 +26,7 @@ namespace App.Controllers
         // 1. Список колекцій
         public async Task<IActionResult> Index()
         {
-            var collections = (await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId))).ToList();
+            var collections = (await _collectionService.GetCollectionsByUserIdAsync(UserId)).ToList();
 
             foreach (var item in collections)
             {
@@ -62,7 +62,7 @@ namespace App.Controllers
         {
             if (ModelState.IsValid)
             {
-                await _collectionService.CreateCollectionAsync(collectionDto, int.Parse(UserId));
+                await _collectionService.CreateCollectionAsync(collectionDto, UserId);
             }
             return RedirectToAction(nameof(Index));
         }

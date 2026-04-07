@@ -58,14 +58,14 @@ builder.Services.AddAuthentication(options =>
         },
         OnChallenge = context =>
         {
-            // ÐºÐ¾Ð»Ð¸ ÐºÐ¾Ñ€Ð¸ÑÑ‚ÑƒÐ²Ð°Ñ‡ Ð½Ðµ Ð·Ð°Ð»Ð¾Ð³Ñ–Ð½ÐµÐ½Ð¸Ð¹ (401)
+            // 401
             context.HandleResponse();
             context.Response.Redirect("/login");
             return Task.CompletedTask;
         },
         OnForbidden = context =>
         {
-            // ÐºÐ¾Ð»Ð¸ Ð½ÐµÐ¼Ð°Ñ” Ð¿Ñ€Ð°Ð² Ð´Ð¾ÑÑ‚ÑƒÐ¿Ñƒ (403)
+            // 403
             context.Response.Redirect("/access-denied");
             return Task.CompletedTask;
         }
@@ -75,13 +75,6 @@ builder.Services.AddAuthentication(options =>
 {
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
-});
-
-// Ðåäèðåêò ó Razor Pages ïðè â³äñóòíîñò³ àâòîðèçàö³¿
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
 });
 
 builder.Services.Configure<EmailSettingsDTO>(builder.Configuration.GetSection("EmailSettings"));

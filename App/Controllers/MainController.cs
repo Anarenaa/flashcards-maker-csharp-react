@@ -36,9 +36,9 @@ namespace App.Controllers
             ViewData["CurrentSort"] = sortOrder;
 
             // Завантажуємо колекції для модалки збереження
-            if (!string.IsNullOrEmpty(UserId))
+            if (UserId > 0)
             {
-                ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId));
+                ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
             }
 
             return View(sets);
@@ -53,9 +53,9 @@ namespace App.Controllers
             if (!string.IsNullOrWhiteSpace(newCollectionName))
             {
                 var newCol = new CollectionDTO { Name = newCollectionName.Trim() };
-                await _collectionService.CreateCollectionAsync(newCol, int.Parse(UserId));
+                await _collectionService.CreateCollectionAsync(newCol, UserId);
 
-                var userCollections = await _collectionService.GetCollectionsByUserIdAsync(int.Parse(UserId));
+                var userCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
                 var createdCol = userCollections.FirstOrDefault(c => c.Name == newCollectionName.Trim());
 
                 if (createdCol != null) finalCollectionId = createdCol.Id.Value;
