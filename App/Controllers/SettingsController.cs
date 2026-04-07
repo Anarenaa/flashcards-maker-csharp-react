@@ -1,10 +1,12 @@
-﻿using Core.DTOs;
+﻿using System.Threading.Tasks;
+using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services; 
-using System.Threading.Tasks;
 
 namespace App.Controllers
 {
+    [Authorize]
     public class SettingsController : Controller
     {
         private readonly UserService _userService;

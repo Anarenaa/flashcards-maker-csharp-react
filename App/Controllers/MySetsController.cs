@@ -2,11 +2,10 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace App.Controllers
 {
+    [Authorize]
     public class MySetsController : BaseController
     {
         private readonly SetService _setService;

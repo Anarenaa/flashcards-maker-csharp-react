@@ -1,6 +1,5 @@
 using System.Security.Claims;
 using Core.DTOs;
-using Core.Exceptions;
 using Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -133,7 +132,7 @@ namespace App.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
 
@@ -181,7 +180,7 @@ namespace App.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
 
@@ -209,11 +208,6 @@ namespace App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateGeneralProfile(string? userName, IFormFile? avatarFile)
         {
-            if (!int.TryParse(UserId, out int currentUserId))
-            {
-                return RedirectToAction("Login");
-            }
-
             try
             {
              
@@ -234,8 +228,6 @@ namespace App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(string? userName, IFormFile? avatarFile)
         {
-            if (!int.TryParse(UserId, out int currentUserId)) return Unauthorized();
-
             try
             {
               
@@ -296,6 +288,7 @@ namespace App.Controllers
         }
         [HttpPost("logout")]
         [ValidateAntiForgeryToken]
+        [AllowAnonymous]
         public async Task<IActionResult> Logout()
         {
             Response.Cookies.Delete("AuthToken");
@@ -305,6 +298,7 @@ namespace App.Controllers
             await _signInManager.SignOutAsync();
 
             await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
             return RedirectToAction("Index", "Home");
         }

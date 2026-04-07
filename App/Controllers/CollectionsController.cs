@@ -1,13 +1,12 @@
-﻿using Core.DTOs;
+using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
 using Services;
-using System;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace App.Controllers
 {
+    [Authorize]
     public class CollectionsController : BaseController
     {
         private readonly CollectionService _collectionService;

@@ -1,9 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 using Services;
-using System.Threading.Tasks;
-using Microsoft.AspNetCore.Http;
-using Core.DTOs;
 
 namespace App.Controllers
 {

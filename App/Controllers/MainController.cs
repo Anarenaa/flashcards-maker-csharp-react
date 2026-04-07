@@ -1,10 +1,12 @@
-﻿using Core.DTOs;
+﻿using System;
+using Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
 namespace App.Controllers
 {
+    [Authorize]
     public class MainController : BaseController
     {
         private readonly SetService _setService;
@@ -43,7 +45,6 @@ namespace App.Controllers
         }
 
         [HttpPost]
-        [Authorize]  // Тільки авторизовані користувачі можуть додавати в колекції
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
         {
             int finalCollectionId = collectionId ?? 0;

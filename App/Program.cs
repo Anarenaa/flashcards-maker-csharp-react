@@ -55,6 +55,19 @@ builder.Services.AddAuthentication(options =>
                 context.Token = accessToken;
             }
             return Task.CompletedTask;
+        },
+        OnChallenge = context =>
+        {
+            // коли користувач не залогінений (401)
+            context.HandleResponse();
+            context.Response.Redirect("/login");
+            return Task.CompletedTask;
+        },
+        OnForbidden = context =>
+        {
+            // коли немає прав доступу (403)
+            context.Response.Redirect("/access-denied");
+            return Task.CompletedTask;
         }
     };
 })
