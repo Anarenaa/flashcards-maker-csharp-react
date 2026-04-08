@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Core.DTOs;
 using Core.Models;
 using Microsoft.AspNetCore.Authentication;
@@ -7,6 +6,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Interfaces;
+using System.Security.Claims;
 
 namespace App.Controllers
 {
@@ -16,18 +17,21 @@ namespace App.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly UserService _userService;
+        private readonly EmailService _emailService;
 
         public AccountController(
-            IAuthService authService, 
-            UserManager<User> userManager, 
+            IAuthService authService,
+            UserManager<User> userManager,
             UserService userService,
-            SignInManager<User> signInManager
+            SignInManager<User> signInManager,
+            EmailService emailService
         )
         {
             _authService = authService;
             _userManager = userManager;
             _userService = userService;
             _signInManager = signInManager;
+            _emailService = emailService;
         }
 
         [HttpGet("register")]
@@ -72,7 +76,7 @@ namespace App.Controllers
 
             if (result.Succeeded)
             {
-             
+
                 var loginDto = new LoginDto
                 {
                     UserNameOrEmail = dto.Email,
@@ -81,7 +85,7 @@ namespace App.Controllers
 
                 try
                 {
-          
+
                     var token = await _authService.LoginAsync(loginDto);
 
                     Response.Cookies.Append("AuthToken", token, new CookieOptions
@@ -126,7 +130,7 @@ namespace App.Controllers
             try
             {
                 var token = await _authService.LoginAsync(dto);
-                
+
                 // Зберігаємо JWT токен в cookie для Razor
                 Response.Cookies.Append("AuthToken", token, new CookieOptions
                 {
@@ -210,14 +214,14 @@ namespace App.Controllers
         {
             try
             {
-             
+
                 await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
 
                 TempData["SuccessMessage"] = "Профіль успішно оновлено!";
             }
             catch (Exception ex)
             {
-     
+
                 TempData["ErrorMessage"] = ex.Message;
             }
 
@@ -230,7 +234,7 @@ namespace App.Controllers
         {
             try
             {
-              
+
                 await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
 
                 TempData["SuccessMessage"] = "Профіль успішно оновлено!";
@@ -267,12 +271,12 @@ namespace App.Controllers
         {
             try
             {
-                
+
                 var themeData = $"{bg}|{accent}|{btn}";
                 Response.Cookies.Append("UserTheme", themeData, new CookieOptions
                 {
                     Expires = DateTime.UtcNow.AddYears(1),
-                    HttpOnly = false 
+                    HttpOnly = false
                 });
 
                 return Ok();
@@ -295,9 +299,86 @@ namespace App.Controllers
 
             return RedirectToAction("Index", "Home");
         }
+        [HttpGet]
+        public IActionResult VerifyEmail()
+        {
+            return View();
+        }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Користувача з таким email не знайдено");
+                return View(model);
+            } 
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = Url.Action("ChangePassword", "Account", new { email=model.Email, token = resetToken }, Request.Scheme);
+            var subject = "Скидання пароля ";
+            var body = $"Щоб скинути пароль, натисніть на посилання: <a href='{resetLink}'>Скинути пароль</a>";
+            await _emailService.SendEmailAsync(model.Email, subject, body);
+            return RedirectToAction("EmailSent", "Account");
+        }
+        [HttpGet]
+        public IActionResult ChangePassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("VerifyEmail", "Account");
+            }
+
+            var model = new ChangePasswordDTO
+            {
+                Email = email,
+                Token = token,
+                NewPassword = "",
+                ConfirmPassword = ""
+            };
+
+            return View(model);
+        }
+        [HttpPost]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError(string.Empty, "Користувача з таким email не знайдено");
+                return View(model);
+            }
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Користувача з таким email не знайдено");
+                return View(model);
+            }
+            var resetResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+            if (!resetResult.Succeeded)
+            {
+                foreach (var error in resetResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            return View(model);
+        }
         [HttpGet("access-denied")]
         public IActionResult AccessDenied()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult EmailSent()
         {
             return View();
         }

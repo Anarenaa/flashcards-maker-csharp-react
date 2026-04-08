@@ -88,6 +88,8 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 
+builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
