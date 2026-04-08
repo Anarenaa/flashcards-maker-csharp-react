@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260408165738_AddRolesAndAdmin")]
+    partial class AddRolesAndAdmin
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -486,7 +489,7 @@ namespace Core.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "JOHN_DOE@GMAIL.COM",
                             NormalizedUserName = "JOHN_DOE",
-                            PasswordHash = "AQAAAAIAAYagAAAAECWiT3PBdFR8jFPQAbbr/xZW0nPeypMwcicb5XAnXqxtp7h3mVfSfN4t2UQEzlwEcg==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,
@@ -505,7 +508,7 @@ namespace Core.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "JANE_SMITH@GMAIL.COM",
                             NormalizedUserName = "JANE_SMITH",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEzkdq2JyhFWGCHP/KtVdIRcOheqDIHWulCLEYW1h6RefsLHVko0jduu4Zcu2Bwt1g==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "0B4D1A60-F22B-4467-93C0-94D1898E5E7C",
                             TwoFactorEnabled = false,
@@ -524,7 +527,7 @@ namespace Core.Migrations
                             LockoutEnabled = false,
                             NormalizedEmail = "ADMIN@EXAMPLE.COM",
                             NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFgsHMTnZXkcaw1E4PQs9bvYxtiRXQo18Lr3rmtablo5pOsn5PC6XEs7CiZIZKTkTA==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,

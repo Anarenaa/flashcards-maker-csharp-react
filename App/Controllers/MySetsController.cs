@@ -5,7 +5,7 @@ using Services;
 
 namespace App.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "User")]
     public class MySetsController : BaseController
     {
         private readonly SetService _setService;

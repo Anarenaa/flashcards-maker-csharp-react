@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Core.DTOs;
 using Core.Models;
+using Core.Models.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -14,7 +15,10 @@ namespace Services
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AuthService(UserManager<User> userManager, IConfiguration configuration)
+        public AuthService(
+            UserManager<User> userManager,
+            IConfiguration configuration
+        )
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -28,7 +32,14 @@ namespace Services
                 Email = dto.Email
             };
 
-            return await _userManager.CreateAsync(user, dto.Password);
+            var result = await _userManager.CreateAsync(user, dto.Password);
+            
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, RoleNames.User);
+            }
+            
+            return result;
         }
 
         public async Task<string> LoginAsync(LoginDto dto)
@@ -40,16 +51,17 @@ namespace Services
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 throw new UnauthorizedAccessException("Неправильний логін або пароль");
 
-            return GenerateJwtToken(user);
+            return await GenerateJwtToken(user);
         }
 
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
             var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, string.Join(",", await _userManager.GetRolesAsync(user)))
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
@@ -107,7 +119,7 @@ namespace Services
                 await _userManager.UpdateAsync(user);
             }
 
-            return GenerateJwtToken(user);
+            return await GenerateJwtToken(user);
         }
     }
 }

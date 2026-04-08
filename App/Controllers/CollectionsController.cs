@@ -6,7 +6,7 @@ using Services;
 
 namespace App.Controllers
 {
-    [Authorize]
+    [Authorize(Roles = "User")]
     public class CollectionsController : BaseController
     {
         private readonly CollectionService _collectionService;

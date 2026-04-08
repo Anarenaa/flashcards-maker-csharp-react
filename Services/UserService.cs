@@ -1,26 +1,78 @@
-﻿using Core.DTOs;
+﻿using System.Text.RegularExpressions;
+using CloudinaryDotNet;
+using CloudinaryDotNet.Actions;
+using Core.DTOs;
 using Core.Exceptions;
 using Core.Models;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.Extensions.Configuration;
-using CloudinaryDotNet;
-using Repositories.Interfaces;
+using Core.Models.Constants;
 using Microsoft.AspNetCore.Http;
-using CloudinaryDotNet.Actions;
-using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
+using Repositories.Interfaces;
 
 namespace Services
 {
     public class UserService
     {
         private readonly UserManager<User> _userManager;
+        private readonly RoleManager<IdentityRole<int>> _roleManager;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
-        public UserService(UserManager<User> userManager, IUnitOfWork unitOfWork, IConfiguration configuration)
+        public UserService(UserManager<User> userManager,
+            RoleManager<IdentityRole<int>> roleManager, 
+            IUnitOfWork unitOfWork, 
+            IConfiguration configuration)
         {
             _userManager = userManager;
+            _roleManager = roleManager;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
+        }
+        public async Task<List<PublicUserDTO>> GetAllUsersAsync(string? roleFilter = null, string? searchTerm = null)
+        {
+            var query = _userManager.Users.AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                query = query.Where(u => u.UserName.Contains(searchTerm) || u.Email.Contains(searchTerm));
+            }
+
+            IEnumerable<User> filteredUsers;
+            if (!string.IsNullOrWhiteSpace(roleFilter))
+            {
+                filteredUsers = await _userManager.GetUsersInRoleAsync(roleFilter);
+
+                if (!string.IsNullOrWhiteSpace(searchTerm))
+                {
+                    filteredUsers = filteredUsers.Where(u =>
+                        u.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        u.UserName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                        u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+                }
+            }
+            else
+            {
+                filteredUsers = await query.ToListAsync();
+            }
+
+            var userDtos = new List<PublicUserDTO>();
+            foreach (var user in filteredUsers)
+            {
+                var roles = await _userManager.GetRolesAsync(user);
+
+                userDtos.Add(new PublicUserDTO
+                {
+                    Id = user.Id,
+                    AvatarUrl = user.AvatarUrl,
+                    UserName = user.UserName,
+                    Email = user.Email,
+                    CreatedAt = user.CreatedAt,
+                    Roles = roles.ToList()
+                });
+            }
+
+            return userDtos;
         }
         public async Task<PrivateUserDTO> GetMyPrivateProfileAsync(int myId)
         {
@@ -288,6 +340,51 @@ namespace Services
                         LastUpdatedAt = s.UpdatedAt
                 }).ToList()
             };
+        }
+
+
+        //roles management
+        public async Task<bool> IsUserInRoleAsync(int userId, Roles role)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return false;
+
+            return await _userManager.IsInRoleAsync(user, GetRoleName(role));
+        }
+
+        // Helper for converting enum to string
+        private string GetRoleName(Roles role)
+        {
+            return role switch
+            {
+                Roles.User => RoleNames.User,
+                Roles.Admin => RoleNames.Admin,
+                _ => RoleNames.User
+            };
+        }
+
+        public async Task<IdentityResult> CreateAdminAsync(string email, string password)
+        {
+            var adminRole = await _roleManager.RoleExistsAsync(RoleNames.Admin);
+            if (!adminRole)
+            {
+                await _roleManager.CreateAsync(new IdentityRole<int>(RoleNames.Admin));
+            }
+
+            var user = new User
+            {
+                UserName = email,
+                Email = email,
+                EmailConfirmed = true
+            };
+
+            var result = await _userManager.CreateAsync(user, password);
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, RoleNames.Admin);
+            }
+
+            return result;
         }
     }
 }

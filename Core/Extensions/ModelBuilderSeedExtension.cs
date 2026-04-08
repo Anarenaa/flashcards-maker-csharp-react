@@ -7,7 +7,10 @@ namespace Core.Extensions
     {
         public static void SeedAll(ModelBuilder modelBuilder)
         {
+            SeedRoles(modelBuilder);
             SeedUsers(modelBuilder);
+            SeedAdmin(modelBuilder);
+            SeedUserRoles(modelBuilder);
             SeedSets(modelBuilder);
             SeedFlashcards(modelBuilder);
             SeedCategories(modelBuilder);
@@ -16,6 +19,28 @@ namespace Core.Extensions
             SeedCategorySets(modelBuilder);
             SeedCollectionSets(modelBuilder);
         }
+        public static void SeedRoles(ModelBuilder modelBuilder)
+        {
+            var roles = new[]
+            {
+                new { Id = 1, Name = "User", NormalizedName = "USER", ConcurrencyStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B" },
+                new { Id = 2, Name = "Admin", NormalizedName = "ADMIN", ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B" }
+            };
+
+            foreach (var role in roles)
+            {
+                modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityRole<int>>().HasData(
+                    new Microsoft.AspNetCore.Identity.IdentityRole<int>
+                    {
+                        Id = role.Id,
+                        Name = role.Name,
+                        NormalizedName = role.NormalizedName,
+                        ConcurrencyStamp = role.ConcurrencyStamp
+                    }
+                );
+            }
+        }
+
         public static void SeedUsers(ModelBuilder modelBuilder)
         {
             var user1 = new User
@@ -30,7 +55,7 @@ namespace Core.Extensions
                 ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
                 CreatedAt = DateTime.Parse("2023-01-02T11:30:00Z"),
                 UpdatedAt = DateTime.Parse("2023-01-02T11:30:00Z"),
-                PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5"
+                PasswordHash = "AQAAAAIAAYagAAAAECWiT3PBdFR8jFPQAbbr/xZW0nPeypMwcicb5XAnXqxtp7h3mVfSfN4t2UQEzlwEcg=="
             };
 
             var user2 = new User
@@ -45,10 +70,53 @@ namespace Core.Extensions
                 ConcurrencyStamp = "C8A1088E-983C-435E-9804-6334D976451C",
                 CreatedAt = DateTime.Parse("2023-02-02T11:30:00Z"),
                 UpdatedAt = DateTime.Parse("2023-03-02T11:30:00Z"),
-                PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5"
+                PasswordHash = "AQAAAAIAAYagAAAAEEzkdq2JyhFWGCHP/KtVdIRcOheqDIHWulCLEYW1h6RefsLHVko0jduu4Zcu2Bwt1g=="
             };
 
             modelBuilder.Entity<User>().HasData(user1, user2);
+        }
+        public static void SeedAdmin(ModelBuilder modelBuilder)
+        {
+            var admin = new User
+            {
+                Id = 13,
+                UserName = "admin",
+                NormalizedUserName = "ADMIN",
+                Email = "admin@example.com",
+                NormalizedEmail = "ADMIN@EXAMPLE.COM",
+                EmailConfirmed = true,
+                SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
+                ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
+                CreatedAt = DateTime.Parse("2023-01-02T11:30:00Z"),
+                UpdatedAt = DateTime.Parse("2023-01-02T11:30:00Z"),
+                PasswordHash = "AQAAAAIAAYagAAAAEFgsHMTnZXkcaw1E4PQs9bvYxtiRXQo18Lr3rmtablo5pOsn5PC6XEs7CiZIZKTkTA==" // Admin123!
+            };
+
+            modelBuilder.Entity<User>().HasData(admin);
+        }
+
+        public static void SeedUserRoles(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<int>>().HasData(
+                new Microsoft.AspNetCore.Identity.IdentityUserRole<int>
+                {
+                    UserId = 13, // admin user ID
+                    RoleId = 2  // Admin role ID
+                }
+            );
+
+            modelBuilder.Entity<Microsoft.AspNetCore.Identity.IdentityUserRole<int>>().HasData(
+                new Microsoft.AspNetCore.Identity.IdentityUserRole<int>
+                {
+                    UserId = 1, // john_doe
+                    RoleId = 1  // User role
+                },
+                new Microsoft.AspNetCore.Identity.IdentityUserRole<int>
+                {
+                    UserId = 2, // jane_smith
+                    RoleId = 1  // User role
+                }
+            );
         }
         public static void SeedSets(ModelBuilder modelBuilder)
         {

@@ -1,4 +1,5 @@
-﻿using Core.Models;
+﻿using CloudinaryDotNet.Actions;
+using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,7 +7,6 @@ using Services;
 
 namespace App.Controllers
 {
-    [Authorize]
     public class MyProfileController : BaseController
     {
         private readonly UserService _userService;
@@ -18,6 +18,7 @@ namespace App.Controllers
         }
 
         [HttpGet]
+        [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
             var userDto = await _userService.GetMyPrivateProfileAsync(UserId);
@@ -25,6 +26,7 @@ namespace App.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "User")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateProfile(string? userName, IFormFile? avatarFile)
         {
@@ -42,6 +44,7 @@ namespace App.Controllers
         }
       
         [HttpGet("MyProfile/UserProfile/{username}")]
+        [Authorize]
         public async Task<IActionResult> UserProfile(string username)
         {
             try
