@@ -21,8 +21,15 @@ namespace Services
             var username = _configuration["EmailSettings:Username"];
             var password = _configuration["EmailSettings:Password"];
 
-            var message = new MailMessage(from!, toEmail, subject, body);
-            message.IsBodyHtml = true;
+            var fromAddress = new MailAddress(from!, "Flashcards Maker");
+            var toAddress = new MailAddress(toEmail);
+
+            var message = new MailMessage(fromAddress, toAddress)
+            {
+                Subject = subject,
+                Body = body,
+                IsBodyHtml = true
+            };
 
             using var client = new SmtpClient(smtpServer, SmtpPort)
             {
