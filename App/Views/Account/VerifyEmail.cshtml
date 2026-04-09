@@ -1,0 +1,149 @@
+﻿@using Core.DTOs
+@model VerifyEmailDTO
+@{
+    Layout = null; 
+}
+
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Відновлення пароля - Flashcards Maker</title>
+    <style>
+        :root {
+            --bg-color: #141B25;
+            --accent-color: #F0FFFF;
+            --btn-color: #6B8789;
+        }
+
+        body {
+            background: linear-gradient(#141B25, #2C1335);
+            height: 100vh;
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: system-ui, sans-serif;
+            color: #DEE4C7;
+        }
+
+        .auth-card {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(240, 255, 255, 0.1);
+            padding: 40px;
+            border-radius: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+            text-align: center;
+        }
+
+        h2 {
+            color: var(--accent-color);
+            margin-bottom: 10px;
+        }
+
+        p {
+            opacity: 0.7;
+            font-size: 0.9rem;
+            margin-bottom: 25px;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+            opacity: 0.8;
+        }
+
+        input {
+            width: 100%;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            outline: none;
+            box-sizing: border-box;
+            transition: 0.3s;
+        }
+
+            input:focus {
+                border-color: var(--accent-color);
+            }
+
+        .btn-auth {
+            width: 100%;
+            background: var(--btn-color);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+            .btn-auth:hover {
+                background: var(--accent-color);
+                color: #141B25;
+                transform: translateY(-2px);
+            }
+
+        .error-msg {
+            color: #ff8080;
+            font-size: 0.8rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+
+        .back-link {
+            display: block;
+            margin-top: 25px;
+            color: var(--accent-color);
+            text-decoration: none;
+            font-size: 0.85rem;
+            opacity: 0.6;
+        }
+
+            .back-link:hover {
+                opacity: 1;
+            }
+    </style>
+</head>
+<body>
+
+    <div class="auth-card">
+        <h2>Забули пароль?</h2>
+        <p>Введіть ваш Email, і ми надішлемо вам посилання для відновлення доступу.</p>
+
+        <form asp-controller="Account" asp-action="VerifyEmail" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-group">
+                <label>Електронна пошта</label>
+                <input asp-for="Email" type="email" placeholder="example@mail.com" required />
+                <span asp-validation-for="Email" class="error-msg"></span>
+            </div>
+
+            @if (!ViewData.ModelState.IsValid)
+            {
+                <div asp-validation-summary="All" class="error-msg" style="list-style:none; padding:0;"></div>
+            }
+
+            <button type="submit" class="btn-auth">Надіслати код</button>
+        </form>
+
+        <a asp-action="Login" class="back-link">← Назад до входу</a>
+    </div>
+
+</body>
+</html>
