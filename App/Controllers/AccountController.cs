@@ -52,7 +52,7 @@ namespace App.Controllers
             // Потім перевіряємо підтвердження пароля
             if (dto.Password != confirm)
             {
-                ModelState.AddModelError(string.Empty, "Паролі не збігаються");
+                ModelState.AddModelError("confirm", "Паролі не збігаються");
                 return View(dto);
             }
 
