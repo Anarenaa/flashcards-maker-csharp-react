@@ -60,7 +60,7 @@ namespace App.Controllers
             var existingUser = await _userManager.FindByEmailAsync(dto.Email);
             if (existingUser != null)
             {
-                ModelState.AddModelError(string.Empty, "Користувач з таким email вже існує");
+                ModelState.AddModelError("Email", "Користувач з таким email вже існує");
                 return View(dto);
             }
 
@@ -68,7 +68,7 @@ namespace App.Controllers
             var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
             if (existingUserName != null)
             {
-                ModelState.AddModelError(string.Empty, "Користувач з таким іменем вже існує");
+                ModelState.AddModelError("UserName", "Користувач з таким іменем вже існує");
                 return View(dto);
             }
 
@@ -105,7 +105,22 @@ namespace App.Controllers
 
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                if (error.Code.Contains("Email"))
+                {
+                    ModelState.AddModelError("Email", error.Description);
+                }
+                else if (error.Code.Contains("UserName") || error.Code.Contains("User"))
+                {
+                    ModelState.AddModelError("UserName", error.Description);
+                }
+                else if (error.Code.Contains("Password"))
+                {
+                    ModelState.AddModelError("Password", error.Description);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
 
             return View(dto);
@@ -151,7 +166,8 @@ namespace App.Controllers
             }
             catch (UnauthorizedAccessException)
             {
-                ModelState.AddModelError(string.Empty, "Неправильний email або пароль");
+                ModelState.AddModelError("UserNameOrEmail", "Неправильний логін/email або пароль");
+                ModelState.AddModelError("Password", "Неправильний логін/email або пароль");
                 ViewData["ReturnUrl"] = returnUrl;
                 return View(dto);
             }
