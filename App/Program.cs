@@ -85,12 +85,13 @@ builder.Services.AddScoped<SetService>();
 builder.Services.AddScoped<FlashcardService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
+builder.Services.AddScoped<ReportService>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddTransient<IEmailService, EmailService>();
-
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

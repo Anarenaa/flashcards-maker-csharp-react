@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260411112522_AddReports")]
+    partial class AddReports
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -326,18 +329,13 @@ namespace Core.Migrations
                     b.Property<int>("Reason")
                         .HasColumnType("int");
 
-                    b.Property<int?>("ReportedSetId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ReportedUserId")
+                    b.Property<int>("ReportedUserId")
                         .HasColumnType("int");
 
                     b.Property<int>("ReporterId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
-
-                    b.HasIndex("ReportedSetId");
 
                     b.HasIndex("ReportedUserId");
 
@@ -787,22 +785,17 @@ namespace Core.Migrations
 
             modelBuilder.Entity("Core.Models.Report", b =>
                 {
-                    b.HasOne("Core.Models.Set", "ReportedSet")
-                        .WithMany()
-                        .HasForeignKey("ReportedSetId");
-
                     b.HasOne("Core.Models.User", "ReportedUser")
                         .WithMany()
                         .HasForeignKey("ReportedUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
+                        .OnDelete(DeleteBehavior.Restrict)
+                        .IsRequired();
 
                     b.HasOne("Core.Models.User", "Reporter")
                         .WithMany()
                         .HasForeignKey("ReporterId")
                         .OnDelete(DeleteBehavior.Restrict)
                         .IsRequired();
-
-                    b.Navigation("ReportedSet");
 
                     b.Navigation("ReportedUser");
 
