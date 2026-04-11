@@ -28,17 +28,6 @@ namespace App.Controllers
         {
             var collections = (await _collectionService.GetCollectionsByUserIdAsync(UserId)).ToList();
 
-            foreach (var item in collections)
-            {
-                if (item.Id.HasValue)
-                {
-                    var setsInCollection = await _unitOfWork.Sets.GetAllAsync(
-                        filter: s => s.Collections.Any(c => c.Id == item.Id.Value)
-                    );
-                    item.SetsCount = setsInCollection.Count();
-                }
-            }
-
             return View(collections);
         }
 

@@ -7,7 +7,8 @@
         public string? AvatarUrl { get; set; }
         public required string UserName { get; set; }
         public required string Email { get; set; }
-        
+        public bool IsPublic { get; set; }
+
         public int? CollectionsCount { get; set; }
         public int? SetsCount { get; set; }
         public int? FlashcardsCount { get; set; }

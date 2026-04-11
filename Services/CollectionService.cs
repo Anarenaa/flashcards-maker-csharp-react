@@ -15,7 +15,8 @@ namespace Services
         public async Task<IEnumerable<CollectionDTO>> GetCollectionsByUserIdAsync(int userId)
         {
             var collections = await _unitOfWork.Collections.GetAllAsync(
-                filter: c => c.UserId == userId
+                filter: c => c.UserId == userId,
+                includeProperties: "Sets"
              );
 
             return collections.Select(
@@ -24,6 +25,7 @@ namespace Services
                     Id = c.Id,
                     Name = c.Name,
                     Description = c.Description,
+                    SetsCount = c.Sets.Count,
                     CreatedAt = c.CreatedAt,
                     LastUpdatedAt = c.UpdatedAt
                 }

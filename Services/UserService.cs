@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Repositories.Interfaces;
+using Services.Interfaces;
 
 namespace Services
 {
@@ -17,15 +18,18 @@ namespace Services
     {
         private readonly UserManager<User> _userManager;
         private readonly RoleManager<IdentityRole<int>> _roleManager;
+        private readonly IEmailService _emailService;
         private readonly IUnitOfWork _unitOfWork;
         private readonly IConfiguration _configuration;
         public UserService(UserManager<User> userManager,
             RoleManager<IdentityRole<int>> roleManager, 
+            IEmailService emailService,
             IUnitOfWork unitOfWork, 
             IConfiguration configuration)
         {
             _userManager = userManager;
             _roleManager = roleManager;
+            _emailService = emailService;
             _unitOfWork = unitOfWork;
             _configuration = configuration;
         }
@@ -310,6 +314,17 @@ namespace Services
             }
             await _unitOfWork.SaveChangesAsync();
         }
+        public async Task DeleteUserByAdminAsync(int id, string reason)
+        {
+            var user = await _userManager.FindByIdAsync(id.ToString());
+            if (user == null) throw new NotFoundException("Користувача не знайдено");
+            await _emailService.SendEmailAsync(
+                user.Email,
+                "Акаунт видалено",
+                $"Ваш акаунт видалено адміном. Причина: {reason}"
+            );
+            await DeleteUserAsync(id);
+        }
         public async Task<PublicUserDTO> GetUserProfileAsync(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -341,8 +356,19 @@ namespace Services
                 }).ToList()
             };
         }
-
-
+        public async Task SwitchProfilePublicity(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new NotFoundException("Користувача не знайдено");
+            user.IsPublic = !user.IsPublic;
+            await _userManager.UpdateAsync(user);
+        }
+        public async Task<bool> IsProfilePrivate(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new NotFoundException("Користувача не знайдено");
+            return !user.IsPublic;
+        }
         //roles management
         public async Task<bool> IsUserInRoleAsync(int userId, Roles role)
         {

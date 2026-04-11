@@ -33,19 +33,19 @@ namespace Services
             };
 
             var result = await _userManager.CreateAsync(user, dto.Password);
-            
+
             if (result.Succeeded)
             {
                 await _userManager.AddToRoleAsync(user, RoleNames.User);
             }
-            
+
             return result;
         }
 
         public async Task<string> LoginAsync(LoginDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.UserNameOrEmail);
-            if(user == null)
+            if (user == null)
                 user = await _userManager.FindByNameAsync(dto.UserNameOrEmail);
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
@@ -87,9 +87,19 @@ namespace Services
 
                 if (user == null)
                 {
+                    var baseUserName = email.Split('@')[0];
+                    var userName = baseUserName;
+                    int counter = 1;
+
+                    while (await _userManager.FindByNameAsync(userName) != null)
+                    {
+                        userName = $"{baseUserName}{counter}";
+                        counter++;
+                    }
+
                     user = new User
                     {
-                        UserName = email.Split('@')[0],
+                        UserName = userName,
                         Email = email,
                         AvatarUrl = avatarUrl,
                         EmailConfirmed = true
@@ -98,28 +108,43 @@ namespace Services
                     var createResult = await _userManager.CreateAsync(user);
                     if (!createResult.Succeeded)
                         throw new Exception(string.Join(", ", createResult.Errors.Select(e => e.Description)));
+
+                    await _userManager.AddToRoleAsync(user, RoleNames.User);
                 }
 
                 var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", googleId, "Google"));
                 if (!addLoginResult.Succeeded)
                     throw new Exception("Не вдалося прив'язати Google-акаунт");
             }
-            else
+
+            bool needsUpdate = false;
+
+            if (!user.EmailConfirmed)
             {
-                if (!user.EmailConfirmed)
-                {
-                    user.EmailConfirmed = true;
-                    await _userManager.UpdateAsync(user);
-                }
+                user.EmailConfirmed = true;
+                needsUpdate = true;
             }
 
             if (!string.IsNullOrEmpty(avatarUrl) && user.AvatarUrl != avatarUrl)
             {
                 user.AvatarUrl = avatarUrl;
-                await _userManager.UpdateAsync(user);
+                needsUpdate = true;
+            }
+
+            if (needsUpdate)
+            {
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                    throw new Exception("Помилка при оновленні профілю");
             }
 
             return await GenerateJwtToken(user);
+        }
+        public async Task<bool> IsUserHasPassword(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+            return await _userManager.HasPasswordAsync(user);
         }
     }
 }
