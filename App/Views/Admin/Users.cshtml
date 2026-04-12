@@ -1,0 +1,121 @@
+﻿@model List<Core.DTOs.PublicUserDTO>
+@{
+    ViewData["Title"] = "Користувачі";
+}
+
+<style>
+    .admin-controls {
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .search-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+
+    .search-input {
+        flex: 1;
+        min-width: 250px;
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--btn-border);
+        color: white;
+        padding: 12px 15px;
+        border-radius: 8px;
+        font-size: 0.95rem;
+    }
+
+    .table-responsive {
+        width: 100%;
+        overflow-x: auto;
+        border-radius: 8px;
+        background: rgba(255,255,255,0.02);
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        min-width: 700px;
+    }
+
+
+    flex-direction: column;
+    }
+
+    .search-input {
+        width: 100%;
+    }
+
+    .nav-btn {
+        width: 100%;
+        text-align: center;
+    }
+
+    }
+</style>
+
+<div class="admin-controls">
+    <h2>Керування користувачами</h2>
+
+    <div class="search-group">
+        <input type="text" id="userSearchInput"
+               value="@Context.Request.Query["searchTerm"]"
+               placeholder="Шукати за ім'ям або email..."
+               class="search-input" autocomplete="off">
+
+        <button type="button" class="nav-btn" style="padding: 12px 25px;">Шукати</button>
+
+        <a asp-action="Users" id="resetBtn" class="nav-btn"
+           style="display: @(string.IsNullOrEmpty(Context.Request.Query["searchTerm"]) ? "none" : "block");
+                  padding: 12px 20px; text-decoration: none; color: #ff6464 !important; border-color: rgba(255,100,100,0.3);">
+            ✕ Скинути
+        </a>
+    </div>
+</div>
+
+<div class="table-responsive">
+    <table>
+        <thead>
+            <tr style="text-align: left; border-bottom: 2px solid var(--btn-border); opacity: 0.7;">
+                <th style="padding: 15px;">ID</th>
+                <th>Ім'я</th>
+                <th>Email</th>
+                <th>Ролі</th>
+                <th style="text-align: right; padding-right: 15px;">Дії</th>
+            </tr>
+        </thead>
+        <tbody id="userTableBody">
+            <partial name="_UserTableRows" model="Model" />
+        </tbody>
+    </table>
+</div>
+@section Scripts {
+    <script>
+        const searchInput = document.getElementById('userSearchInput');
+        const tableBody = document.getElementById('userTableBody');
+        const resetBtn = document.getElementById('resetBtn');
+        let timeout = null;
+
+        searchInput.addEventListener('input', function () {
+            clearTimeout(timeout);
+            const query = searchInput.value;
+
+            // Показуємо/ховаємо кнопку скидання
+            resetBtn.style.display = query.length > 0 ? 'block' : 'none';
+
+            // Робимо затримку (debounce), щоб не спамити сервер на кожну букву
+            timeout = setTimeout(() => {
+                fetch(`/Admin/Users?searchTerm=${encodeURIComponent(query)}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    tableBody.innerHTML = html;
+                });
+            }, 300); // 300мс затримки
+        });
+    </script>
+}

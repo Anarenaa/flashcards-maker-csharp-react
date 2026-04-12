@@ -1,0 +1,39 @@
+﻿@model List<Core.Models.User>
+@{
+    ViewData["Title"] = "Заблоковані";
+}
+
+<h2 style="margin-bottom: 30px;">Заблоковані користувачі</h2>
+
+<table style="width: 100%; border-collapse: collapse;">
+    <thead>
+        <tr style="text-align: left; border-bottom: 2px solid var(--btn-border); opacity: 0.7;">
+            <th style="padding: 15px;">Ім'я</th>
+            <th>Email</th>
+            <th>Заблоковано до</th>
+            <th style="text-align: right;">Дія</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model)
+        {
+            <tr style="border-bottom: 1px solid rgba(240,255,255,0.05);">
+                <td style="padding: 15px;">@user.UserName</td>
+                <td>@user.Email</td>
+                <td style="color: #ff6464;">Назавжди (або до кінця терміну)</td>
+                <td style="text-align: right; padding: 15px;">
+                    <form asp-action="ToggleBlock" method="post">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <input type="hidden" name="shouldBlock" value="false" />
+                        <button type="submit" class="nav-btn" style="padding: 8px 15px; border-color: #88ff88; color: #88ff88 !important;">Розблокувати</button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+@if (!Model.Any())
+{
+    <p style="margin-top: 30px; opacity: 0.5;">Наразі заблокованих користувачів немає.</p>
+}

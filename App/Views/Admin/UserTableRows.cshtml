@@ -1,0 +1,24 @@
+﻿@model List<Core.DTOs.PublicUserDTO>
+
+@foreach (var user in Model)
+{
+    <tr style="border-bottom: 1px solid rgba(240,255,255,0.05); transition: 0.2s;">
+        <td style="padding: 15px;">@user.Id</td>
+        <td style="font-weight: 500;">@user.UserName</td>
+        <td style="opacity: 0.8;">@user.Email</td>
+        <td>@string.Join(", ", user.Roles)</td>
+        <td style="text-align: right; display: flex; gap: 15px; justify-content: flex-end; padding: 15px;">
+            <a asp-action="UserDetails" asp-route-id="@user.Id" style="color: var(--accent-color); text-decoration: none;">Переглянути</a>
+            <a asp-action="Reports" asp-route-targetEmail="@user.Email" style="color: #f5e8b7; text-decoration: none;">Скарга</a>
+
+            @if (!user.Roles.Contains("Admin"))
+            {
+                <form asp-action="ToggleBlock" method="post" onsubmit="return confirm('Заблокувати користувача?')">
+                    <input type="hidden" name="id" value="@user.Id" />
+                    <input type="hidden" name="shouldBlock" value="true" />
+                    <button type="submit" style="background: none; border: none; color: #ff6464; cursor: pointer; padding: 0;">Блок</button>
+                </form>
+            }
+        </td>
+    </tr>
+}

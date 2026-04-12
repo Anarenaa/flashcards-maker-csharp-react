@@ -1,0 +1,31 @@
+﻿@{
+    ViewData["Title"] = "Скарги";
+}
+
+<h2 style="margin-bottom: 30px;">Надіслати попередження користувачу</h2>
+
+@if (TempData["Success"] != null)
+{
+    <div style="background: rgba(136, 255, 136, 0.1); border: 1px solid #88ff88; color: #88ff88; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+        @TempData["Success"]
+    </div>
+}
+
+<form asp-action="SendWarning" method="post" style="max-width: 600px; display: flex; flex-direction: column; gap: 20px;">
+    <div>
+        <label style="display: block; margin-bottom: 8px; opacity: 0.8;">Email отримувача</label>
+        <input type="email" name="email" value="@ViewBag.TargetEmail" required
+               style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--btn-border); color: white; padding: 12px; border-radius: 8px;">
+    </div>
+    <div>
+        <label style="display: block; margin-bottom: 8px; opacity: 0.8;">Тема</label>
+        <input type="text" name="subject" value="Попередження щодо вашого акаунта Flashcards Maker" required
+               style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--btn-border); color: white; padding: 12px; border-radius: 8px;">
+    </div>
+    <div>
+        <label style="display: block; margin-bottom: 8px; opacity: 0.8;">Текст повідомлення</label>
+        <textarea name="message" rows="6" required
+                  style="width: 100%; background: rgba(255,255,255,0.05); border: 1px solid var(--btn-border); color: white; padding: 12px; border-radius: 8px; resize: vertical;"></textarea>
+    </div>
+    <button type="submit" class="nav-btn" style="padding: 15px; font-weight: 600;">Надіслати листа</button>
+</form>

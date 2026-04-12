@@ -1,0 +1,75 @@
+﻿@model Core.DTOs.PublicUserDTO
+@{
+    ViewData["Title"] = "Профіль " + Model.UserName;
+}
+
+<style>
+    .user-header {
+        margin-bottom: 40px;
+    }
+
+    .user-stats {
+        display: flex;
+        gap: 25px;
+        flex-wrap: wrap; 
+        opacity: 0.8;
+        font-size: 0.9rem;
+        margin-top: 10px;
+    }
+
+    .sets-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+        gap: 20px;
+    }
+
+ 
+        grid-template-columns: 1fr; 
+    }
+
+    .user-stats {
+        flex-direction: column; 
+        gap: 10px;
+    }
+
+    h2 {
+        font-size: 1.5rem;
+    }
+
+    }
+</style>
+
+<div class="user-header">
+    <a asp-action="Users" style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem;">← Назад до списку</a>
+    <h2 style="margin: 15px 0 5px 0;">Акаунт: @Model.UserName</h2>
+
+    <div class="user-stats">
+        <span><strong>Email:</strong> @Model.Email</span>
+        <span><strong>Сети:</strong> @Model.SetsCount</span>
+        <span><strong>Картки:</strong> @Model.FlashcardsCount</span>
+        <span><strong>Реєстрація:</strong> @Model.CreatedAt.ToString("dd.MM.yyyy")</span>
+    </div>
+</div>
+
+<h3 style="margin-bottom: 20px;">Навчальні сети користувача</h3>
+
+<div class="sets-grid">
+    @foreach (var set in Model.Sets)
+    {
+        <div style="background: rgba(129, 131, 117, 0.1); border: 1px solid var(--btn-border); padding: 20px; border-radius: 12px; display: flex; flex-direction: column;">
+            <div style="opacity: 0.5; font-size: 0.75rem; margin-bottom: 8px;">ID: #@set.Id</div>
+            <h4 style="margin: 0 0 10px 0; color: var(--accent-color);">@set.Name</h4>
+            <p style="opacity: 0.7; font-size: 0.9rem; flex-grow: 1; margin-bottom: 15px;">@set.Description</p>
+
+            <div style="border-top: 1px solid rgba(240,255,255,0.1); padding-top: 12px; display: flex; justify-content: space-between; font-size: 0.8rem; opacity: 0.6;">
+                <span>@set.FlashcardsCount карток</span>
+                <span>@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+            </div>
+        </div>
+    }
+</div>
+
+@if (!Model.Sets.Any())
+{
+    <p style="opacity: 0.5; text-align: center; margin-top: 50px;">У цього користувача ще немає створених сетів.</p>
+}
