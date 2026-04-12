@@ -142,12 +142,9 @@ namespace App.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 return View(dto);
             }
-
             try
             {
                 var token = await _authService.LoginAsync(dto);
-
-                // Зберігаємо JWT токен в cookie для Razor
                 Response.Cookies.Append("AuthToken", token, new CookieOptions
                 {
                     HttpOnly = true,
@@ -155,20 +152,32 @@ namespace App.Controllers
                     SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
-
                 ViewBag.AuthToken = token;
-
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
                 }
-
                 return RedirectToAction("Index", "Main");
             }
             catch (UnauthorizedAccessException)
             {
-                ModelState.AddModelError("UserNameOrEmail", "Неправильний логін/email або пароль");
-                ModelState.AddModelError("Password", "Неправильний логін/email або пароль");
+                var user = await _userManager.FindByEmailAsync(dto.UserNameOrEmail)
+                           ?? await _userManager.FindByNameAsync(dto.UserNameOrEmail);
+                if (user == null)
+                {
+                    ModelState.AddModelError("UserNameOrEmail", "Користувача з таким логіном або email не знайдено");
+                }
+                else
+                {
+                    ModelState.AddModelError("Password", "Неправильний пароль");
+                }
+
+                ViewData["ReturnUrl"] = returnUrl;
+                return View(dto);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Сталася помилка на сервері. Спробуйте пізніше.");
                 ViewData["ReturnUrl"] = returnUrl;
                 return View(dto);
             }

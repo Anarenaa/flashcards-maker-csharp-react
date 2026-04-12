@@ -136,7 +136,7 @@
     <div class="auth-card">
         <h2>Реєстрація</h2>
         <form asp-action="Register" method="post">
-            @* Прибрали Summary зверху, щоб помилки були тільки під кнопками *@
+            @* Тепер також додано у login *@
 
             <div class="form-group">
                 <label>Логін (UserName)</label>
@@ -170,25 +170,25 @@
                         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                     </span>
                 </div>
-                @* ПОМИЛКА ДЛЯ ПІДТВЕРДЖЕННЯ (виводиться з ModelState вручну) *@
+    
                 <span class="text-danger">@Html.ValidationMessage("confirm")</span>
-                @* Якщо в контролері помилка додана через string.Empty, вона виведеться тут: *@
+         
                 <div asp-validation-summary="ModelOnly" class="text-danger"></div>
             </div>
 
-            <div class="separator" style="display: flex; align-items: center; text-align: center; margin: 20px 0; opacity: 0.4; font-size: 0.8rem;">
-                <span style="flex:1; border-bottom:1px solid rgba(255,255,255,0.2); margin-right:.5em;"></span>
-                або
-                <span style="flex:1; border-bottom:1px solid rgba(255,255,255,0.2); margin-left:.5em;"></span>
-            </div>
-
-            <a asp-action="GoogleLogin" style="display:flex; align-items:center; justify-content:center; gap:10px; background:white; color:#141B25; padding:12px; border-radius:10px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin-bottom: 10px;">
-                <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="18" height="18">
-                через Google
-            </a>
-
             <button type="submit" class="btn-auth">Зареєструватися</button>
         </form>
+        <div class="separator" style="display: flex; align-items: center; text-align: center; margin: 20px 0; opacity: 0.4; font-size: 0.8rem;">
+            <span style="flex:1; border-bottom:1px solid rgba(255,255,255,0.2); margin-right:.5em;"></span>
+            або
+            <span style="flex:1; border-bottom:1px solid rgba(255,255,255,0.2); margin-left:.5em;"></span>
+        </div>
+
+        <a asp-action="GoogleLogin" style="display:flex; align-items:center; justify-content:center; gap:10px; background:white; color:#141B25; padding:12px; border-radius:10px; text-decoration:none; font-weight:bold; font-size:0.9rem; transition:0.3s; margin-bottom: 10px;">
+            <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="18" height="18">
+            через Google
+        </a>
+
         <div class="auth-footer">
             Вже маєте акаунт? <a asp-action="Login">Увійти</a>
         </div>
