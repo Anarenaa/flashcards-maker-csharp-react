@@ -45,6 +45,7 @@ namespace App.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
         {
             int finalCollectionId = collectionId ?? 0;

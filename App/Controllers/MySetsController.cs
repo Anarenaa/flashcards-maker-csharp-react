@@ -37,6 +37,7 @@ namespace App.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(SetDTO setDto)
         {
             if (ModelState.IsValid)
@@ -51,6 +52,7 @@ namespace App.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Edit(SetDTO setDto)
         {
             if (ModelState.IsValid)
@@ -80,6 +82,7 @@ namespace App.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int collectionId)
         {
             if (setId != 0 && collectionId != 0)

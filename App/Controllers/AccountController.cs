@@ -134,6 +134,7 @@ namespace App.Controllers
         }
 
         [HttpPost("login")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginDto dto, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
@@ -361,6 +362,7 @@ namespace App.Controllers
             return View(model);
         }
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
         {
             if (!ModelState.IsValid)

@@ -49,6 +49,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleBlock(int id, bool shouldBlock)
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
@@ -67,6 +68,7 @@ public class AdminController : Controller
     }
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> SendWarning(string email, string subject, string message)
     {
         await _emailService.SendEmailAsync(email, subject, message);
@@ -78,6 +80,7 @@ public class AdminController : Controller
     public IActionResult Settings() => View();
 
     [HttpPost]
+    [ValidateAntiForgeryToken]
     public async Task<IActionResult> CreateNewAdmin(string email, string password)
     {
         var result = await _userService.CreateAdminAsync(email, password);

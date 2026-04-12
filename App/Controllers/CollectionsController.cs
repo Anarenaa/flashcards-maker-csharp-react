@@ -47,6 +47,7 @@ namespace App.Controllers
 
         // 3. Створення
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CollectionDTO collectionDto)
         {
             if (ModelState.IsValid)
@@ -58,6 +59,7 @@ namespace App.Controllers
 
         // 4. НОВИЙ МЕТОД: Редагування (Update)
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(CollectionDTO collectionDto)
         {
             if (ModelState.IsValid && collectionDto.Id.HasValue)
@@ -69,6 +71,7 @@ namespace App.Controllers
 
         // 5. Видалення
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
         {
             await _collectionService.DeleteCollectionAsync(id);
@@ -77,6 +80,7 @@ namespace App.Controllers
 
         // 6. Видалення сету з папки
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveSet(int setId, int collectionId)
         {
             try
