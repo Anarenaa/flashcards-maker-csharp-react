@@ -1,5 +1,4 @@
-﻿using App.Attributes;
-using Core.DTOs;
+﻿using Core.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
@@ -28,6 +27,9 @@ namespace App.Controllers
         {
             try
             {
+                if (await _setService.IsSetMine(id, UserId) == false)
+                    throw new Exception("Цей сет не належить вам");
+
                 var setDetail = await _setService.GetSetByIdAsync(id);
                 ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
                 return View(setDetail);
@@ -41,7 +43,6 @@ namespace App.Controllers
         
         // --- РОБОТА З КАРТКАМИ ---
         [HttpPost("SaveCard")]
-        [SetOwnerAuthorize]
         public async Task<IActionResult> SaveCard(int setId, FlashcardDTO cardDto)
         {
             if (cardDto.Id == null || cardDto.Id == 0)
@@ -65,7 +66,6 @@ namespace App.Controllers
             return RedirectToAction("Index", new { id = setId });
         }
         [HttpPost("DeleteCard")]
-        [SetOwnerAuthorize]
         public async Task<IActionResult> DeleteCard(int cardId, int setId)
         {
             // 1. Видаляємо саму картку через сервіс
@@ -91,7 +91,6 @@ namespace App.Controllers
         // --- РОБОТА З КАТЕГОРІЯМИ ---
 
         [HttpPost("SaveCategory")]
-        [SetOwnerAuthorize]
         public async Task<IActionResult> SaveCategory(int setId, int? selectedCategoryId, string? newCategoryName)
         {
             int categoryId = 0;
@@ -134,7 +133,6 @@ namespace App.Controllers
             return RedirectToAction("Index", new { id = setId });
         }
         [HttpPost("RemoveCategory")]
-        [SetOwnerAuthorize]
         public async Task<IActionResult> RemoveCategory(int setId, int categoryId)
         {
            
