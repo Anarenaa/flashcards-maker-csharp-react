@@ -36,17 +36,17 @@
             padding: 40px;
             border-radius: 25px;
             width: 100%;
-            max-width: 380px;
+            max-width: 400px; 
             box-shadow: 0 20px 50px rgba(0,0,0,0.5);
         }
 
         h2 {
-            color: var(--accent-color);
+            color: #F0FFFF;
             text-align: center;
             margin-bottom: 25px;
-            font-size: 1.8rem;
         }
 
+       
         .validation-summary ul {
             list-style-type: disc;
             padding-left: 20px;
@@ -59,21 +59,24 @@
             margin-bottom: 5px;
         }
 
+        
         .text-danger {
-            color: var(--error-color);
-            font-size: 0.85rem;
+            color: #ff8080;
+            font-size: 0.75rem;
             margin-top: 5px;
             display: block;
+            list-style: none;
+            padding: 0;
         }
 
         .form-group {
-            margin-bottom: 20px;
+            margin-bottom: 15px; 
         }
 
         label {
             display: block;
-            margin-bottom: 8px;
-            font-size: 0.85rem;
+            margin-bottom: 6px;
+            font-size: 0.8rem; 
             opacity: 0.7;
         }
 
@@ -88,17 +91,16 @@
             background: #141B25;
             border: 1px solid #818375;
             color: white;
-            padding: 12px;
+            padding: 11px; 
+            padding-right: 40px;
             border-radius: 10px;
             outline: none;
             box-sizing: border-box;
             transition: 0.3s;
-            font-size: 1rem;
         }
 
             input:focus {
-                border-color: var(--accent-color);
-                box-shadow: 0 0 10px rgba(240, 255, 255, 0.1);
+                border-color: #F0FFFF;
             }
 
         .toggle-password {
@@ -109,11 +111,12 @@
             transition: 0.3s;
             display: flex;
             align-items: center;
-            color: white;
+            user-select: none;
         }
 
             .toggle-password:hover {
                 opacity: 1;
+                color: #F0FFFF;
             }
 
         .btn-auth {
@@ -121,17 +124,16 @@
             background: #6B8789;
             color: white;
             border: none;
-            padding: 14px;
+            padding: 13px; 
             border-radius: 10px;
             font-weight: bold;
             cursor: pointer;
             margin-top: 10px;
             transition: 0.3s;
-            font-size: 1rem;
         }
 
             .btn-auth:hover {
-                background: var(--accent-color);
+                background: #F0FFFF;
                 color: #141B25;
                 transform: translateY(-2px);
             }
@@ -140,7 +142,7 @@
             display: flex;
             align-items: center;
             text-align: center;
-            margin: 25px 0;
+            margin: 20px 0;
             opacity: 0.4;
             font-size: 0.8rem;
         }
@@ -174,7 +176,8 @@
             cursor: pointer;
             transition: 0.3s;
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.9rem; 
+            margin-bottom: 10px;
         }
 
             .btn-google:hover {
@@ -184,20 +187,16 @@
 
         .auth-footer {
             text-align: center;
-            margin-top: 25px;
-            font-size: 0.9rem;
-            opacity: 0.8;
+            margin-top: 20px;
+            font-size: 0.85rem; 
+            opacity: 0.6;
         }
 
             .auth-footer a {
-                color: var(--accent-color);
+                color: #F0FFFF;
                 text-decoration: none;
                 font-weight: bold;
             }
-
-                .auth-footer a:hover {
-                    text-decoration: underline;
-                }
     </style>
 </head>
 <body>
@@ -206,7 +205,6 @@
         <h2>Вхід</h2>
 
         <form asp-action="Login" method="post">
-            @* ПЕРЕЛІК ПОМИЛОК З КРАПКАМИ *@
             <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
 
             <div class="form-group">
@@ -229,8 +227,8 @@
                 <span asp-validation-for="Password" class="text-danger"></span>
             </div>
 
-            <div style="text-align: right; margin-top: -10px; margin-bottom: 20px;">
-                <a asp-action="VerifyEmail" style="color: var(--accent-color); text-decoration: none; font-size: 0.85rem; opacity: 0.8;">Забули пароль?</a>
+            <div style="text-align: right; margin-top: -5px; margin-bottom: 15px;">
+                <a asp-action="VerifyEmail" style="color: #F0FFFF; text-decoration: none; font-size: 0.8rem; opacity: 0.7;">Забули пароль?</a>
             </div>
 
             <button type="submit" class="btn-auth">Увійти</button>
@@ -240,7 +238,7 @@
 
         <a asp-action="ExternalLogin" asp-route-provider="Google" class="btn-google">
             <img src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg" width="18" height="18">
-            Продовжити з Google
+            через Google
         </a>
 
         <div class="auth-footer">
@@ -251,6 +249,7 @@
     <script>
         function togglePass(inputId, iconElement) {
             const input = document.getElementById(inputId);
+            const svg = iconElement.querySelector('svg') || iconElement;
             if (input.type === "password") {
                 input.type = "text";
                 iconElement.style.opacity = "1";

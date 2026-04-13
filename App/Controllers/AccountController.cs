@@ -232,7 +232,22 @@ namespace App.Controllers
 
             return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
+        [HttpGet("ExternalLogin")]
+        [AllowAnonymous]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
+        {
+           
+            if (provider == "Google")
+            {
+                var properties = new AuthenticationProperties
+                {
+                    RedirectUri = Url.Action("GoogleResponse", new { returnUrl })
+                };
+                return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
+            }
 
+            return RedirectToAction("Login");
+        }
         [Authorize]
         [HttpPost("update-general-profile")]
         [ValidateAntiForgeryToken]
