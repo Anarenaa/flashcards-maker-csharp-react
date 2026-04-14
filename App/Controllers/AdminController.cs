@@ -17,10 +17,7 @@ public class AdminController : Controller
     private readonly IUnitOfWork _unitOfWork;
     private readonly SetService _setService;
 
-    private static int _sentEmailsCount = 0;
     private static string _lastActionTime = "Ще не було";
-
-    // Константа-мітка для "Видалених" акаунтів (1 січня 2099 року)
     private readonly DateTimeOffset SoftDeleteMarker = new DateTimeOffset(new DateTime(2099, 1, 1));
 
     public AdminController(
@@ -56,39 +53,31 @@ public class AdminController : Controller
             .Select(u => new { u.Id, u.LockoutEnd })
             .ToListAsync();
 
-        var deletedUserIds = lockoutUsers.Where(u => u.LockoutEnd == SoftDeleteMarker).Select(u => u.Id).ToList();
-        var blockedUserIds = lockoutUsers.Where(u => u.LockoutEnd != SoftDeleteMarker).Select(u => u.Id).ToList();
-
         ViewBag.WarningCounts = warningCounts;
-        ViewBag.BlockedUserIds = blockedUserIds;
-        ViewBag.DeletedUserIds = deletedUserIds;
+        ViewBag.DeletedUserIds = lockoutUsers.Where(u => u.LockoutEnd == SoftDeleteMarker).Select(u => u.Id).ToList();
+        ViewBag.BlockedUserIds = lockoutUsers.Where(u => u.LockoutEnd != SoftDeleteMarker).Select(u => u.Id).ToList();
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-        {
             return PartialView("UserTableRows", allUsers);
-        }
 
         return View(allUsers);
     }
 
-    // М'яке видалення (смітник)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteUser(int id, string reason = "Порушення правил платформи")
+    public async Task<IActionResult> DeleteUser(int id, string reason = "Порушення правил")
     {
         var user = await _userManager.FindByIdAsync(id.ToString());
         if (user != null)
         {
             await _userManager.SetLockoutEndDateAsync(user, SoftDeleteMarker);
-            await _emailService.SendEmailAsync(user.Email, "Акаунт видалено", $"Ваш акаунт переміщено у видалені адміністратором. Причина: {reason}");
-
+            await _emailService.SendEmailAsync(user.Email, "Акаунт видалено", $"Причина: {reason}");
             _lastActionTime = DateTime.Now.ToString("HH:mm");
-            TempData["Success"] = $"Користувача {user.UserName} видалено (переміщено в архів)";
+            TempData["Success"] = "Користувача переміщено у видалені";
         }
         return RedirectToAction(nameof(Users));
     }
 
-    // Відновлення
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RestoreUser(int id)
@@ -97,13 +86,12 @@ public class AdminController : Controller
         if (user != null)
         {
             await _userManager.SetLockoutEndDateAsync(user, null);
-            TempData["Success"] = $"Акаунт {user.UserName} відновлено";
             _lastActionTime = DateTime.Now.ToString("HH:mm");
+            TempData["Success"] = "Акаунт відновлено";
         }
         return RedirectToAction(nameof(Users));
     }
 
-    // Тимчасовий Бан
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> ToggleBlock(int id, bool shouldBlock)
@@ -113,16 +101,8 @@ public class AdminController : Controller
         {
             await _userManager.SetLockoutEndDateAsync(user, shouldBlock ? DateTimeOffset.MaxValue.AddYears(-20) : null);
             _lastActionTime = DateTime.Now.ToString("HH:mm");
-            TempData["Success"] = shouldBlock ? "Користувача заблоковано" : "Користувача розблоковано";
         }
         return RedirectToAction(nameof(Users));
-    }
-
-    public async Task<IActionResult> UserDetails(int id)
-    {
-        var profile = await _userService.GetUserProfileAsync(id);
-        if (profile == null) return NotFound();
-        return View(profile);
     }
 
     // --- 2. ЦЕНТР МОДЕРАЦІЇ (СКАРГИ) ---
@@ -135,15 +115,11 @@ public class AdminController : Controller
         }
 
         var allReports = await _unitOfWork.Reports.GetAllAsync(includeProperties: "Reporter,ReportedUser,ReportedSet");
+        var adminUsers = await _userManager.GetUsersInRoleAsync("Admin");
+        var adminIds = adminUsers.Select(a => a.Id).ToHashSet();
 
-        var adminWarnings = new List<Report>();
-        var userComplaints = new List<Report>();
-
-        foreach (var r in allReports)
-        {
-            if (await _userManager.IsInRoleAsync(r.Reporter, "Admin")) adminWarnings.Add(r);
-            else userComplaints.Add(r);
-        }
+        var adminWarnings = allReports.Where(r => adminIds.Contains(r.ReporterId)).ToList();
+        var userComplaints = allReports.Where(r => !adminIds.Contains(r.ReporterId)).ToList();
 
         ViewBag.AdminWarnings = adminWarnings.OrderByDescending(x => x.CreatedAt).ToList();
         ViewBag.UserComplaints = userComplaints.OrderByDescending(x => x.CreatedAt).ToList();
@@ -161,7 +137,7 @@ public class AdminController : Controller
         if (targetUser != null)
         {
             var adminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var systemReport = new Report
+            var report = new Report
             {
                 ReporterId = adminId,
                 ReportedUserId = targetUser.Id,
@@ -170,11 +146,10 @@ public class AdminController : Controller
                 CreatedAt = DateTime.UtcNow,
                 IsResolved = true
             };
-            await _unitOfWork.Reports.AddAsync(systemReport);
+            await _unitOfWork.Reports.AddAsync(report);
             await _unitOfWork.SaveChangesAsync();
         }
 
-        _sentEmailsCount++;
         _lastActionTime = DateTime.Now.ToString("HH:mm");
         TempData["Success"] = $"Лист надіслано на {email}";
         return RedirectToAction(nameof(Reports));
@@ -194,15 +169,53 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Reports));
     }
 
-    // --- 3. ДЕТАЛІ СЕТУ ---
+    // --- 3. ДЕТАЛІ СЕТУ ТА ЮЗЕРА ---
+    public async Task<IActionResult> UserDetails(int id)
+    {
+        var profile = await _userService.GetUserProfileAsync(id);
+        return profile == null ? NotFound() : View(profile);
+    }
+
     public async Task<IActionResult> SetDetails(int id)
     {
         var setDetails = await _setService.GetSetByIdAsync(id);
-        if (setDetails == null) return NotFound();
-        return View(setDetails);
+        return setDetails == null ? NotFound() : View(setDetails);
     }
 
-    // --- 4. API ТА СТАТИСТИКА ---
+    // --- 4. API ДЛЯ МОНІТОРИНГУ (LIVE STATS) ---
+    [HttpGet]
+    public async Task<JsonResult> GetRealTimeStats()
+    {
+        try
+        {
+            var today = DateTime.Today;
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminIds = admins.Select(a => a.Id).ToList();
+            int newUsersCount = await _userManager.Users.CountAsync(u => u.CreatedAt >= today);
+
+            // Рахуємо реальні звіти (листи) від адмінів за сьогодні
+            var reportsToday = await _unitOfWork.Reports.GetAllAsync(r => r.CreatedAt >= today);
+            int emailsCount = reportsToday.Count(r => adminIds.Contains(r.ReporterId));
+            int complaintsFromUsers = reportsToday.Count(r => !adminIds.Contains(r.ReporterId));
+            int totalUsers = await _userManager.Users.CountAsync();
+            int blockedTotal = await _userManager.Users.CountAsync(u => u.LockoutEnd > DateTimeOffset.UtcNow);
+
+            return Json(new
+            {
+                userComplaintsToday = complaintsFromUsers,
+                newUsers = await _userManager.Users.CountAsync(u => u.CreatedAt >= today),
+                emailsToday = emailsCount,
+                totalUsers = totalUsers,
+                blockedTotal = await _userManager.Users.CountAsync(u => u.LockoutEnd > DateTimeOffset.UtcNow),
+                lastAction = _lastActionTime
+            });
+        }
+        catch
+        {
+            return Json(new { emailsToday = 0, totalUsers = 0, lastAction = "Error" });
+        }
+    }
+
     [HttpGet]
     public async Task<JsonResult> GetEmailSuggestions(string query)
     {
@@ -210,19 +223,98 @@ public class AdminController : Controller
         var users = await _userService.GetAllUsersAsync(null, query);
         return Json(users.Select(u => new { u.Email, u.UserName }).Take(5));
     }
-
-    [HttpGet]
-    public async Task<JsonResult> GetRealTimeStats()
+    // 1. Видалення всього сету
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSetByAdmin(int setId)
     {
-        return Json(new
+        var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+        if (set != null)
         {
-            emailsToday = _sentEmailsCount,
-            newUsers = await _userManager.Users.CountAsync(u => u.CreatedAt >= DateTime.Today),
-            blockedTotal = await _userManager.Users.CountAsync(u => u.LockoutEnd > DateTimeOffset.UtcNow),
-            totalUsers = await _userManager.Users.CountAsync(),
-            lastAction = _lastActionTime
-        });
+            _unitOfWork.Sets.Delete(set);
+            await _unitOfWork.SaveChangesAsync();
+            TempData["Success"] = "Сет повністю видалено";
+        }
+        return RedirectToAction("Reports");
     }
 
+    // 2. Видалення однієї картки
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCardByAdmin(int cardId, int setId)
+    {
+        var card = await _unitOfWork.Flashcards.GetByIdAsync(cardId);
+        if (card != null)
+        {
+            _unitOfWork.Flashcards.Delete(card);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        return RedirectToAction("SetDetails", new { id = setId });
+    }
+
+    // 3. Редагування картки (Нове)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateCardByAdmin(int cardId, int setId, string term, string definition)
+    {
+        var card = await _unitOfWork.Flashcards.GetByIdAsync(cardId);
+        if (card != null)
+        {
+            card.Term = term;
+            card.Definition = definition;
+            await _unitOfWork.SaveChangesAsync();
+            TempData["Success"] = "Картку відредаговано";
+        }
+        return RedirectToAction("SetDetails", new { id = setId });
+    }
+    public async Task<IActionResult> Categories()
+    {
+        var categories = await _unitOfWork.Categories.GetAllAsync();
+        return View(categories.OrderBy(c => c.Name).ToList());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateCategory(string name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var category = new Category { Name = name.Trim() };
+            await _unitOfWork.Categories.AddAsync(category);
+            await _unitOfWork.SaveChangesAsync();
+            TempData["Success"] = "Категорію створено";
+        }
+        return RedirectToAction(nameof(Categories));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCategory(int id)
+    {
+        var category = await _unitOfWork.Categories.GetByIdAsync(id);
+        if (category != null)
+        {
+            _unitOfWork.Categories.Delete(category);
+            await _unitOfWork.SaveChangesAsync();
+            TempData["Success"] = "Категорію видалено";
+        }
+        return RedirectToAction(nameof(Categories));
+    }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateCategory(int id, string name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var category = await _unitOfWork.Categories.GetByIdAsync(id);
+            if (category != null)
+            {
+                category.Name = name.Trim();
+                await _unitOfWork.SaveChangesAsync();
+                TempData["Success"] = "Категорію успішно оновлено";
+            }
+        }
+        return RedirectToAction(nameof(Categories));
+    }
     public IActionResult Settings() => View();
 }

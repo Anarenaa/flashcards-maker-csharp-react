@@ -19,6 +19,7 @@
         padding: 30px;
         border-radius: 24px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        min-width: 0; 
     }
 
     .users-side-panel {
@@ -36,6 +37,8 @@
         margin-bottom: 25px;
         border-bottom: 1px solid rgba(240, 255, 255, 0.1);
         padding-bottom: 5px;
+        overflow-x: auto; 
+        white-space: nowrap;
     }
 
     .tab-link {
@@ -92,12 +95,13 @@
     .table-responsive {
         width: 100%;
         overflow-x: auto;
+        border-radius: 12px;
     }
 
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 600px;
+        min-width: 700px;
     }
 
     th {
@@ -117,6 +121,11 @@
         border-radius: 20px;
         transition: 0.3s;
     }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            background: rgba(255, 255, 255, 0.05);
+        }
 
     .stat-val {
         font-size: 1.6rem;
@@ -179,7 +188,7 @@
         }
     }
 
-    @@media (max-width: 1200px) {
+    @@media (max-width: 1100px) {
         .admin-page-wrapper {
             flex-direction: column;
         }
@@ -188,11 +197,40 @@
             width: 100%;
             flex-direction: row;
             flex-wrap: wrap;
+            position: static;
         }
 
         .stat-card {
             flex: 1;
-            min-width: 220px;
+            min-width: 200px;
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .users-main-panel {
+            padding: 20px;
+            border-radius: 15px;
+        }
+
+        .search-container {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .search-input {
+            font-size: 16px;
+        }
+
+        #resetBtn {
+            text-align: center;
+        }
+
+        .stat-card {
+            min-width: 100%;
+        }
+
+        h2 {
+            font-size: 1.4rem;
         }
     }
 </style>
@@ -214,7 +252,6 @@
                 ✓ @TempData["Success"]
             </div>
         }
-
         <div class="search-container">
             <div style="flex-grow: 1;">
                 <input type="text" id="userSearchInput"
@@ -222,13 +259,13 @@
                        placeholder="Пошук за нікнеймом або email..."
                        class="search-input" autocomplete="off">
             </div>
+
             <a asp-action="Users" id="resetBtn" class="nav-btn"
                style="display: @(string.IsNullOrEmpty(Context.Request.Query["searchTerm"]) ? "none" : "block");
                       padding: 12px 20px; text-decoration: none; color: #ff6464 !important; border-color: rgba(255,100,100,0.3);">
                 ✕ Скинути
             </a>
         </div>
-
         <div class="table-responsive">
             <table>
                 <thead>
@@ -253,18 +290,20 @@
             <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem;">Всього в системі</h4>
             <span id="total-users" class="stat-val">@Model.Count</span>
         </div>
+
         <div class="stat-card">
             <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #88ff88;">Нові сьогодні</h4>
             <span id="new-users" class="stat-val">0</span>
         </div>
+
         <div class="stat-card">
             <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #ff6464;">Заблоковано/Видалено</h4>
             <span id="blocked-users" class="stat-val">0</span>
         </div>
+
         <div class="stat-card" style="background: rgba(240, 255, 255, 0.05); border: 1px solid var(--accent-color);">
             <h4 style="margin: 0 0 15px 0; font-size: 0.9rem;">Швидкі дії</h4>
-            <a asp-action="Reports" class="nav-btn" style="display: block; font-size: 0.8rem; margin-bottom: 8px; text-align:center; text-decoration:none;">Написати скаргу</a>
-            <a asp-action="Settings" class="nav-btn" style="display: block; font-size: 0.8rem; text-align:center; text-decoration:none;">Додати адміна</a>
+            <a asp-action="Reports" class="nav-btn" style="display: block; font-size: 0.8rem; margin-bottom: 8px; text-align:center; text-decoration:none;">Центр скарг</a>
         </div>
     </div>
 </div>
@@ -290,19 +329,12 @@
                 const isDeleted = row.getAttribute('data-deleted') === 'true';
                 const warnings = parseInt(row.getAttribute('data-warnings') || '0');
 
-                if (currentFilter === 'all') {
-                    row.style.display = isDeleted ? 'none' : '';
-                } else if (currentFilter === 'warned') {
-                    row.style.display = (warnings > 0 && !isDeleted) ? '' : 'none';
-                } else if (currentFilter === 'blocked') {
-                    row.style.display = (isBlocked && !isDeleted) ? '' : 'none';
-                } else if (currentFilter === 'deleted') {
-                    row.style.display = isDeleted ? '' : 'none';
-                }
+                if (currentFilter === 'all') row.style.display = isDeleted ? 'none' : '';
+                else if (currentFilter === 'warned') row.style.display = (warnings > 0 && !isDeleted) ? '' : 'none';
+                else if (currentFilter === 'blocked') row.style.display = (isBlocked && !isDeleted) ? '' : 'none';
+                else if (currentFilter === 'deleted') row.style.display = isDeleted ? '' : 'none';
             });
         }
-
-       
         searchInput.addEventListener('input', function () {
             const query = searchInput.value;
             resetBtn.style.display = query.length > 0 ? 'block' : 'none';
@@ -315,33 +347,36 @@
                 .then(response => response.text())
                 .then(html => {
                     tableBody.innerHTML = html;
-                    applyTabFilter(); 
+                    applyTabFilter();
                 });
             }, 300);
         });
-
-        async function updateStats() {
+        async function refreshStats() {
             try {
                 const response = await fetch('/Admin/GetRealTimeStats');
+                if (!response.ok) return;
                 const data = await response.json();
 
-                updateCounter('new-users', data.newUsers);
-                updateCounter('blocked-users', data.blockedTotal);
-                if(data.totalUsers) updateCounter('total-users', data.totalUsers);
+                updateValue('new-users', data.newUsers);
+                updateValue('blocked-users', data.blockedTotal);
+                if(data.totalUsers) updateValue('total-users', data.totalUsers);
+
             } catch (err) {}
         }
 
-        function updateCounter(id, newVal) {
+        function updateValue(id, newVal) {
             const el = document.getElementById(id);
-            if (el && el.innerText != newVal) {
-                el.classList.add('stat-update');
-                el.innerText = newVal;
-                setTimeout(() => el.classList.remove('stat-update'), 1000);
+            if (el && newVal !== undefined) {
+                if (el.innerText != newVal) {
+                    el.classList.add('stat-update');
+                    el.innerText = newVal;
+                    setTimeout(() => el.classList.remove('stat-update'), 1000);
+                }
             }
         }
 
-        setInterval(updateStats, 10000);
-        updateStats();
+        setInterval(refreshStats, 10000);
+        refreshStats();
 
         resetBtn.addEventListener('click', function(e) {
             e.preventDefault();
