@@ -1,0 +1,152 @@
+﻿@using Core.DTOs
+@model SetDetailDTO
+
+@{
+    ViewData["Title"] = "Модерація: " + Model.Name;
+}
+
+<style>
+    .admin-set-container {
+        max-width: 1100px;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .back-link {
+        color: var(--accent-color);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        opacity: 0.7;
+        font-size: 0.9rem;
+    }
+
+    .admin-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        background: rgba(255, 100, 100, 0.05);
+        border: 1px solid rgba(255, 100, 100, 0.2);
+        padding: 30px;
+        border-radius: 20px;
+        margin-bottom: 30px;
+    }
+
+    .badge-admin {
+        background: #ff6464;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: bold;
+        text-transform: uppercase;
+        margin-bottom: 10px;
+        display: inline-block;
+    }
+
+    /* Картки */
+    .admin-cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 20px;
+    }
+
+    .admin-flashcard {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--btn-border);
+        padding: 25px;
+        border-radius: 15px;
+        position: relative;
+        transition: 0.3s;
+    }
+
+        .admin-flashcard:hover {
+            border-color: #ff6464;
+        }
+
+    .card-term {
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 1.2rem;
+        margin-bottom: 10px;
+        padding-right: 30px;
+    }
+
+    .card-definition {
+        opacity: 0.8;
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+
+    /* Кнопка видалення картки (смітник) */
+    .delete-card-btn {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        background: none;
+        border: none;
+        color: #ff6464;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: 0.3s;
+    }
+
+        .delete-card-btn:hover {
+            opacity: 1;
+            transform: scale(1.2);
+        }
+
+    .btn-danger-outline {
+        background: transparent;
+        border: 1px solid #ff6464;
+        color: #ff6464 !important;
+        padding: 10px 20px;
+        border-radius: 10px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-danger-outline:hover {
+            background: #ff6464;
+            color: white !important;
+        }
+</style>
+
+<div class="admin-set-container">
+    <a href="javascript:history.back()" class="back-link">← Назад до модерації</a>
+
+    <div class="admin-header">
+        <div>
+            <span class="badge-admin">Режим модератора</span>
+            <h2 style="margin: 0; color: white; font-size: 2rem;">@Model.Name</h2>
+            <p style="opacity: 0.6; margin-top: 10px;">@Model.Description</p>
+        </div>
+
+        <form asp-action="DeleteSetByAdmin" method="post" onsubmit="return confirm('ВИДАЛИТИ ВЕСЬ СЕТ ТА ВСІ КАРТКИ?')">
+            <input type="hidden" name="setId" value="@Model.Id" />
+            <button type="submit" class="btn-danger-outline">Видалити весь сет</button>
+        </form>
+    </div>
+
+    <div class="admin-cards-grid">
+        @foreach (var card in Model.Flashcards)
+        {
+            <div class="admin-flashcard">
+                @* Кнопка видалення конкретної картки *@
+                <form asp-action="DeleteCardByAdmin" method="post" onsubmit="return confirm('Видалити цю картку?')">
+                    <input type="hidden" name="cardId" value="@card.Id" />
+                    <input type="hidden" name="setId" value="@Model.Id" />
+                    <button type="submit" class="delete-card-btn" title="Видалити порушення">
+                        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                    </button>
+                </form>
+
+                <div class="card-term">@card.Term</div>
+                <div style="height:1px; background: rgba(255,255,255,0.1); margin: 12px 0;"></div>
+                <div class="card-definition">@card.Definition</div>
+            </div>
+        }
+    </div>
+</div>

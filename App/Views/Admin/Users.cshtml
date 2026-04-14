@@ -1,6 +1,6 @@
 ﻿@model List<Core.DTOs.PublicUserDTO>
 @{
-    ViewData["Title"] = "Користувачі";
+    ViewData["Title"] = "Керування користувачами";
 }
 
 <style>
@@ -30,28 +30,48 @@
         top: 20px;
     }
 
-    .stat-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(240, 255, 255, 0.05);
-        padding: 20px;
-        border-radius: 18px;
-        transition: 0.3s;
+    .admin-tabs {
+        display: flex;
+        gap: 25px;
+        margin-bottom: 25px;
+        border-bottom: 1px solid rgba(240, 255, 255, 0.1);
+        padding-bottom: 5px;
     }
 
-        .stat-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-5px);
+    .tab-link {
+        background: none;
+        border: none;
+        color: var(--text-color);
+        font-size: 1rem;
+        font-weight: 600;
+        cursor: pointer;
+        opacity: 0.5;
+        padding: 10px 5px;
+        transition: 0.3s;
+        position: relative;
+    }
+
+        .tab-link.active {
+            opacity: 1;
+            color: var(--accent-color);
         }
+
+            .tab-link.active::after {
+                content: '';
+                position: absolute;
+                bottom: -7px;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: var(--accent-color);
+                box-shadow: 0 0 10px var(--accent-color);
+            }
+
     .search-container {
         display: flex;
         gap: 12px;
         margin-bottom: 25px;
         align-items: center;
-    }
-
-    .search-input-wrapper {
-        position: relative;
-        flex-grow: 1;
     }
 
     .search-input {
@@ -84,46 +104,73 @@
     th {
         text-align: left;
         padding: 15px;
-        font-size: 0.85rem;
+        font-size: 0.8rem;
         text-transform: uppercase;
         letter-spacing: 1px;
-        opacity: 0.6;
-        border-bottom: 2px solid var(--btn-border);
-    }
-    .live-dot {
-        width: 8px;
-        height: 8px;
-        background: #00ff00;
-        border-radius: 50%;
-        display: inline-block;
-        margin-right: 8px;
-        box-shadow: 0 0 10px #00ff00;
-        animation: pulse 1.5s infinite;
+        opacity: 0.5;
+        border-bottom: 1px solid var(--btn-border);
     }
 
-    @@keyframes pulse {
-        0% {
-            transform: scale(1);
-            opacity: 1;
-        }
-
-        50% {
-            transform: scale(1.2);
-            opacity: 0.5;
-        }
-
-        100% {
-            transform: scale(1);
-            opacity: 1;
-        }
+    .stat-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(240, 255, 255, 0.05);
+        padding: 22px;
+        border-radius: 20px;
+        transition: 0.3s;
     }
+
+        .stat-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            transform: translateY(-5px);
+        }
 
     .stat-val {
-        font-size: 1.5rem;
+        font-size: 1.6rem;
         font-weight: bold;
         color: var(--accent-color);
         display: block;
         margin-top: 5px;
+        transition: 0.5s;
+    }
+
+    .live-indicator {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 0.65rem;
+        font-weight: bold;
+        color: #88ff88;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+    }
+
+    .pulse-dot {
+        width: 8px;
+        height: 8px;
+        background-color: #00ff00;
+        border-radius: 50%;
+        box-shadow: 0 0 10px #00ff00;
+        animation: pulse 1.5s infinite;
+    }
+
+    .stat-update {
+        color: #fff !important;
+        text-shadow: 0 0 10px var(--accent-color);
+        transform: scale(1.1);
+    }
+
+    @@keyframes pulse {
+        0% {
+            box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7);
+        }
+
+        70% {
+            box-shadow: 0 0 0 10px rgba(0, 255, 0, 0);
+        }
+
+        100% {
+            box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
+        }
     }
 
     @@keyframes fadeIn {
@@ -151,17 +198,23 @@
 
         .stat-card {
             flex: 1;
-            min-width: 200px;
+            min-width: 220px;
         }
     }
 </style>
 
 <div class="admin-page-wrapper">
     <div class="users-main-panel">
-        <h2 style="margin-top: 0; margin-bottom: 25px;">Керування користувачами</h2>
+        <h2 style="margin: 0 0 25px 0; color: white;">Керування користувачами</h2>
+
+        <div class="admin-tabs">
+            <button class="tab-link active" onclick="switchTab('all', this)">Усі користувачі</button>
+            <button class="tab-link" onclick="switchTab('warned', this)">З попередженнями</button>
+            <button class="tab-link" onclick="switchTab('blocked', this)">Заблоковані</button>
+        </div>
 
         <div class="search-container">
-            <div class="search-input-wrapper">
+            <div style="flex-grow: 1;">
                 <input type="text" id="userSearchInput"
                        value="@Context.Request.Query["searchTerm"]"
                        placeholder="Введіть ім'я, email або ID для швидкого пошуку..."
@@ -192,29 +245,31 @@
             </table>
         </div>
     </div>
+
+    <!-- ПРАВА ПАНЕЛЬ СТАТИСТИКИ -->
     <div class="users-side-panel">
         <div class="stat-card">
-            <div style="font-size: 0.75rem; opacity: 0.6; text-transform: uppercase;">
-                <span class="live-dot"></span> Моніторинг
+            <div class="live-indicator">
+                <div class="pulse-dot"></div> Live Monitor
             </div>
-            <h4 style="margin: 10px 0 5px 0;">Всього в системі</h4>
+            <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem;">Всього в системі</h4>
             <span id="total-users" class="stat-val">@Model.Count</span>
         </div>
 
         <div class="stat-card">
-            <h4 style="margin: 0 0 5px 0; color: #88ff88;">Нові сьогодні</h4>
-            <span id="new-users" class="stat-val">...</span>
+            <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #88ff88;">Нові сьогодні</h4>
+            <span id="new-users" class="stat-val">0</span>
         </div>
 
         <div class="stat-card">
-            <h4 style="margin: 0 0 5px 0; color: #ff6464;">Заблоковано</h4>
-            <span id="blocked-users" class="stat-val">...</span>
+            <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #ff6464;">Заблоковано</h4>
+            <span id="blocked-users" class="stat-val">0</span>
         </div>
 
-        <div class="stat-card" style="background: rgba(240, 255, 255, 0.05);">
-            <h4 style="margin: 0 0 10px 0; font-size: 0.9rem;">Швидкі дії</h4>
-            <a asp-action="Reports" class="nav-btn" style="display: block; font-size: 0.8rem; margin-bottom: 8px;">Написати скаргу</a>
-            <a asp-action="Settings" class="nav-btn" style="display: block; font-size: 0.8rem;">Додати адміна</a>
+        <div class="stat-card" style="background: rgba(240, 255, 255, 0.05); border: 1px solid var(--accent-color);">
+            <h4 style="margin: 0 0 15px 0; font-size: 0.9rem;">Швидкі дії</h4>
+            <a asp-action="Reports" class="nav-btn" style="display: block; font-size: 0.8rem; margin-bottom: 8px; text-align:center; text-decoration:none;">Написати скаргу</a>
+            <a asp-action="Settings" class="nav-btn" style="display: block; font-size: 0.8rem; text-align:center; text-decoration:none;">Додати адміна</a>
         </div>
     </div>
 </div>
@@ -224,21 +279,44 @@
         const searchInput = document.getElementById('userSearchInput');
         const tableBody = document.getElementById('userTableBody');
         const resetBtn = document.getElementById('resetBtn');
-        let timeout = null;
+        let currentFilter = 'all';
+
+        function switchTab(type, element) {
+            currentFilter = type;
+            document.querySelectorAll('.tab-link').forEach(btn => btn.classList.remove('active'));
+            element.classList.add('active');
+            applyTabFilter();
+        }
+
+        function applyTabFilter() {
+            const rows = tableBody.querySelectorAll('tr');
+            rows.forEach(row => {
+                const isBlocked = row.getAttribute('data-blocked') === 'true';
+                const warnings = parseInt(row.getAttribute('data-warnings') || '0');
+
+                if (currentFilter === 'all') {
+                    row.style.display = '';
+                } else if (currentFilter === 'warned') {
+                    row.style.display = (warnings > 0) ? '' : 'none';
+                } else if (currentFilter === 'blocked') {
+                    row.style.display = isBlocked ? '' : 'none';
+                }
+            });
+        }
 
         searchInput.addEventListener('input', function () {
-            clearTimeout(timeout);
             const query = searchInput.value;
-
             resetBtn.style.display = query.length > 0 ? 'block' : 'none';
 
-            timeout = setTimeout(() => {
+            clearTimeout(window.searchTimeout);
+            window.searchTimeout = setTimeout(() => {
                 fetch(`/Admin/Users?searchTerm=${encodeURIComponent(query)}`, {
                     headers: { 'X-Requested-With': 'XMLHttpRequest' }
                 })
                 .then(response => response.text())
                 .then(html => {
                     tableBody.innerHTML = html;
+                    applyTabFilter(); 
                 });
             }, 300);
         });
@@ -246,13 +324,19 @@
             try {
                 const response = await fetch('/Admin/GetRealTimeStats');
                 const data = await response.json();
-                document.getElementById('new-users').innerText = data.newUsers;
-                document.getElementById('blocked-users').innerText = data.blockedTotal;
-                if(data.totalUsers) {
-                     document.getElementById('total-users').innerText = data.totalUsers;
-                }
-            } catch (err) {
-                console.error("Статистику не оновлено", err);
+
+                updateCounter('new-users', data.newUsers);
+                updateCounter('blocked-users', data.blockedTotal);
+                if(data.totalUsers) updateCounter('total-users', data.totalUsers);
+            } catch (err) {}
+        }
+
+        function updateCounter(id, newVal) {
+            const el = document.getElementById(id);
+            if (el.innerText != newVal) {
+                el.classList.add('stat-update');
+                el.innerText = newVal;
+                setTimeout(() => el.classList.remove('stat-update'), 1000);
             }
         }
 
@@ -264,5 +348,6 @@
             resetBtn.style.display = 'none';
             searchInput.dispatchEvent(new Event('input'));
         });
+
     </script>
 }

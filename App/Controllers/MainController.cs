@@ -1,8 +1,13 @@
-﻿using System;
-using Core.DTOs;
+﻿using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Repositories.Interfaces;
 using Services;
+using System;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace App.Controllers
 {
@@ -11,19 +16,20 @@ namespace App.Controllers
     {
         private readonly SetService _setService;
         private readonly CollectionService _collectionService;
+        private readonly IUnitOfWork _unitOfWork; 
 
-        public MainController(SetService setService, CollectionService collectionService)
+        public MainController(SetService setService, CollectionService collectionService, IUnitOfWork unitOfWork)
         {
             _setService = setService;
             _collectionService = collectionService;
+            _unitOfWork = unitOfWork;
         }
 
+        // Головна сторінка зі списком сетів
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
-            // 1. Отримуємо всі публічні сети з урахуванням пошуку
             var sets = await _setService.GetAllSetsAsync(UserId, null, searchText);
 
-            // 2. Логіка сортування
             sets = sortOrder switch
             {
                 "oldest" => sets.OrderBy(s => s.CreatedAt).ToList(),
@@ -31,11 +37,9 @@ namespace App.Controllers
                 _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
             };
 
-            // 3. Передаємо дані у View
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentSort"] = sortOrder;
 
-            // Завантажуємо колекції для модалки збереження
             if (UserId > 0)
             {
                 ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
@@ -44,13 +48,13 @@ namespace App.Controllers
             return View(sets);
         }
 
+        // Додавання сету в колекцію
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
         {
             int finalCollectionId = collectionId ?? 0;
 
-            // Створення нової колекції, якщо вписана назва
             if (!string.IsNullOrWhiteSpace(newCollectionName))
             {
                 var newCol = new CollectionDTO { Name = newCollectionName.Trim() };
@@ -62,13 +66,48 @@ namespace App.Controllers
                 if (createdCol != null) finalCollectionId = createdCol.Id.Value;
             }
 
-            // Додавання сету в колекцію
             if (setId != 0 && finalCollectionId != 0)
             {
                 await _setService.AddSetToCollectionAsync(setId, finalCollectionId);
             }
 
             return RedirectToAction(nameof(Index));
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReport(CreateReportDTO dto)
+        {
+            // Перевірка, чи вказано на кого/що скаржимось
+            if (dto.ReportedUserId == null && dto.ReportedSetId == null)
+            {
+                TempData["ErrorMessage"] = "Об'єкт скарги не вказано";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                var report = new Report
+                {
+                    ReporterId = UserId, 
+                    ReportedUserId = dto.ReportedUserId,
+                    ReportedSetId = dto.ReportedSetId,
+                    Reason = dto.Reason,
+                    CustomReason = dto.CustomReason,
+                    CreatedAt = DateTime.UtcNow,
+                    IsResolved = false
+                };
+
+                await _unitOfWork.Reports.AddAsync(report);
+                await _unitOfWork.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Вашу скаргу надіслано на розгляд модераторам.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Помилка при відправці скарги: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }
