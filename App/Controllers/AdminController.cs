@@ -18,8 +18,8 @@ public class AdminController : BaseController
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly SetService _setService;
+    private readonly CategoryService _categoryService;
 
-    private static int _sentEmailsCount = 0;
     private static string _lastActionTime = "Ще не було";
 
     public AdminController(
@@ -28,7 +28,8 @@ public class AdminController : BaseController
         ReportService reportService,
         IEmailService emailService,
         IUnitOfWork unitOfWork,
-        SetService setService)
+        SetService setService,
+        CategoryService categoryService)
     {
         _userService = userService;
         _userManager = userManager;
@@ -36,6 +37,7 @@ public class AdminController : BaseController
         _emailService = emailService;
         _unitOfWork = unitOfWork;
         _setService = setService;
+        _categoryService = categoryService;
     }
 
     public IActionResult Index() => RedirectToAction(nameof(Users));
@@ -49,9 +51,7 @@ public class AdminController : BaseController
         ViewBag.BlockedUserIds = await _userService.GetBlockedUserIdsAsync();
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
-        {
             return PartialView("UserTableRows", allUsers);
-        }
 
         return View(allUsers);
     }
@@ -66,13 +66,6 @@ public class AdminController : BaseController
         TempData["Success"] = shouldBlock ? "Статус користувача змінено" : "Користувача розблоковано";
 
         return RedirectToAction(nameof(Users));
-    }
-
-    public async Task<IActionResult> UserDetails(int id)
-    {
-        var profile = await _userService.GetUserProfileAsync(id);
-        if (profile == null) return NotFound();
-        return View(profile);
     }
 
     // --- 2. ЦЕНТР МОДЕРАЦІЇ (СКАРГИ) ---
@@ -108,7 +101,6 @@ public class AdminController : BaseController
             await _reportService.CreateReportAsync(systemReport, UserId);
         }
 
-        _sentEmailsCount++;
         _lastActionTime = DateTime.Now.ToString("HH:mm");
         TempData["Success"] = $"Лист надіслано на {email}";
         return RedirectToAction(nameof(Reports));
@@ -132,15 +124,53 @@ public class AdminController : BaseController
         return RedirectToAction(nameof(Reports));
     }
 
-    // --- 3. ДЕТАЛІ СЕТУ ---
+    // --- 3. ДЕТАЛІ СЕТУ ТА ЮЗЕРА ---
+    public async Task<IActionResult> UserDetails(int id)
+    {
+        var profile = await _userService.GetUserProfileAsync(id);
+        return profile == null ? NotFound() : View(profile);
+    }
+
     public async Task<IActionResult> SetDetails(int id)
     {
         var setDetails = await _setService.GetSetByIdAsync(id);
-        if (setDetails == null) return NotFound();
-        return View(setDetails);
+        return setDetails == null ? NotFound() : View(setDetails);
     }
 
-    // --- 4. API ТА СТАТИСТИКА ---
+    // --- 4. API ДЛЯ МОНІТОРИНГУ (LIVE STATS) ---
+    [HttpGet]
+    public async Task<JsonResult> GetRealTimeStats()
+    {
+        try
+        {
+            var today = DateTime.Today;
+            var admins = await _userManager.GetUsersInRoleAsync("Admin");
+            var adminIds = admins.Select(a => a.Id).ToList();
+            int newUsersCount = await _userManager.Users.CountAsync(u => u.CreatedAt >= today);
+
+            // Рахуємо реальні звіти (листи) від адмінів за сьогодні
+            var reportsToday = await _unitOfWork.Reports.GetAllAsync(r => r.CreatedAt >= today);
+            int emailsCount = reportsToday.Count(r => adminIds.Contains(r.ReporterId));
+            int complaintsFromUsers = reportsToday.Count(r => !adminIds.Contains(r.ReporterId));
+            int totalUsers = await _userManager.Users.CountAsync();
+            int blockedTotal = await _userManager.Users.CountAsync(u => u.LockoutEnd > DateTimeOffset.UtcNow);
+
+            return Json(new
+            {
+                userComplaintsToday = complaintsFromUsers,
+                newUsers = await _userManager.Users.CountAsync(u => u.CreatedAt >= today),
+                emailsToday = emailsCount,
+                totalUsers = totalUsers,
+                blockedTotal = await _userManager.Users.CountAsync(u => u.LockoutEnd > DateTimeOffset.UtcNow),
+                lastAction = _lastActionTime
+            });
+        }
+        catch
+        {
+            return Json(new { emailsToday = 0, totalUsers = 0, lastAction = "Error" });
+        }
+    }
+
     [HttpGet]
     public async Task<JsonResult> GetEmailSuggestions(string query)
     {
@@ -148,19 +178,90 @@ public class AdminController : BaseController
         var users = await _userService.GetAllUsersAsync(null, query);
         return Json(users.Select(u => new { u.Email, u.UserName }).Take(5));
     }
-
-    [HttpGet]
-    public async Task<JsonResult> GetRealTimeStats()
+    // 1. Видалення всього сету
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteSetByAdmin(int setId)
     {
-        return Json(new
+        var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+        if (set != null)
         {
-            emailsToday = _sentEmailsCount,
-            newUsers = await _userManager.Users.CountAsync(u => u.CreatedAt >= DateTime.Today),
-            blockedTotal = await _userManager.Users.CountAsync(u => u.LockoutEnd > DateTimeOffset.UtcNow),
-            totalUsers = await _userManager.Users.CountAsync(),
-            lastAction = _lastActionTime
-        });
+            _unitOfWork.Sets.Delete(set);
+            await _unitOfWork.SaveChangesAsync();
+            TempData["Success"] = "Сет повністю видалено";
+        }
+        return RedirectToAction("Reports");
     }
 
+    // 2. Видалення однієї картки
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCardByAdmin(int cardId, int setId)
+    {
+        var card = await _unitOfWork.Flashcards.GetByIdAsync(cardId);
+        if (card != null)
+        {
+            _unitOfWork.Flashcards.Delete(card);
+            await _unitOfWork.SaveChangesAsync();
+        }
+        return RedirectToAction("SetDetails", new { id = setId });
+    }
+
+    // 3. Редагування картки (Нове)
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateCardByAdmin(int cardId, int setId, string term, string definition)
+    {
+        var card = await _unitOfWork.Flashcards.GetByIdAsync(cardId);
+        if (card != null)
+        {
+            card.Term = term;
+            card.Definition = definition;
+            await _unitOfWork.SaveChangesAsync();
+            TempData["Success"] = "Картку відредаговано";
+        }
+        return RedirectToAction("SetDetails", new { id = setId });
+    }
+    public async Task<IActionResult> Categories()
+    {
+        var categories = await _unitOfWork.Categories.GetAllAsync();
+        return View(categories.OrderBy(c => c.Name).ToList());
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> CreateCategory(string name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var category = new CategoryDTO
+            {
+                Name = name.Trim()
+            };
+            await _categoryService.CreateCategoryAsync(category);
+            TempData["Success"] = "Категорію створено";
+        }
+        return RedirectToAction(nameof(Categories));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> DeleteCategory(int id)
+    {
+        await _categoryService.DeleteCategoryAsync(id);
+        return RedirectToAction(nameof(Categories));
+    }
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> UpdateCategory(int id, string name)
+    {
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            var category = new CategoryDTO { Id = id, Name = name.Trim() };
+            await _categoryService.UpdateCategoryAsync(category);
+            TempData["Success"] = "Категорію успішно оновлено";
+        }
+        return RedirectToAction(nameof(Categories));
+    }
     public IActionResult Settings() => View();
 }

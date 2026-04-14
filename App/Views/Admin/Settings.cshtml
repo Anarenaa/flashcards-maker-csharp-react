@@ -1,0 +1,401 @@
+﻿@using Core.DTOs
+@model PrivateUserDTO
+
+@{
+    ViewData["Title"] = "Налаштування";
+}
+
+<style>
+    .settings-container {
+        max-width: 1100px;
+        margin-bottom: 50px;
+    }
+
+    .settings-card {
+        background-color: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 25px;
+        transition: background 0.3s ease, border-color 0.3s ease;
+    }
+
+        .settings-card h3 {
+            color: var(--accent-color);
+            margin-top: 0;
+            margin-bottom: 20px;
+            font-size: 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+    .setting-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 18px 0;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+        .setting-row:last-child {
+            border-bottom: none;
+        }
+
+    .setting-info {
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+    }
+
+        .setting-info label {
+            font-weight: 600;
+            font-size: 1rem;
+            color: var(--text-color);
+        }
+
+        .setting-info p {
+            margin: 0;
+            font-size: 0.85rem;
+            opacity: 0.6;
+            color: var(--text-color);
+        }
+
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 46px;
+        height: 24px;
+        flex-shrink: 0;
+    }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        background-color: #2C3440;
+        transition: .4s;
+        border-radius: 34px;
+        border: 1px solid var(--btn-border);
+    }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 16px;
+            width: 16px;
+            left: 3px;
+            bottom: 3px;
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+    input:checked + .slider {
+        background-color: #6B8789;
+        border-color: var(--accent-color);
+    }
+
+        input:checked + .slider:before {
+            transform: translateX(22px);
+        }
+
+    .theme-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin: 20px 0;
+    }
+
+    .theme-item {
+        background: rgba(255, 255, 255, 0.03);
+        border: 2px solid var(--btn-border);
+        border-radius: 12px;
+        padding: 20px;
+        cursor: pointer;
+        transition: 0.3s;
+        text-align: center;
+    }
+
+        .theme-item:hover {
+            border-color: var(--accent-color);
+            background: var(--btn-hover);
+            transform: translateY(-3px);
+        }
+
+        .theme-item.active {
+            border-color: var(--accent-color);
+            background: rgba(240, 255, 255, 0.05);
+        }
+
+    .theme-preview {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-bottom: 12px;
+    }
+
+    .preview-circle {
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .custom-colors-box {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 25px;
+        border-top: 1px solid rgba(255,255,255,0.05);
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    .color-picker-group {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .color-input {
+        -webkit-appearance: none;
+        appearance: none;
+        width: 38px;
+        height: 38px;
+        background-color: transparent;
+        border: none;
+        cursor: pointer;
+    }
+
+        .color-input::-webkit-color-swatch {
+            border-radius: 8px;
+            border: 2px solid var(--btn-border);
+        }
+
+    .btn-main {
+        background-color: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        color: var(--btn-text) !important;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+        .btn-main:hover {
+            background-color: var(--btn-hover);
+            border-color: var(--accent-color);
+            transform: translateY(-2px);
+        }
+
+    .btn-danger-outline {
+        background: transparent;
+        border: 1px solid #ff8080;
+        color: #ff8080;
+        padding: 10px 22px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .btn-danger-outline:hover {
+            background: rgba(255, 128, 128, 0.1);
+        }
+</style>
+
+<div class="content-area">
+    <h2 style="color: var(--accent-color); margin-bottom: 30px;">Налаштування</h2>
+
+    <div class="settings-container">
+            <div class="setting-row">
+                <div class="setting-info">
+                    <label>Темна тема</label>
+                    <p>Перемикання між темним Storm та світлим Azure режимом</p>
+                </div>
+                <label class="switch">
+                   
+                    <input type="checkbox" id="themeToggle" onchange="toggleDarkLight(this)">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <div class="settings-card">
+            <h3>🎨 Кастомізація кольорів</h3>
+
+            <div class="setting-info">
+                <label>Оберіть кольорову схему</label>
+                <p>Швидкі пресети для миттєвої зміни вигляду</p>
+            </div>
+
+            <div class="theme-grid">
+                <div class="theme-item" onclick="setThemePreset('#141B25', '#F0FFFF', '#6B8789')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #141B25;"></div>
+                        <div class="preview-circle" style="background: #F0FFFF;"></div>
+                        <div class="preview-circle" style="background: #6B8789;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Storm Dark</span>
+                </div>
+
+                <div class="theme-item" onclick="setThemePreset('#113223', '#748E47', '#A1982F')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #113223;"></div>
+                        <div class="preview-circle" style="background: #748E47;"></div>
+                        <div class="preview-circle" style="background: #A1982F;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Sunny Forest</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#511B24', '#D9AC8D', '#8E8E98')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #511B24;"></div>
+                        <div class="preview-circle" style="background: #D9AC8D;"></div>
+                        <div class="preview-circle" style="background: #629EE4;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Light Pinkwith Blue</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#211928', '#6F6F8B', '#8097B7')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #211928;"></div>
+                        <div class="preview-circle" style="background: #6F6F8B;"></div>
+                        <div class="preview-circle" style="background: #8097B7;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Dusty Blue</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#290100', '#B79EA0', '#7C8D61')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #290100;"></div>
+                        <div class="preview-circle" style="background: #B79EA0;"></div>
+                        <div class="preview-circle" style="background: #7C8D61;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Chery</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#101322', '#D9B9CA', '#3C566B')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #101322;"></div>
+                        <div class="preview-circle" style="background: #D9B9CA;"></div>
+                        <div class="preview-circle" style="background: #3C566B;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Crystals</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#342917', '#AF9D8C', '#887E72')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #342917;"></div>
+                        <div class="preview-circle" style="background: #AF9D8C;"></div>
+                        <div class="preview-circle" style="background: #887E72;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Brownie</span>
+                </div>
+                <div class="theme-item" onclick="setThemePreset('#0D0D0D', '#BB86FC', '#3700B3')">
+                    <div class="theme-preview">
+                        <div class="preview-circle" style="background: #0D0D0D;"></div>
+                        <div class="preview-circle" style="background: #BB86FC;"></div>
+                        <div class="preview-circle" style="background: #3700B3;"></div>
+                    </div>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Midnight Purple</span>
+                </div>
+            </div>
+
+            <div class="custom-colors-box">
+                <div style="display: flex; gap: 25px; flex-wrap: wrap;">
+                    <div class="color-picker-group">
+                        <input type="color" id="bgPicker" class="color-input" value="#141B25">
+                        <label>Фон</label>
+                    </div>
+                    <div class="color-picker-group">
+                        <input type="color" id="accentPicker" class="color-input" value="#F0FFFF">
+                        <label>Акцент</label>
+                    </div>
+                    <div class="color-picker-group">
+                        <input type="color" id="btnPicker" class="color-input" value="#6B8789">
+                        <label>Кнопки</label>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-main" onclick="applyCustomColors()">
+                    Застосувати стиль
+                </button>
+            </div>
+        </div>
+
+        
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @Html.AntiForgeryToken()
+
+    <script>
+
+        const baseThemes = {
+            dark:  { bg: '#141B25', accent: '#F0FFFF', btn: '#6B8789' },
+            light: { bg: '#F8FAFC', accent: '#1E293B', btn: '#CBD5E1' }
+        };
+
+        window.addEventListener('DOMContentLoaded', () => {
+            const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim().toUpperCase();
+            const lightColors = ["#F8FAFC", "#FFFFFF", "#F0F2F5", "#EDE6D4"];
+            const toggle = document.getElementById('themeToggle');
+
+            if (toggle) {
+             
+                toggle.checked = !lightColors.includes(currentBg);
+            }
+        });
+
+        function toggleDarkLight(checkbox) {
+            const selected = checkbox.checked ? baseThemes.dark : baseThemes.light;
+            saveThemeToServer(selected.bg, selected.accent, selected.btn);
+        }
+        function setThemePreset(bg, accent, btn) {
+            saveThemeToServer(bg, accent, btn);
+        }
+        function applyCustomColors() {
+            const bg = document.getElementById('bgPicker').value;
+            const accent = document.getElementById('accentPicker').value;
+            const btn = document.getElementById('btnPicker').value;
+            saveThemeToServer(bg, accent, btn);
+        }
+        async function saveThemeToServer(bg, accent, btn) {
+  
+            if (typeof applyTheme === "function") {
+                applyTheme(bg, accent, btn);
+            }
+
+            const formData = new FormData();
+            formData.append('bg', bg);
+            formData.append('accent', accent);
+            formData.append('btn', btn);
+
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+
+            try {
+                await fetch('/Account/save-theme', {
+                    method: 'POST',
+                    body: formData,
+                    headers: { 'RequestVerificationToken': token }
+                });
+                console.log("Тему синхронізовано з профілем");
+            } catch (e) {
+                console.error("Помилка відправки теми на сервер", e);
+            }
+        }
+    </script>
+}

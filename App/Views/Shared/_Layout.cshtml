@@ -204,14 +204,15 @@
 
             @if (User.IsInRole("Admin"))
             {
+                
                 <a asp-controller="Admin" asp-action="Reports"
-                   class="nav-btn @(action == "Reports" ? "active" : "")">Скарги</a>
+                   class="nav-btn @(controller == "Admin" && (action == "Reports" || action == "SetDetails") ? "active" : "")">Скарги</a>
 
                 <a asp-controller="Admin" asp-action="Users"
-                   class="nav-btn @(action == "Users" || action == "UserDetails" ? "active" : "")">Користувачі</a>
+                   class="nav-btn @(controller == "Admin" && (action == "Users" || action == "UserDetails") ? "active" : "")">Користувачі</a>
 
-                <a asp-controller="Admin" asp-action="Blocked"
-                   class="nav-btn @(action == "Blocked" ? "active" : "")">Заблоковані</a>
+                <a asp-controller="Admin" asp-action="Categories"
+                   class="nav-btn @(action == "Categories" ? "active" : "")">Категорії</a>
 
                 <a asp-controller="Admin" asp-action="Settings"
                    class="nav-btn @(controller == "Admin" && action == "Settings" ? "active" : "")">Налаштування</a>

@@ -46,29 +46,14 @@
     .category-badge {
         display: inline-flex;
         align-items: center;
-        background: rgba(119, 158, 203, 0.2);
-        border: 1px solid #779ECB;
+        background: rgba(119, 158, 203, 0.15);
+        border: 1px solid rgba(119, 158, 203, 0.4);
         color: #DEE4C7;
         padding: 6px 12px;
         border-radius: 12px;
         font-size: 0.85rem;
-        transition: 0.3s;
         gap: 8px;
     }
-
-    .cat-edit-btn {
-        background: none;
-        border: none;
-        color: white;
-        cursor: pointer;
-        opacity: 0.6;
-        font-size: 0.8rem;
-        padding: 0;
-    }
-
-        .cat-edit-btn:hover {
-            opacity: 1;
-        }
 
     .remove-cat-btn {
         background: none;
@@ -77,21 +62,20 @@
         cursor: pointer;
         font-weight: bold;
         font-size: 1.1rem;
-        line-height: 1;
         padding: 0;
-        opacity: 0.8;
+        line-height: 1;
+        transition: 0.2s;
     }
 
         .remove-cat-btn:hover {
             color: #ff4d4d;
-            opacity: 1;
         }
 
+    /* --- СІТКА КАРТОК --- */
     .cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 25px;
-        margin-top: 20px;
     }
 
     .flashcard-item {
@@ -99,18 +83,16 @@
         border: 1px solid var(--btn-border);
         border-radius: 15px;
         padding: 25px;
-        min-height: 120px;
+        min-height: 140px;
         display: flex;
         flex-direction: column;
         position: relative;
-        transition: all 0.3s ease;
+        transition: 0.3s ease;
     }
 
         .flashcard-item:hover {
             border-color: var(--accent-color);
-            background-color: var(--btn-hover);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+            transform: translateY(-3px);
         }
 
     .card-term {
@@ -118,7 +100,6 @@
         color: var(--accent-color);
         font-size: 1.15rem;
         margin-bottom: 12px;
-        word-wrap: break-word;
         padding-right: 25px;
     }
 
@@ -133,7 +114,6 @@
         opacity: 0.8;
         font-size: 1rem;
         line-height: 1.4;
-        word-wrap: break-word;
     }
 
     /* --- МЕНЮ ТРЬОХ КРАПОК --- */
@@ -143,10 +123,8 @@
         right: 15px;
         cursor: pointer;
         font-size: 1.5rem;
-        line-height: 1;
-        padding: 5px;
         opacity: 0.5;
-        z-index: 10;
+        transition: 0.3s;
     }
 
         .dots:hover {
@@ -165,7 +143,6 @@
         flex-direction: column;
         z-index: 100;
         box-shadow: 0 8px 25px rgba(0,0,0,0.6);
-        overflow: hidden;
     }
 
         .dropdown button {
@@ -183,23 +160,7 @@
                 background-color: #6B8789;
             }
 
-    /* --- КНОПКИ ТА МОДАЛКИ --- */
-    .btn-main {
-        background: #6B8789;
-        color: white;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-        white-space: nowrap;
-    }
-
-        .btn-main:hover {
-            background: #7ba1a3;
-        }
-
+    /* --- МОДАЛКИ --- */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -217,7 +178,7 @@
         background: #1C2531;
         border: 1px solid var(--accent-color);
         padding: 30px;
-        border-radius: 15px;
+        border-radius: 20px;
         width: 420px;
         max-width: 90%;
         display: flex;
@@ -230,7 +191,7 @@
             border: 1px solid #818375;
             color: white;
             padding: 12px;
-            border-radius: 8px;
+            border-radius: 10px;
             outline: none;
             font-family: inherit;
             width: 100%;
@@ -238,111 +199,28 @@
         }
 
     .modal-label {
-        font-size: 0.8rem;
+        font-size: 0.85rem;
         opacity: 0.6;
-        display: block;
         margin-bottom: 5px;
+        display: block;
     }
 
-    .modal-divider {
-        text-align: center;
-        opacity: 0.4;
-        font-size: 0.8rem;
-        margin: 5px 0;
-    }
-
-    .category-select-list {
-        max-height: 200px;
-        overflow-y: auto;
-        background: #141B25;
-        border: 1px solid #818375;
-        border-radius: 8px;
-        margin-top: 10px;
-    }
-
-    .category-option {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        padding: 10px 15px;
-        border-bottom: 1px solid rgba(129, 131, 117, 0.2);
-        cursor: pointer;
-        transition: 0.2s;
-    }
-
-        .category-option:hover {
-            background: rgba(107, 135, 137, 0.2);
-        }
-
-    .category-name-label {
-        flex-grow: 1;
+    .btn-main {
+        background: #6B8789;
         color: white;
-    }
-
-    .delete-cat-icon {
-        background: none;
         border: none;
-        color: #ff8080;
+        padding: 12px 25px;
+        border-radius: 8px;
         cursor: pointer;
-        opacity: 0.6;
-        padding: 5px;
+        font-weight: bold;
         transition: 0.3s;
-        display: flex;
-        align-items: center;
     }
 
-        .delete-cat-icon:hover {
-            opacity: 1;
-            transform: scale(1.2);
+        .btn-main:hover {
+            background: #7ba1a3;
         }
 </style>
-<div class="modal-overlay" id="categoryModal">
-    <div class="modal">
-        <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Додати категорію</h2>
 
-        <label class="modal-label">Оберіть існуючу (натисніть на назву):</label>
-
-        <div class="category-select-list">
-            @if (ViewBag.AllCategories != null)
-            {
-                foreach (var cat in ViewBag.AllCategories as IEnumerable<CategoryDTO>)
-                {
-                    <div class="category-option">
-                        @* Клік по назві відправляє форму додавання до сету *@
-                        <span class="category-name-label" onclick="submitAddCategory(@cat.Id)">
-                            @cat.Name
-                        </span>
-
-                        @* Кнопка-мусорка для видалення з БД *@
-                        <form asp-controller="Details" asp-action="DeleteCategoryGlobal" method="post" onsubmit="return confirm('Видалити цю категорію назовсім?')">
-                            <input type="hidden" name="setId" value="@Model.Id" />
-                            <input type="hidden" name="categoryId" value="@cat.Id" />
-                            <button type="submit" class="delete-cat-icon" title="Видалити з бази даних">
-                                <svg style="width:16px;height:16px;fill:currentColor" viewBox="0 0 24 24">
-                                    <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" />
-                                </svg>
-                            </button>
-                        </form>
-                    </div>
-                }
-            }
-        </div>
-
-        @* Форма для створення абсолютно нової категорії *@
-        <form asp-controller="Details" asp-action="SaveCategory" method="post" id="addCategoryForm" style="margin-top: 20px;">
-            <input type="hidden" name="setId" value="@Model.Id" />
-            <input type="hidden" name="selectedCategoryId" id="hiddenCatId" value="0" />
-
-            <label class="modal-label">Або впишіть нову:</label>
-            <input type="text" name="newCategoryName" placeholder="Назва нової категорії..." />
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
-                <button type="button" onclick="closeCategoryModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                <button type="submit" class="btn-main">Зберегти</button>
-            </div>
-        </form>
-    </div>
-</div>
 <div class="content-area">
     <a asp-controller="MySets" asp-action="Index" class="back-link">← Назад до моїх сетів</a>
 
@@ -356,14 +234,11 @@
                 {
                     <li class="category-badge">
                         @cat.Name
-                        <div style="display:flex; gap:5px;">
-                            <button type="button" class="cat-edit-btn" onclick="openEditCategoryModal('@cat.Id', '@cat.Name')" title="Редагувати назву">✎</button>
-                            <form asp-controller="Details" asp-action="RemoveCategory" method="post" style="display:inline;">
-                                <input type="hidden" name="setId" value="@Model.Id" />
-                                <input type="hidden" name="categoryId" value="@cat.Id" />
-                                <button type="submit" class="remove-cat-btn" title="Прибрати категорію" onclick="return confirm('Прибрати категорію з цього сету?')">×</button>
-                            </form>
-                        </div>
+                        <form asp-controller="Details" asp-action="RemoveCategory" method="post" style="display:inline;">
+                            <input type="hidden" name="setId" value="@Model.Id" />
+                            <input type="hidden" name="categoryId" value="@cat.Id" />
+                            <button type="submit" class="remove-cat-btn" title="Прибрати категорію з цього сету">×</button>
+                        </form>
                     </li>
                 }
             </ul>
@@ -381,7 +256,6 @@
                 <div class="dots" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown">
                     <button type="button" onclick="openEditCardModal('@card.Id', '@card.Term', '@card.Definition')">Редагувати</button>
-
                     <form asp-controller="Details" asp-action="DeleteCard" method="post" onsubmit="return confirm('Видалити картку?')">
                         <input type="hidden" name="cardId" value="@card.Id" />
                         <input type="hidden" name="setId" value="@Model.Id" />
@@ -404,18 +278,15 @@
         <form asp-controller="Details" asp-action="SaveCard" method="post">
             <input type="hidden" name="setId" value="@Model.Id" />
             <input type="hidden" name="cardDto.Id" id="modalCardId" value="0" />
-
             <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
                 <div>
                     <label class="modal-label">Питання</label>
                     <input type="text" name="cardDto.Term" id="modalTerm" required>
                 </div>
-
                 <div>
                     <label class="modal-label">Відповідь</label>
                     <textarea name="cardDto.Definition" id="modalDefinition" rows="4" required></textarea>
                 </div>
-
                 <div style="display: flex; gap: 10px; justify-content: flex-end;">
                     <button type="button" onclick="closeCardModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
                     <button type="submit" class="btn-main">Зберегти</button>
@@ -425,60 +296,32 @@
     </div>
 </div>
 
-<!-- МОДАЛКА ДОДАВАННЯ КАТЕГОРІЇ (Вибір + Нова) -->
 <div class="modal-overlay" id="categoryModal">
     <div class="modal">
         <form asp-controller="Details" asp-action="SaveCategory" method="post">
             <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Додати категорію</h2>
             <input type="hidden" name="setId" value="@Model.Id" />
 
-            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 10px;">
-                <div>
-                    <label class="modal-label">Оберіть існуючу:</label>
-                    <select name="selectedCategoryId">
-                        <option value="0">-- Не обрано --</option>
-                        @if (ViewBag.AllCategories != null)
+            <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px;">
+                Оберіть тематичну категорію для вашого сету з офіційного списку:
+            </p>
+
+            <div style="display: flex; flex-direction: column; gap: 15px;">
+                <select name="selectedCategoryId" required>
+                    <option value="">-- Оберіть категорію --</option>
+                    @if (ViewBag.AllCategories != null)
+                    {
+                        @foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
                         {
-                            @foreach (var cat in ViewBag.AllCategories as IEnumerable<CategoryDTO>)
-                            {
-                                <option value="@cat.Id">@cat.Name</option>
-                            }
+                            <option value="@cat.Id">@cat.Name</option>
                         }
-                    </select>
-                </div>
-
-                <div class="modal-divider">— АБО —</div>
-
-                <div>
-                    <label class="modal-label">Впишіть нову:</label>
-                    <input type="text" name="newCategoryName" placeholder="Назва нової категорії" />
-                </div>
+                    }
+                </select>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" onclick="closeCategoryModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                <button type="submit" class="btn-main">Додати</button>
-            </div>
-        </form>
-    </div>
-</div>
-
-<!-- МОДАЛКА РЕДАГУВАННЯ НАЗВИ КАТЕГОРІЇ -->
-<div class="modal-overlay" id="editCatNameModal">
-    <div class="modal">
-        <form asp-controller="Details" asp-action="EditCategoryName" method="post">
-            <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Редагувати назву</h2>
-            <input type="hidden" name="setId" value="@Model.Id" />
-            <input type="hidden" name="categoryId" id="editCatId" />
-
-            <div>
-                <label class="modal-label">Нова назва категорії:</label>
-                <input type="text" name="updatedName" id="editCatNameInput" required />
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
-                <button type="button" onclick="closeEditCatModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                <button type="submit" class="btn-main">Оновити</button>
+                <button type="submit" class="btn-main">Додати до сету</button>
             </div>
         </form>
     </div>
@@ -488,25 +331,10 @@
     <script>
         const catModal = document.getElementById('categoryModal');
         const cardModal = document.getElementById('cardModal');
-        const editCatModal = document.getElementById('editCatNameModal');
 
-        // Категорії
         function openCategoryModal() { catModal.style.display = 'flex'; }
         function closeCategoryModal() { catModal.style.display = 'none'; }
-                function submitAddCategory(id) {
-            
-            document.getElementById('hiddenCatId').value = id;
-          
-            document.getElementById('addCategoryForm').submit();
-        }
-        function openEditCategoryModal(id, name) {
-            document.getElementById('editCatId').value = id;
-            document.getElementById('editCatNameInput').value = name;
-            editCatModal.style.display = 'flex';
-        }
-        function closeEditCatModal() { editCatModal.style.display = 'none'; }
 
-        // Картки
         function openCreateCardModal() {
             document.getElementById('modalTitle').innerText = "Нова картка";
             document.getElementById('modalCardId').value = "0";
@@ -525,7 +353,6 @@
 
         function closeCardModal() { cardModal.style.display = 'none'; }
 
-        // Меню
         function toggleMenu(e) {
             e.stopPropagation();
             const dropdown = e.currentTarget.nextElementSibling;
@@ -538,7 +365,6 @@
         window.addEventListener('click', (e) => {
             if (e.target === catModal) closeCategoryModal();
             if (e.target === cardModal) closeCardModal();
-            if (e.target === editCatModal) closeEditCatModal();
             if (!e.target.matches('.dots')) {
                 document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
             }
