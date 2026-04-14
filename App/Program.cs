@@ -21,9 +21,9 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<User, IdentityRole<int>>()
-    .AddEntityFrameworkStores<DataContext>()
-    .AddDefaultTokenProviders()
-    .AddRoles<IdentityRole<int>>();
+.AddEntityFrameworkStores<DataContext>()
+.AddDefaultTokenProviders()
+.AddRoles<IdentityRole<int>>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -56,6 +56,27 @@ builder.Services.AddAuthentication(options =>
                 context.Token = accessToken;
             }
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async context =>
+        {
+            var userManager = context.HttpContext.RequestServices
+                .GetRequiredService<UserManager<User>>();
+
+            var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                context.Fail("Unauthorized");
+                return;
+            }
+
+            var user = await userManager.FindByIdAsync(userIdClaim.Value);
+
+            if (user == null || user.IsBanned || (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow))
+            {
+                context.Fail("User is banned");
+
+                context.Response.Cookies.Delete("AuthToken");
+            }
         },
         OnChallenge = context =>
         {

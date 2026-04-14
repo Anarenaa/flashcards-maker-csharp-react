@@ -33,38 +33,32 @@ namespace Services
             _unitOfWork = unitOfWork;
             _configuration = configuration;
         }
-        public async Task<List<PublicUserDTO>> GetAllUsersAsync(string? roleFilter = null, string? searchTerm = null)
+        public async Task<List<PublicUserDTO>> GetAllUsersAsync(int? currentUserId, string? roleFilter = null, string? searchTerm = null)
         {
-            var query = _userManager.Users.AsQueryable();
+            var query = _userManager.Users.Where(u => u.Id != currentUserId).AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(roleFilter))
+            {
+                var usersInRole = await _userManager.GetUsersInRoleAsync(roleFilter);
+                var userIdsInRole = usersInRole.Select(u => u.Id);
+                query = query.Where(u => userIdsInRole.Contains(u.Id));
+            }
 
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                query = query.Where(u => u.UserName.Contains(searchTerm) || u.Email.Contains(searchTerm));
+                searchTerm = searchTerm.Trim().ToLower();
+
+                query = query.Where(u => u.Id.ToString().Contains(searchTerm) ||
+                                         u.UserName.ToLower().Contains(searchTerm) ||
+                                         u.Email.ToLower().Contains(searchTerm));
             }
 
-            IEnumerable<User> filteredUsers;
-            if (!string.IsNullOrWhiteSpace(roleFilter))
-            {
-                filteredUsers = await _userManager.GetUsersInRoleAsync(roleFilter);
-
-                if (!string.IsNullOrWhiteSpace(searchTerm))
-                {
-                    filteredUsers = filteredUsers.Where(u =>
-                        u.Id.ToString().Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        u.UserName.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
-                        u.Email.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
-                }
-            }
-            else
-            {
-                filteredUsers = await query.ToListAsync();
-            }
-
+            var users = await query.ToListAsync();
             var userDtos = new List<PublicUserDTO>();
-            foreach (var user in filteredUsers)
+
+            foreach (var user in users)
             {
                 var roles = await _userManager.GetRolesAsync(user);
-
                 userDtos.Add(new PublicUserDTO
                 {
                     Id = user.Id,
@@ -306,6 +300,8 @@ namespace Services
 
             await _unitOfWork.Sets.DeleteUnusedUserSetsAsync(user.Id);
             await _unitOfWork.Sets.UnableSetsWithoutUserInCollections();
+            await _unitOfWork.Reports.DeleteUserReports(user.Id);
+
             var result = await _userManager.DeleteAsync(user);
 
             if (!result.Succeeded)
@@ -411,6 +407,40 @@ namespace Services
             }
 
             return result;
+        }
+        public async Task ToggleUserBlockAsync(int userId, bool shouldBlock, int? days = null)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) return;
+
+            if (shouldBlock)
+            {
+                DateTimeOffset lockoutEnd = days.HasValue && days.Value > 0
+                    ? DateTimeOffset.UtcNow.AddDays(days.Value)
+                    : DateTimeOffset.MaxValue;
+
+                await _userManager.SetLockoutEndDateAsync(user, lockoutEnd);
+
+                user.IsBanned = !days.HasValue;
+            }
+            else
+            {
+                await _userManager.SetLockoutEndDateAsync(user, null);
+                user.IsBanned = false;
+            }
+
+            await _userManager.UpdateSecurityStampAsync(user);
+
+            await _userManager.UpdateAsync(user);
+        }
+        public async Task<List<int>> GetBlockedUserIdsAsync()
+        {
+            var now = DateTimeOffset.UtcNow;
+
+            return await _userManager.Users
+                .Where(u => u.IsBanned || (u.LockoutEnd != null && u.LockoutEnd > now))
+                .Select(u => u.Id)
+                .ToListAsync();
         }
     }
 }

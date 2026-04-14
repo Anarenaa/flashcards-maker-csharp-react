@@ -1,4 +1,6 @@
-﻿using Core.Models;
+﻿using App.Controllers;
+using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -6,13 +8,13 @@ using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
 using Services;
 using Services.Interfaces;
-using System.Security.Claims;
 
 [Authorize(Roles = "Admin")]
-public class AdminController : Controller
+public class AdminController : BaseController
 {
     private readonly UserService _userService;
     private readonly UserManager<User> _userManager;
+    private readonly ReportService _reportService;
     private readonly IEmailService _emailService;
     private readonly IUnitOfWork _unitOfWork;
     private readonly SetService _setService;
@@ -20,18 +22,17 @@ public class AdminController : Controller
     private static int _sentEmailsCount = 0;
     private static string _lastActionTime = "Ще не було";
 
-    // Константа-мітка для "Видалених" акаунтів (1 січня 2099 року)
-    private readonly DateTimeOffset SoftDeleteMarker = new DateTimeOffset(new DateTime(2099, 1, 1));
-
     public AdminController(
         UserService userService,
         UserManager<User> userManager,
+        ReportService reportService,
         IEmailService emailService,
         IUnitOfWork unitOfWork,
         SetService setService)
     {
         _userService = userService;
         _userManager = userManager;
+        _reportService = reportService;
         _emailService = emailService;
         _unitOfWork = unitOfWork;
         _setService = setService;
@@ -42,26 +43,10 @@ public class AdminController : Controller
     // --- 1. КЕРУВАННЯ КОРИСТУВАЧАМИ ---
     public async Task<IActionResult> Users(string searchTerm)
     {
-        var allUsers = await _userService.GetAllUsersAsync(null, searchTerm);
+        var allUsers = await _userService.GetAllUsersAsync(UserId, null, searchTerm);
 
-        var reports = await _unitOfWork.Reports.GetAllAsync();
-        var warningCounts = reports
-            .Where(r => r.ReportedUserId.HasValue)
-            .GroupBy(r => r.ReportedUserId.Value)
-            .ToDictionary(g => g.Key, g => g.Count());
-
-        var now = DateTimeOffset.UtcNow;
-        var lockoutUsers = await _userManager.Users
-            .Where(u => u.LockoutEnd != null && u.LockoutEnd > now)
-            .Select(u => new { u.Id, u.LockoutEnd })
-            .ToListAsync();
-
-        var deletedUserIds = lockoutUsers.Where(u => u.LockoutEnd == SoftDeleteMarker).Select(u => u.Id).ToList();
-        var blockedUserIds = lockoutUsers.Where(u => u.LockoutEnd != SoftDeleteMarker).Select(u => u.Id).ToList();
-
-        ViewBag.WarningCounts = warningCounts;
-        ViewBag.BlockedUserIds = blockedUserIds;
-        ViewBag.DeletedUserIds = deletedUserIds;
+        ViewBag.WarningCounts = await _reportService.GetReportsCountPerUserAsync();
+        ViewBag.BlockedUserIds = await _userService.GetBlockedUserIdsAsync();
 
         if (Request.Headers["X-Requested-With"] == "XMLHttpRequest")
         {
@@ -71,50 +56,15 @@ public class AdminController : Controller
         return View(allUsers);
     }
 
-    // М'яке видалення (смітник)
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> DeleteUser(int id, string reason = "Порушення правил платформи")
+    public async Task<IActionResult> ToggleBlock(int id, bool shouldBlock, int? days)
     {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user != null)
-        {
-            await _userManager.SetLockoutEndDateAsync(user, SoftDeleteMarker);
-            await _emailService.SendEmailAsync(user.Email, "Акаунт видалено", $"Ваш акаунт переміщено у видалені адміністратором. Причина: {reason}");
+        await _userService.ToggleUserBlockAsync(id, shouldBlock, days);
 
-            _lastActionTime = DateTime.Now.ToString("HH:mm");
-            TempData["Success"] = $"Користувача {user.UserName} видалено (переміщено в архів)";
-        }
-        return RedirectToAction(nameof(Users));
-    }
+        _lastActionTime = DateTime.Now.ToString("HH:mm");
+        TempData["Success"] = shouldBlock ? "Статус користувача змінено" : "Користувача розблоковано";
 
-    // Відновлення
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> RestoreUser(int id)
-    {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user != null)
-        {
-            await _userManager.SetLockoutEndDateAsync(user, null);
-            TempData["Success"] = $"Акаунт {user.UserName} відновлено";
-            _lastActionTime = DateTime.Now.ToString("HH:mm");
-        }
-        return RedirectToAction(nameof(Users));
-    }
-
-    // Тимчасовий Бан
-    [HttpPost]
-    [ValidateAntiForgeryToken]
-    public async Task<IActionResult> ToggleBlock(int id, bool shouldBlock)
-    {
-        var user = await _userManager.FindByIdAsync(id.ToString());
-        if (user != null)
-        {
-            await _userManager.SetLockoutEndDateAsync(user, shouldBlock ? DateTimeOffset.MaxValue.AddYears(-20) : null);
-            _lastActionTime = DateTime.Now.ToString("HH:mm");
-            TempData["Success"] = shouldBlock ? "Користувача заблоковано" : "Користувача розблоковано";
-        }
         return RedirectToAction(nameof(Users));
     }
 
@@ -134,19 +84,8 @@ public class AdminController : Controller
             if (user != null) ViewBag.TargetEmail = user.Email;
         }
 
-        var allReports = await _unitOfWork.Reports.GetAllAsync(includeProperties: "Reporter,ReportedUser,ReportedSet");
-
-        var adminWarnings = new List<Report>();
-        var userComplaints = new List<Report>();
-
-        foreach (var r in allReports)
-        {
-            if (await _userManager.IsInRoleAsync(r.Reporter, "Admin")) adminWarnings.Add(r);
-            else userComplaints.Add(r);
-        }
-
-        ViewBag.AdminWarnings = adminWarnings.OrderByDescending(x => x.CreatedAt).ToList();
-        ViewBag.UserComplaints = userComplaints.OrderByDescending(x => x.CreatedAt).ToList();
+        ViewBag.AdminWarnings = await _reportService.GetAdminWarningsAsync();
+        ViewBag.UserComplaints = await _reportService.GetUserComplaintsAsync();
 
         return View();
     }
@@ -160,18 +99,13 @@ public class AdminController : Controller
 
         if (targetUser != null)
         {
-            var adminId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
-            var systemReport = new Report
+            var systemReport = new CreateReportDTO
             {
-                ReporterId = adminId,
                 ReportedUserId = targetUser.Id,
                 Reason = ReportReason.Other,
                 CustomReason = "Попередження: " + subject,
-                CreatedAt = DateTime.UtcNow,
-                IsResolved = true
             };
-            await _unitOfWork.Reports.AddAsync(systemReport);
-            await _unitOfWork.SaveChangesAsync();
+            await _reportService.CreateReportAsync(systemReport, UserId);
         }
 
         _sentEmailsCount++;
@@ -184,13 +118,17 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> DeleteReport(int id)
     {
-        var report = await _unitOfWork.Reports.GetByIdAsync(id);
-        if (report != null)
+        try
         {
-            _unitOfWork.Reports.Delete(report);
-            await _unitOfWork.SaveChangesAsync();
-            _lastActionTime = DateTime.Now.ToString("HH:mm");
+            await _reportService.DeleteReportAsync(id);
         }
+        catch (ArgumentException ex)
+        {
+            TempData["Error"] = ex.Message;
+            Console.WriteLine($"Помилка при видаленні скарги: {ex.Message}");
+            return RedirectToAction(nameof(Reports));
+        }
+        _lastActionTime = DateTime.Now.ToString("HH:mm");
         return RedirectToAction(nameof(Reports));
     }
 
