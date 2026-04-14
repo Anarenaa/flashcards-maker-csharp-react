@@ -19,7 +19,7 @@
         padding: 30px;
         border-radius: 24px;
         box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        min-width: 0; 
+        min-width: 0;
     }
 
     .users-side-panel {
@@ -37,8 +37,7 @@
         margin-bottom: 25px;
         border-bottom: 1px solid rgba(240, 255, 255, 0.1);
         padding-bottom: 5px;
-        overflow-x: auto; 
-        white-space: nowrap;
+        overflow: hidden;
     }
 
     .tab-link {
@@ -52,6 +51,7 @@
         padding: 10px 5px;
         transition: 0.3s;
         position: relative;
+        white-space: nowrap;
     }
 
         .tab-link.active {
@@ -101,7 +101,7 @@
     table {
         width: 100%;
         border-collapse: collapse;
-        min-width: 700px;
+        min-width: 650px;
     }
 
     th {
@@ -188,7 +188,7 @@
         }
     }
 
-    @@media (max-width: 1100px) {
+    @@media (max-width: 1150px) {
         .admin-page-wrapper {
             flex-direction: column;
         }
@@ -202,35 +202,19 @@
 
         .stat-card {
             flex: 1;
-            min-width: 200px;
+            min-width: 220px;
         }
     }
 
     @@media (max-width: 600px) {
-        .users-main-panel {
-            padding: 20px;
-            border-radius: 15px;
-        }
-
         .search-container {
             flex-direction: column;
             align-items: stretch;
         }
 
-        .search-input {
-            font-size: 16px;
-        }
-
-        #resetBtn {
-            text-align: center;
-        }
-
-        .stat-card {
-            min-width: 100%;
-        }
-
-        h2 {
-            font-size: 1.4rem;
+        .admin-tabs {
+            overflow-x: auto;
+            white-space: nowrap;
         }
     }
 </style>
@@ -252,6 +236,7 @@
                 ✓ @TempData["Success"]
             </div>
         }
+
         <div class="search-container">
             <div style="flex-grow: 1;">
                 <input type="text" id="userSearchInput"
@@ -259,7 +244,6 @@
                        placeholder="Пошук за нікнеймом або email..."
                        class="search-input" autocomplete="off">
             </div>
-
             <a asp-action="Users" id="resetBtn" class="nav-btn"
                style="display: @(string.IsNullOrEmpty(Context.Request.Query["searchTerm"]) ? "none" : "block");
                       padding: 12px 20px; text-decoration: none; color: #ff6464 !important; border-color: rgba(255,100,100,0.3);">
@@ -335,6 +319,7 @@
                 else if (currentFilter === 'deleted') row.style.display = isDeleted ? '' : 'none';
             });
         }
+
         searchInput.addEventListener('input', function () {
             const query = searchInput.value;
             resetBtn.style.display = query.length > 0 ? 'block' : 'none';
@@ -351,27 +336,25 @@
                 });
             }, 300);
         });
+
         async function refreshStats() {
             try {
                 const response = await fetch('/Admin/GetRealTimeStats');
                 if (!response.ok) return;
                 const data = await response.json();
 
-                updateValue('new-users', data.newUsers);
-                updateValue('blocked-users', data.blockedTotal);
-                if(data.totalUsers) updateValue('total-users', data.totalUsers);
-
+                updateValueWithAnimation('new-users', data.newUsers);
+                updateValueWithAnimation('blocked-users', data.blockedTotal);
+                updateValueWithAnimation('total-users', data.totalUsers);
             } catch (err) {}
         }
 
-        function updateValue(id, newVal) {
+        function updateValueWithAnimation(id, newVal) {
             const el = document.getElementById(id);
-            if (el && newVal !== undefined) {
-                if (el.innerText != newVal) {
-                    el.classList.add('stat-update');
-                    el.innerText = newVal;
-                    setTimeout(() => el.classList.remove('stat-update'), 1000);
-                }
+            if (el && newVal !== undefined && el.innerText != newVal) {
+                el.classList.add('stat-update');
+                el.innerText = newVal;
+                setTimeout(() => el.classList.remove('stat-update'), 1000);
             }
         }
 

@@ -28,7 +28,7 @@
                 }
                 else if (warnings > 0)
                 {
-                    <span style="background: rgba(255, 165, 0, 0.15); color: #ffa500; border: 1px solid rgba(255, 165, 0, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">
+                    <span style="background: rgba(255, 165, 0, 0.15); color: #ffa500; border: 1px solid rgba(255, 165, 0, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;" title="Кількість скарг">
                         ⚠️ @warnings
                     </span>
                 }
@@ -48,7 +48,7 @@
             }
         </td>
 
-        <td style="text-align: right; display: flex; gap: 20px; justify-content: flex-end; padding: 15px; align-items: center;">
+        <td style="text-align: right; display: flex; gap: 15px; justify-content: flex-end; padding: 15px; align-items: center;">
 
             @if (!isDeleted)
             {
@@ -60,11 +60,20 @@
 
                 @if (!isAdmin)
                 {
-                  
-                    <form asp-action="DeleteUser" method="post" onsubmit="return confirm('Видалити користувача @user.UserName?')">
+                    <form asp-action="ToggleBlock" method="post" style="display:inline;">
                         <input type="hidden" name="id" value="@user.Id" />
-                        <input type="hidden" name="reason" value="Порушення правил спільноти." />
-                        <button type="submit" style="background: none; border: none; color: #ff6464; cursor: pointer; padding: 0; display: flex; align-items: center;" title="Видалити">
+                        <input type="hidden" name="shouldBlock" value="@((!isBlocked).ToString().ToLower())" />
+                       
+                        <input type="hidden" name="days" value="30" />
+                        <button type="submit" style="background: none; border: none; color: @(isBlocked ? "#88ff88" : "#ffbd44"); cursor: pointer; padding: 0; font-size: 0.9rem; font-weight: 500;">
+                            @(isBlocked ? "Розблок" : "Бан")
+                        </button>
+                    </form>
+
+                    <form asp-action="DeleteUser" method="post" onsubmit="return confirm('УВАГА! Користувача @user.UserName буде видалено НАЗАВЖДИ разом із даними. Продовжити?')">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <input type="hidden" name="reason" value="Порушення правил спільноти: недоречний контент або поведінка." />
+                        <button type="submit" style="background: none; border: none; color: #ff6464; cursor: pointer; padding: 0; display: flex; align-items: center;" title="Видалити назавжди">
                             <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
                                 <polyline points="3 6 5 6 21 6"></polyline>
                                 <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
@@ -77,10 +86,9 @@
             }
             else
             {
-               
                 <form asp-action="RestoreUser" method="post">
                     <input type="hidden" name="id" value="@user.Id" />
-                    <button type="submit" style="background: none; border: 1px solid #88ff88; color: #88ff88; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">
+                    <button type="submit" style="background: none; border: 1px solid #88ff88; color: #88ff88; padding: 5px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold; transition: 0.3s;">
                         Відновити
                     </button>
                 </form>
