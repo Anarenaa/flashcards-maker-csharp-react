@@ -16,7 +16,7 @@ namespace App.Controllers
     {
         private readonly SetService _setService;
         private readonly CollectionService _collectionService;
-        private readonly IUnitOfWork _unitOfWork; 
+        private readonly IUnitOfWork _unitOfWork;
 
         public MainController(SetService setService, CollectionService collectionService, IUnitOfWork unitOfWork)
         {
@@ -25,9 +25,14 @@ namespace App.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // Головна сторінка зі списком сетів
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
+            if (User.IsInRole("Admin"))
+            {
+
+                return RedirectToAction("Users", "Admin");
+            }
+
             var sets = await _setService.GetAllSetsAsync(UserId, null, searchText);
 
             sets = sortOrder switch
@@ -53,6 +58,8 @@ namespace App.Controllers
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
         {
+            if (User.IsInRole("Admin")) return Forbid();
+
             int finalCollectionId = collectionId ?? 0;
 
             if (!string.IsNullOrWhiteSpace(newCollectionName))
@@ -73,11 +80,12 @@ namespace App.Controllers
 
             return RedirectToAction(nameof(Index));
         }
+
+        // Створення скарги
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReport(CreateReportDTO dto)
         {
-            // Перевірка, чи вказано на кого/що скаржимось
             if (dto.ReportedUserId == null && dto.ReportedSetId == null)
             {
                 TempData["ErrorMessage"] = "Об'єкт скарги не вказано";
@@ -88,7 +96,7 @@ namespace App.Controllers
             {
                 var report = new Report
                 {
-                    ReporterId = UserId, 
+                    ReporterId = UserId,
                     ReportedUserId = dto.ReportedUserId,
                     ReportedSetId = dto.ReportedSetId,
                     Reason = dto.Reason,

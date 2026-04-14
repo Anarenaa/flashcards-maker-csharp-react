@@ -204,10 +204,6 @@
 
             @if (User.IsInRole("Admin"))
             {
-                @* --- МЕНЮ ДЛЯ АДМІНІСТРАТОРА --- *@
-                <a asp-controller="Main" asp-action="Index"
-                   class="nav-btn @(controller == "Main" ? "active" : "")">Головна</a>
-
                 <a asp-controller="Admin" asp-action="Reports"
                    class="nav-btn @(action == "Reports" ? "active" : "")">Скарги</a>
 
@@ -222,10 +218,8 @@
             }
             else
             {
-                @* --- МЕНЮ ДЛЯ ЗВИЧАЙНОГО КОРИСТУВАЧА --- *@
                 <a asp-controller="Main" asp-action="Index"
                    class="nav-btn @(controller == "Main" && action == "Index" ? "active" : "")">Головна</a>
-
                 <a asp-controller="MySets" asp-action="Index"
                    class="nav-btn @(controller == "MySets" ? "active" : "")">Мої сети</a>
 
@@ -239,7 +233,6 @@
                    class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
             }
 
-            @* --- КНОПКА ВИХОДУ (спільна для всіх) --- *@
             <form asp-controller="Account" asp-action="Logout" method="post" style="margin-top: auto;">
                 <button type="submit" class="nav-btn btn-exit" style="width:100%; text-align:center; cursor: pointer;">Вийти</button>
             </form>

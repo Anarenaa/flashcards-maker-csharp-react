@@ -3,11 +3,10 @@
 
 @{
     ViewData["Title"] = "Головна";
-    var currentUserName = "Admin"; // Потім заміниш на реальне ім'я залогіненого юзера
+    var currentUserName = User.Identity?.Name;
 }
 
 <style>
-    /* --- СТИЛІ ПОШУКУ ТА СІТКИ --- */
     .search-container {
         display: flex;
         gap: 15px;
@@ -64,7 +63,6 @@
         gap: 25px;
     }
 
-    /* --- КАРТКА СЕТУ --- */
     .set-card {
         background-color: var(--btn-bg);
         border: 1px solid var(--btn-border);
@@ -73,37 +71,17 @@
         min-height: 220px;
         display: flex;
         flex-direction: column;
-        justify-content: flex-start;
         position: relative;
         cursor: pointer;
         transition: all 0.3s ease;
-        z-index: 1;
     }
 
         .set-card:hover {
             border-color: var(--accent-color);
-            background-color: var(--btn-hover);
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
-    .card-footer {
-        margin-top: auto;
-        padding-top: 15px;
-        border-top: 1px solid rgba(240, 255, 255, 0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .date-info {
-        font-size: 0.7rem;
-        opacity: 0.4;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -145,38 +123,18 @@
             cursor: pointer;
             width: 100%;
             font-size: 0.9rem;
+            font-family: inherit;
         }
 
             .dropdown button:hover {
                 background-color: #6B8789;
             }
 
-    /* --- БЕДЖІ --- */
-    .my-set-tag {
-        position: absolute;
-        top: -10px;
-        right: 15px;
-        background: var(--accent-color);
-        color: #141B25;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.7rem;
-        font-weight: bold;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.3);
-    }
+        .dropdown .btn-report-red:hover {
+            background-color: rgba(255, 100, 100, 0.2);
+            color: #ff8080;
+        }
 
-    .owner-border {
-        border-color: rgba(240, 255, 255, 0.5) !important;
-    }
-
-    .author-name {
-        font-size: 0.75rem;
-        opacity: 0.5;
-        margin-bottom: 10px;
-        display: block;
-    }
-
-    /* --- МОДАЛКА --- */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -202,7 +160,7 @@
         gap: 15px;
     }
 
-        .modal select, .modal input {
+        .modal select, .modal input, .modal textarea {
             background: #141B25;
             border: 1px solid #818375;
             color: white;
@@ -212,12 +170,43 @@
             width: 100%;
             font-family: inherit;
         }
+
+    .card-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(240, 255, 255, 0.05);
+    }
+
+    .date-info {
+        font-size: 0.7rem;
+        opacity: 0.4;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .author-name {
+        font-size: 0.75rem;
+        opacity: 0.5;
+        margin-bottom: 10px;
+        display: block;
+    }
+
+    .my-set-tag {
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        background: var(--accent-color);
+        color: #141B25;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Всі навчальні сети</h2>
 
-    <!-- ФОРМА ПОШУКУ ТА СОРТУВАННЯ -->
     <div class="search-container">
         <form asp-controller="Main" asp-action="Index" method="get" class="search-bar-form">
             <input type="text" name="searchText" placeholder="Шукати сети..." value="@ViewData["CurrentFilter"]" />
@@ -229,6 +218,13 @@
         </form>
     </div>
 
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div style="background: rgba(136, 255, 136, 0.1); color: #88ff88; border: 1px solid #88ff88; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+            @TempData["SuccessMessage"]
+        </div>
+    }
+
     <div class="sets-grid">
         @foreach (var set in Model)
         {
@@ -239,14 +235,20 @@
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
 
                 <div class="dropdown" onclick="event.stopPropagation()">
-                    @* Кнопка перегляду акаунту автора *@
                     <button type="button" onclick="location.href='@Url.Action("UserProfile", "MyProfile", new { id = set.UserName })'">
-                        Переглянути акаунт користувача
+                        Переглянути акаунт
                     </button>
-                    @* Кнопка збереження в колекцію *@
-                    <button type="button" onclick="openCollectModal(event, '@set.Id')">
-                        Зберегти в колекцію
+
+                    <button type="button" class="btn-report-red" style="color: #ff8080;" onclick="openReportModal(event, '@set.Id', '@set.UserName')">
+                        Поскаржитися
                     </button>
+
+                    @if (!isMine)
+                    {
+                        <button type="button" onclick="openCollectModal(event, '@set.Id')">
+                            Зберегти в колекцію
+                        </button>
+                    }
                 </div>
 
                 @if (isMine)
@@ -261,7 +263,7 @@
                 <div class="card-footer">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px;">
                         <span style="font-size: 0.75rem; opacity: 0.6;">@set.FlashcardsCount карток</span>
-                        <span style="font-size: 0.75rem; opacity: 0.6;">@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+                        <span style="font-size: 0.75rem; opacity: 0.6;">🌐 Публічний</span>
                     </div>
                     <div class="date-info">
                         <span>Оновлено:</span>
@@ -273,7 +275,6 @@
     </div>
 </div>
 
-<!-- МОДАЛКА ЗБЕРЕЖЕННЯ -->
 <div class="modal-overlay" id="collectModal">
     <div class="modal">
         <form asp-controller="Main" asp-action="AddToCollection" method="post">
@@ -300,9 +301,38 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="reportModal">
+    <div class="modal" style="border-color: #ff6464;">
+        <form asp-controller="Main" asp-action="CreateReport" method="post">
+            <h2 style="color: #ff6464; margin: 0;">Повідомити про порушення</h2>
+            <input type="hidden" name="ReportedSetId" id="repSetId" />
+            <input type="hidden" name="ReportedUserId" id="repUserId" />
+
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <label style="font-size: 0.85rem; opacity: 0.7;">Причина скарги:</label>
+                <select name="Reason" required>
+                    <option value="0">Спам</option>
+                    <option value="1">Неприйнятний контент</option>
+                    <option value="2">Образи або цькування</option>
+                    <option value="3">Порушення авторських прав</option>
+                    <option value="4">Інше</option>
+                </select>
+
+                <textarea name="CustomReason" placeholder="Опишіть проблему детальніше..." rows="4" style="resize: none;"></textarea>
+
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" onclick="closeReportModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                    <button type="submit" class="btn-search" style="width: auto; background: #ff6464; color: white; border-color: #ff6464;">Надіслати</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         const collectModal = document.getElementById('collectModal');
+        const reportModal = document.getElementById('reportModal');
 
         function handleCardClick(event, url) {
             if (event.target.closest('.card-menu-btn') || event.target.closest('.dropdown')) return;
@@ -311,8 +341,7 @@
 
         function toggleMenu(event) {
             event.stopPropagation();
-            const btn = event.currentTarget;
-            const dropdown = btn.nextElementSibling;
+            const dropdown = event.currentTarget.nextElementSibling;
             document.querySelectorAll('.dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
             dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
         }
@@ -324,14 +353,24 @@
             document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
         }
 
+        function openReportModal(event, setId, userId) {
+            event.stopPropagation();
+            document.getElementById('repSetId').value = setId;
+            document.getElementById('repUserId').value = userId;
+            reportModal.style.display = 'flex';
+            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+        }
+
         function closeCollectModal() { collectModal.style.display = 'none'; }
+        function closeReportModal() { reportModal.style.display = 'none'; }
 
         window.onclick = (e) => {
             if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
             if (e.target === collectModal) closeCollectModal();
+            if (e.target === reportModal) closeReportModal();
         };
 
-        // Анімація появи карток
+        // Анімація карток
         document.querySelectorAll('.set-card').forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';

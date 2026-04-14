@@ -87,7 +87,6 @@
 
         .search-input:focus {
             border-color: var(--accent-color);
-            background: rgba(20, 27, 37, 0.8);
         }
 
     .table-responsive {
@@ -118,11 +117,6 @@
         border-radius: 20px;
         transition: 0.3s;
     }
-
-        .stat-card:hover {
-            background: rgba(255, 255, 255, 0.05);
-            transform: translateY(-5px);
-        }
 
     .stat-val {
         font-size: 1.6rem;
@@ -211,16 +205,23 @@
             <button class="tab-link active" onclick="switchTab('all', this)">Усі користувачі</button>
             <button class="tab-link" onclick="switchTab('warned', this)">З попередженнями</button>
             <button class="tab-link" onclick="switchTab('blocked', this)">Заблоковані</button>
+            <button class="tab-link" onclick="switchTab('deleted', this)">Видалені</button>
         </div>
+
+        @if (TempData["Success"] != null)
+        {
+            <div id="successAlert" style="background: rgba(136, 255, 136, 0.1); border: 1px solid #88ff88; color: #88ff88; padding: 12px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem;">
+                ✓ @TempData["Success"]
+            </div>
+        }
 
         <div class="search-container">
             <div style="flex-grow: 1;">
                 <input type="text" id="userSearchInput"
                        value="@Context.Request.Query["searchTerm"]"
-                       placeholder="Введіть ім'я, email або ID для швидкого пошуку..."
+                       placeholder="Пошук за нікнеймом або email..."
                        class="search-input" autocomplete="off">
             </div>
-
             <a asp-action="Users" id="resetBtn" class="nav-btn"
                style="display: @(string.IsNullOrEmpty(Context.Request.Query["searchTerm"]) ? "none" : "block");
                       padding: 12px 20px; text-decoration: none; color: #ff6464 !important; border-color: rgba(255,100,100,0.3);">
@@ -246,26 +247,20 @@
         </div>
     </div>
 
-    <!-- ПРАВА ПАНЕЛЬ СТАТИСТИКИ -->
     <div class="users-side-panel">
         <div class="stat-card">
-            <div class="live-indicator">
-                <div class="pulse-dot"></div> Live Monitor
-            </div>
+            <div class="live-indicator"><div class="pulse-dot"></div> Live Monitor</div>
             <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem;">Всього в системі</h4>
             <span id="total-users" class="stat-val">@Model.Count</span>
         </div>
-
         <div class="stat-card">
             <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #88ff88;">Нові сьогодні</h4>
             <span id="new-users" class="stat-val">0</span>
         </div>
-
         <div class="stat-card">
-            <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #ff6464;">Заблоковано</h4>
+            <h4 style="margin: 0; opacity: 0.7; font-size: 0.9rem; color: #ff6464;">Заблоковано/Видалено</h4>
             <span id="blocked-users" class="stat-val">0</span>
         </div>
-
         <div class="stat-card" style="background: rgba(240, 255, 255, 0.05); border: 1px solid var(--accent-color);">
             <h4 style="margin: 0 0 15px 0; font-size: 0.9rem;">Швидкі дії</h4>
             <a asp-action="Reports" class="nav-btn" style="display: block; font-size: 0.8rem; margin-bottom: 8px; text-align:center; text-decoration:none;">Написати скаргу</a>
@@ -292,18 +287,22 @@
             const rows = tableBody.querySelectorAll('tr');
             rows.forEach(row => {
                 const isBlocked = row.getAttribute('data-blocked') === 'true';
+                const isDeleted = row.getAttribute('data-deleted') === 'true';
                 const warnings = parseInt(row.getAttribute('data-warnings') || '0');
 
                 if (currentFilter === 'all') {
-                    row.style.display = '';
+                    row.style.display = isDeleted ? 'none' : '';
                 } else if (currentFilter === 'warned') {
-                    row.style.display = (warnings > 0) ? '' : 'none';
+                    row.style.display = (warnings > 0 && !isDeleted) ? '' : 'none';
                 } else if (currentFilter === 'blocked') {
-                    row.style.display = isBlocked ? '' : 'none';
+                    row.style.display = (isBlocked && !isDeleted) ? '' : 'none';
+                } else if (currentFilter === 'deleted') {
+                    row.style.display = isDeleted ? '' : 'none';
                 }
             });
         }
 
+       
         searchInput.addEventListener('input', function () {
             const query = searchInput.value;
             resetBtn.style.display = query.length > 0 ? 'block' : 'none';
@@ -320,6 +319,7 @@
                 });
             }, 300);
         });
+
         async function updateStats() {
             try {
                 const response = await fetch('/Admin/GetRealTimeStats');
@@ -333,7 +333,7 @@
 
         function updateCounter(id, newVal) {
             const el = document.getElementById(id);
-            if (el.innerText != newVal) {
+            if (el && el.innerText != newVal) {
                 el.classList.add('stat-update');
                 el.innerText = newVal;
                 setTimeout(() => el.classList.remove('stat-update'), 1000);
@@ -342,6 +342,7 @@
 
         setInterval(updateStats, 10000);
         updateStats();
+
         resetBtn.addEventListener('click', function(e) {
             e.preventDefault();
             searchInput.value = '';
@@ -349,5 +350,7 @@
             searchInput.dispatchEvent(new Event('input'));
         });
 
+        const alert = document.getElementById('successAlert');
+        if (alert) setTimeout(() => alert.style.display = 'none', 5000);
     </script>
 }

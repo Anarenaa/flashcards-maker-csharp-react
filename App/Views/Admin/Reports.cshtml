@@ -6,7 +6,6 @@
 }
 
 <style>
-    /* --- СТИЛІ ВКЛАДОК --- */
     .report-tabs {
         display: flex;
         gap: 20px;
@@ -26,25 +25,25 @@
         padding: 10px 15px;
         transition: 0.3s;
         position: relative;
+        white-space: nowrap;
     }
 
-        .tab-btn.active {
-            opacity: 1;
-            color: var(--accent-color);
-        }
+    .tab-btn.active {
+        opacity: 1;
+        color: var(--accent-color);
+    }
 
-            .tab-btn.active::after {
-                content: '';
-                position: absolute;
-                bottom: -11px;
-                left: 0;
-                width: 100%;
-                height: 3px;
-                background: var(--accent-color);
-                box-shadow: 0 0 10px var(--accent-color);
-            }
+    .tab-btn.active::after {
+        content: '';
+        position: absolute;
+        bottom: -11px;
+        left: 0;
+        width: 100%;
+        height: 3px;
+        background: var(--accent-color);
+        box-shadow: 0 0 10px var(--accent-color);
+    }
 
-    /* --- СТРУКТУРА --- */
     .report-page-wrapper {
         display: flex;
         gap: 30px;
@@ -70,158 +69,36 @@
         gap: 20px;
     }
 
-    .tab-content {
-        display: none;
-        animation: slideUp 0.4s ease;
-    }
+    .tab-content { display: none; animation: slideUp 0.4s ease; }
+    .tab-content.active { display: block; }
 
-        .tab-content.active {
-            display: block;
-        }
+    .mod-table { width: 100%; border-collapse: collapse; margin-top: 10px; }
+    .mod-table th { text-align: left; padding: 15px; opacity: 0.5; font-size: 0.8rem; text-transform: uppercase; border-bottom: 1px solid rgba(240, 255, 255, 0.1); }
+    .mod-table td { padding: 18px 15px; border-bottom: 1px solid rgba(240, 255, 255, 0.05); font-size: 0.9rem; }
 
-    .mod-table {
-        width: 100%;
-        border-collapse: collapse;
-        margin-top: 10px;
-    }
+    .badge-reason { background: rgba(255, 100, 100, 0.15); color: #ff8080; padding: 4px 8px; border-radius: 6px; font-size: 0.75rem; font-weight: bold; }
 
-        .mod-table th {
-            text-align: left;
-            padding: 15px;
-            opacity: 0.5;
-            font-size: 0.8rem;
-            text-transform: uppercase;
-            border-bottom: 1px solid rgba(240, 255, 255, 0.1);
-        }
+    .form-group { margin-bottom: 22px; position: relative; }
+    label { display: block; margin-bottom: 8px; font-weight: 500; opacity: 0.8; font-size: 0.9rem; }
+    .input-style { width: 100%; background: rgba(20, 27, 37, 0.4); border: 1px solid rgba(129, 131, 117, 0.3); color: white; padding: 14px; border-radius: 12px; outline: none; transition: 0.3s; box-sizing: border-box; }
+    .input-style:focus { border-color: var(--accent-color); background: rgba(20, 27, 37, 0.8); }
 
-        .mod-table td {
-            padding: 18px 15px;
-            border-bottom: 1px solid rgba(240, 255, 255, 0.05);
-            font-size: 0.9rem;
-        }
+    .btn-submit { width: 100%; background: transparent; border: 1px solid var(--accent-color); color: var(--accent-color) !important; padding: 16px; border-radius: 12px; font-weight: bold; cursor: pointer; transition: 0.3s; text-transform: uppercase; }
+    .btn-submit:hover { background: var(--accent-color); color: #141B25 !important; }
 
-    .badge-reason {
-        background: rgba(255, 100, 100, 0.15);
-        color: #ff8080;
-        padding: 4px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: bold;
-    }
+    .info-card { background: rgba(255, 255, 255, 0.02); border: 1px solid rgba(240, 255, 255, 0.05); padding: 22px; border-radius: 20px; }
+    .stat-number { font-weight: bold; color: var(--accent-color); transition: 0.5s; }
+    .live-indicator { display: inline-flex; align-items: center; gap: 8px; font-size: 0.65rem; font-weight: bold; color: #88ff88; text-transform: uppercase; margin-bottom: 12px; }
+    .pulse-dot { width: 8px; height: 8px; background-color: #00ff00; border-radius: 50%; animation: pulse 1.5s infinite; }
 
-    /* Форма */
-    .form-group {
-        margin-bottom: 22px;
-        position: relative;
-    }
-
-    label {
-        display: block;
-        margin-bottom: 8px;
-        font-weight: 500;
-        opacity: 0.8;
-        font-size: 0.9rem;
-    }
-
-    .input-style {
-        width: 100%;
-        background: rgba(20, 27, 37, 0.4);
-        border: 1px solid rgba(129, 131, 117, 0.3);
-        color: white;
-        padding: 14px;
-        border-radius: 12px;
-        outline: none;
-        transition: 0.3s;
-        box-sizing: border-box;
-    }
-
-        .input-style:focus {
-            border-color: var(--accent-color);
-            background: rgba(20, 27, 37, 0.8);
-        }
-
-    .btn-submit {
-        width: 100%;
-        background: transparent;
-        border: 1px solid var(--accent-color);
-        color: var(--accent-color) !important;
-        padding: 16px;
-        border-radius: 12px;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
-        text-transform: uppercase;
-    }
-
-        .btn-submit:hover {
-            background: var(--accent-color);
-            color: #141B25 !important;
-        }
-
-    /* Live Monitor */
-    .info-card {
-        background: rgba(255, 255, 255, 0.02);
-        border: 1px solid rgba(240, 255, 255, 0.05);
-        padding: 22px;
-        border-radius: 20px;
-    }
-
-    .stat-number {
-        font-weight: bold;
-        color: var(--accent-color);
-        transition: 0.5s;
-    }
-
-    .live-indicator {
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        font-size: 0.65rem;
-        font-weight: bold;
-        color: #88ff88;
-        text-transform: uppercase;
-        margin-bottom: 12px;
-    }
-
-    .pulse-dot {
-        width: 8px;
-        height: 8px;
-        background-color: #00ff00;
-        border-radius: 50%;
-        animation: pulse 1.5s infinite;
-    }
-
-    @@keyframes pulse {
-        0% {
-            box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7);
-        }
-
-        70% {
-            box-shadow: 0 0 0 10px rgba(0, 255, 0, 0);
-        }
-
-        100% {
-            box-shadow: 0 0 0 0 rgba(0, 255, 0, 0);
-        }
-    }
-
-    @@keyframes slideUp {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
+    @@keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0.7); } 70% { box-shadow: 0 0 0 10px rgba(0, 255, 0, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 255, 0, 0); } }
+    @@keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 </style>
 
 <div class="report-tabs">
     <button class="tab-btn active" onclick="openTab(event, 'write-tab')">Написати</button>
     <button class="tab-btn" onclick="openTab(event, 'archive-tab')">Архів попереджень (Адмін)</button>
-    <button class="tab-btn" onclick="openTab(event, 'complaints-tab')">Скарги від користувачів</button>
+    <button class="tab-btn" onclick="openTab(event, 'list-tab')">Скарги від користувачів</button>
 </div>
 
 <div class="report-page-wrapper">
@@ -229,24 +106,24 @@
 
         <!-- ВКЛАДКА 1: НАПИСАТИ -->
         <div id="write-tab" class="tab-content active">
-            <h2 style="margin: 0 0 30px 0; color: var(--accent-color);">Центр попереджень</h2>
+            <h2 style="margin: 0 0 30px 0; color: var(--accent-color);">Центр модерації</h2>
             @if (TempData["Success"] != null)
             {
                 <div style="background: rgba(136, 255, 136, 0.1); border: 1px solid #88ff88; color: #88ff88; padding: 15px; border-radius: 10px; margin-bottom: 25px;">✓ @TempData["Success"]</div>
             }
             <form asp-action="SendWarning" method="post">
-                <div class="form-group">
+                <div class="form-group" style="position: relative;">
                     <label>Пошук користувача</label>
                     <input type="email" name="email" id="emailInput" value="@ViewBag.TargetEmail" class="input-style" placeholder="Введіть email або логін..." autocomplete="off" required>
-                    <div id="suggestionList"></div>
+                    <div id="suggestionList" style="position: absolute; top: 100%; left: 0; width: 100%; background: #1b2431; border: 1px solid var(--btn-border); border-radius: 0 0 12px 12px; z-index: 100; display: none; max-height: 200px; overflow-y: auto;"></div>
                 </div>
                 <div class="form-group">
                     <label>Шаблон повідомлення</label>
                     <select id="templateSelect" class="input-style" onchange="applyTemplate()">
                         <option value="">-- Оберіть причину --</option>
-                        <option value="profanity"> Нецензурна лексика</option>
-                        <option value="content"> Недоречний контент</option>
-                        <option value="spam"> Спам та реклама</option>
+                        <option value="profanity">⚠️ Нецензурна лексика</option>
+                        <option value="content">🤔 Недоречний контент</option>
+                        <option value="spam">🚫 Спам та реклама</option>
                     </select>
                 </div>
                 <div class="form-group"><input type="text" name="subject" id="mailSubject" class="input-style" placeholder="Тема листа" required></div>
@@ -257,7 +134,7 @@
 
         <!-- ВКЛАДКА 2: АРХІВ АДМІНА -->
         <div id="archive-tab" class="tab-content">
-            <h2 style="margin: 0 0 25px 0;">Історія попереджень</h2>
+            <h2 style="margin: 0 0 25px 0;">Історія ваших попереджень</h2>
             <table class="mod-table">
                 <thead><tr><th>Кому</th><th>Деталі</th><th>Дата</th><th style="text-align:right;">Дія</th></tr></thead>
                 <tbody>
@@ -280,7 +157,7 @@
         </div>
 
         <!-- ВКЛАДКА 3: СКАРГИ ВІД ЮЗЕРІВ -->
-        <div id="complaints-tab" class="tab-content">
+        <div id="list-tab" class="tab-content">
             <h2 style="margin: 0 0 25px 0;">Скарги від спільноти</h2>
             <table class="mod-table">
                 <thead><tr><th>Від кого</th><th>Об'єкт</th><th>Причина</th><th style="text-align:right;">Дія</th></tr></thead>
@@ -290,24 +167,14 @@
                         <tr>
                             <td><strong>@(c.Reporter?.UserName ?? "Гість")</strong></td>
                             <td>
-                                @if (c.ReportedSetId != null)
-                                {
-                                    <span style="color:var(--accent-color)">Сет #@c.ReportedSetId</span>
-                                }
-                                else
-                                {
-
-                                    <span>Юзер: @c.ReportedUser?.UserName</span>
-                                }
+                                @if (c.ReportedSetId != null) { <span style="color:var(--accent-color)">Сет #@c.ReportedSetId</span> }
+                                else { <span>Юзер: @c.ReportedUser?.UserName</span> }
                             </td>
-                            <td><span class="badge-reason">@c.Reason.ToString()</span></td>
+                            <td><span class="badge-reason">@c.Reason</span></td>
                             <td style="text-align:right; display:flex; gap:15px; justify-content:flex-end; align-items:center;">
-                                @if (c.ReportedSetId != null)
-                                {
-                                    <a asp-controller="DetailsInMain" asp-action="Sets" asp-route-id="@c.ReportedSetId" style="color:var(--accent-color); text-decoration:none; font-weight:600;">Перевірити</a>
-                                }
-                                else
-                                {
+                                @if (c.ReportedSetId != null) {
+                                    <a asp-controller="Admin" asp-action="SetDetails" asp-route-id="@c.ReportedSetId" style="color:var(--accent-color); text-decoration:none; font-weight:600;">Перевірити</a>
+                                } else {
                                     <a asp-action="UserDetails" asp-route-id="@c.ReportedUserId" style="color:var(--accent-color); text-decoration:none; font-weight:600;">Профіль</a>
                                 }
                                 <form asp-action="DeleteReport" method="post" onsubmit="return confirm('Видалити скаргу?')">
@@ -321,17 +188,15 @@
             </table>
         </div>
     </div>
-
-    <!-- SIDEBAR -->
     <div class="report-side-panel">
         <div class="info-card">
             <div class="live-indicator"><div class="pulse-dot"></div> Live Monitor</div>
-            <h4>📊 Активність</h4>
+            <h4>📊 Статистика</h4>
             <div class="stat-row"><span>Листів сьогодні:</span> <span id="count-emails" class="stat-number">0</span></div>
             <div class="stat-row"><span>Всього юзерів:</span> <span id="total-users-count" class="stat-number">...</span></div>
         </div>
         <div class="info-card" style="border-left: 3px solid #ff6464;">
-            <h4 style="color: #ff6464;">🚩 Правила</h4>
+            <h4 style="color: #ff6464;">🚩 Правила модерації</h4>
             <ul style="font-size: 0.8rem; opacity: 0.7; padding-left: 15px; line-height: 1.8; margin:0;">
                 <li>Без нецензурної лексики.</li>
                 <li>Тільки освітній контент.</li>
@@ -349,7 +214,6 @@
         evt.currentTarget.classList.add("active");
     }
 
-    // Живий пошук
     const emailInput = document.getElementById('emailInput');
     const suggestionList = document.getElementById('suggestionList');
     emailInput.addEventListener('input', async () => {
@@ -358,18 +222,19 @@
         const res = await fetch(`/Admin/GetEmailSuggestions?query=${encodeURIComponent(query)}`);
         const data = await res.json();
         if (data.length > 0) {
-            suggestionList.innerHTML = data.map(u => `<div class="suggestion-item" onclick="selectEmail('${u.email}')"><strong>${u.userName}</strong><br><small>${u.email}</small></div>`).join('');
+            suggestionList.innerHTML = data.map(u => `<div style="padding:10px; cursor:pointer; border-bottom:1px solid rgba(255,255,255,0.05);" onclick="selectEmail('${u.email}')"><strong>${u.userName}</strong><br><small>${u.email}</small></div>`).join('');
             suggestionList.style.display = 'block';
         } else suggestionList.style.display = 'none';
     });
+
     function selectEmail(email) { emailInput.value = email; suggestionList.style.display = 'none'; }
 
-    // Шаблони
     const templates = {
-        "profanity": { sub: "Попередження: Нецензурна лексика", msg: "Ми помітили використання недопустимих слів у ваших навчальних матеріалах." },
+        "profanity": { sub: "Попередження: Лексика", msg: "Ми помітили використання недопустимих слів у ваших навчальних матеріалах." },
         "content": { sub: "Зауваження щодо вмісту", msg: "Деякі з ваших публічних карток містять контент, який не відповідає правилам." },
         "spam": { sub: "Попередження: Спам", msg: "Ваш акаунт було помічено у розсиланні реклами або спаму." }
     };
+
     function applyTemplate() {
         const key = document.getElementById('templateSelect').value;
         if (templates[key]) {
@@ -378,7 +243,6 @@
         }
     }
 
-    // Статистика
     async function refreshStats() {
         try {
             const response = await fetch('/Admin/GetRealTimeStats');

@@ -2,24 +2,31 @@
 @{
     var warningCounts = ViewBag.WarningCounts as Dictionary<int, int> ?? new Dictionary<int, int>();
     var blockedUserIds = ViewBag.BlockedUserIds as List<int> ?? new List<int>();
+    var deletedUserIds = ViewBag.DeletedUserIds as List<int> ?? new List<int>();
 }
 
 @foreach (var user in Model)
 {
     var warnings = warningCounts.ContainsKey(user.Id) ? warningCounts[user.Id] : 0;
+    bool isDeleted = deletedUserIds.Contains(user.Id);
     bool isBlocked = blockedUserIds.Contains(user.Id);
     bool isAdmin = user.Roles.Contains("Admin");
 
     <tr data-blocked="@isBlocked.ToString().ToLower()"
         data-warnings="@warnings"
-        style="border-bottom: 1px solid rgba(240,255,255,0.05); transition: 0.2s;">
+        data-deleted="@isDeleted.ToString().ToLower()"
+        style="border-bottom: 1px solid rgba(240,255,255,0.05); transition: 0.2s; @(isDeleted ? "opacity: 0.5;" : "")">
 
         <td style="padding: 15px; opacity: 0.5;">@user.Id</td>
 
         <td>
             <div style="display: flex; align-items: center; gap: 8px;">
                 <strong style="color: white;">@user.UserName</strong>
-                @if (warnings > 0)
+                @if (isDeleted)
+                {
+                    <span style="color: #ff6464; font-size: 0.7rem; font-weight: bold; text-transform: uppercase;">[Видалено]</span>
+                }
+                else if (warnings > 0)
                 {
                     <span style="background: rgba(255, 165, 0, 0.15); color: #ffa500; border: 1px solid rgba(255, 165, 0, 0.3); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: bold;">
                         ⚠️ @warnings
@@ -43,25 +50,38 @@
 
         <td style="text-align: right; display: flex; gap: 20px; justify-content: flex-end; padding: 15px; align-items: center;">
 
-    
-            <a asp-action="UserDetails" asp-route-id="@user.Id"
-               style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem; font-weight: 500;">Переглянути</a>
-
-            <a asp-action="Reports" asp-route-userId="@user.Id"
-               style="color: white; opacity: 0.7; text-decoration: none; font-size: 0.9rem;">Скарга</a>
-
-         
-            @if (!isAdmin)
+            @if (!isDeleted)
             {
-                <form asp-action="DeleteUser" method="post" onsubmit="return confirm('Видалити користувача @user.UserName назавжди?')">
+                <a asp-action="UserDetails" asp-route-id="@user.Id"
+                   style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem; font-weight: 500;">Переглянути</a>
+
+                <a asp-action="Reports" asp-route-userId="@user.Id"
+                   style="color: white; opacity: 0.7; text-decoration: none; font-size: 0.9rem;">Скарга</a>
+
+                @if (!isAdmin)
+                {
+                  
+                    <form asp-action="DeleteUser" method="post" onsubmit="return confirm('Видалити користувача @user.UserName?')">
+                        <input type="hidden" name="id" value="@user.Id" />
+                        <input type="hidden" name="reason" value="Порушення правил спільноти." />
+                        <button type="submit" style="background: none; border: none; color: #ff6464; cursor: pointer; padding: 0; display: flex; align-items: center;" title="Видалити">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                                <line x1="10" y1="11" x2="10" y2="17"></line>
+                                <line x1="14" y1="11" x2="14" y2="17"></line>
+                            </svg>
+                        </button>
+                    </form>
+                }
+            }
+            else
+            {
+               
+                <form asp-action="RestoreUser" method="post">
                     <input type="hidden" name="id" value="@user.Id" />
-                    <button type="submit" style="background: none; border: none; color: #ff6464; cursor: pointer; padding: 0; display: flex; align-items: center;" title="Видалити">
-                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
-                            <polyline points="3 6 5 6 21 6"></polyline>
-                            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                            <line x1="10" y1="11" x2="10" y2="17"></line>
-                            <line x1="14" y1="11" x2="14" y2="17"></line>
-                        </svg>
+                    <button type="submit" style="background: none; border: 1px solid #88ff88; color: #88ff88; padding: 4px 12px; border-radius: 8px; cursor: pointer; font-size: 0.8rem; font-weight: bold;">
+                        Відновити
                     </button>
                 </form>
             }
