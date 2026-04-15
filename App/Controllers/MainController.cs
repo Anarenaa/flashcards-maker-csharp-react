@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
 using Services;
 using System;
+using System.Collections.Generic; 
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -16,24 +17,32 @@ namespace App.Controllers
     {
         private readonly SetService _setService;
         private readonly CollectionService _collectionService;
+        private readonly CategoryService _categoryService;
         private readonly IUnitOfWork _unitOfWork;
 
-        public MainController(SetService setService, CollectionService collectionService, IUnitOfWork unitOfWork)
+        public MainController(
+            SetService setService,
+            CollectionService collectionService,
+            CategoryService categoryService,
+            IUnitOfWork unitOfWork)
         {
             _setService = setService;
             _collectionService = collectionService;
+            _categoryService = categoryService;
             _unitOfWork = unitOfWork;
         }
-
-        public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
+        public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
         {
             if (User.IsInRole("Admin"))
             {
-
                 return RedirectToAction("Users", "Admin");
             }
 
-            var sets = await _setService.GetAllSetsAsync(UserId, null, searchText);
+            List<int>? categoryIds = categoryId.HasValue
+                ? new List<int> { categoryId.Value }
+                : null;
+
+            var sets = await _setService.GetAllSetsAsync(UserId, categoryIds, searchText);
 
             sets = sortOrder switch
             {
@@ -42,7 +51,10 @@ namespace App.Controllers
                 _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
             };
 
+            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+
             ViewData["CurrentFilter"] = searchText;
+            ViewData["CurrentCategory"] = categoryId;
             ViewData["CurrentSort"] = sortOrder;
 
             if (UserId > 0)
@@ -53,7 +65,6 @@ namespace App.Controllers
             return View(sets);
         }
 
-        // Додавання сету в колекцію
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
@@ -81,7 +92,6 @@ namespace App.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // Створення скарги
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> CreateReport(CreateReportDTO dto)

@@ -210,6 +210,18 @@
     <div class="search-container">
         <form asp-controller="Main" asp-action="Index" method="get" class="search-bar-form">
             <input type="text" name="searchText" placeholder="Шукати сети..." value="@ViewData["CurrentFilter"]" />
+            <select name="categoryId" class="sort-select" onchange="this.form.submit()">
+                <option value="">Усі категорії</option>
+                @if (ViewBag.Categories != null)
+                {
+                    foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.Categories)
+                    {
+                        <!option value="@cat.Id" @(ViewData["CurrentCategory"]?.ToString() == cat.Id.ToString() ? "selected" : "")>
+                        @cat.Name
+                        </!option>
+                    }
+                }
+            </select>
             <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
                 <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
                 <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
@@ -366,8 +378,6 @@
 
         window.onclick = (e) => {
             if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-            if (e.target === collectModal) closeCollectModal();
-            if (e.target === reportModal) closeReportModal();
         };
 
         // Анімація карток

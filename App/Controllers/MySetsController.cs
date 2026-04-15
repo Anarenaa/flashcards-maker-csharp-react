@@ -3,93 +3,97 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
-namespace App.Controllers
+namespace App.Controllers;
+
+[Authorize(Roles = "User")]
+
+public class MySetsController(
+    SetService setService,
+    CollectionService collectionService,
+    CategoryService categoryService) : BaseController
 {
-    [Authorize(Roles = "User")]
-    public class MySetsController : BaseController
+    public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
     {
-        private readonly SetService _setService;
-        private readonly CollectionService _collectionService; 
 
-        public MySetsController(SetService setService, CollectionService collectionService)
+        List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
+
+        var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
+
+        sets = sortOrder switch
         {
-            _setService = setService;
-            _collectionService = collectionService;
+            "oldest" => sets.OrderBy(s => s.CreatedAt).ToList(),
+            "newest" => sets.OrderByDescending(s => s.CreatedAt).ToList(),
+            _ => sets.OrderByDescending(s => s.CreatedAt).ToList()
+        };
+
+        ViewBag.Categories = await categoryService.GetAllCategoriesAsync();
+        ViewBag.UserCollections = await collectionService.GetCollectionsByUserIdAsync(UserId);
+
+        ViewData["CurrentFilter"] = searchText;
+        ViewData["CurrentCategory"] = categoryId;
+        ViewData["CurrentSort"] = sortOrder;
+
+        return View(sets);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Create(SetDTO setDto)
+    {
+        if (ModelState.IsValid)
+        {
+            setDto.CreatedAt = DateTime.UtcNow;
+            setDto.LastUpdatedAt = DateTime.UtcNow;
+
+            await setService.AddSetAsync(setDto, UserId);
+            return RedirectToAction(nameof(Index));
         }
+       
+        return await Index(null, null, "newest");
+    }
 
-        public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Edit(SetDTO setDto)
+    {
+  
+        if (!ModelState.IsValid || !setDto.Id.HasValue)
         {
-            var sets = await _setService.GetAllUserSetsAsync(UserId, null, searchText);
-
-            sets = sortOrder switch
-            {
-                "oldest" => sets.OrderBy(s => s.CreatedAt).ToList(),
-                "newest" => sets.OrderByDescending(s => s.CreatedAt).ToList(),
-                _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
-            };
-
-            ViewData["CurrentFilter"] = searchText;
-            ViewData["CurrentSort"] = sortOrder;
-
-            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
-
-            return View(sets);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(SetDTO setDto)
-        {
-            if (ModelState.IsValid)
-            {
-                setDto.CreatedAt = DateTime.Now;
-                setDto.LastUpdatedAt = DateTime.Now;
-
-                await _setService.AddSetAsync(setDto, UserId);
-                return RedirectToAction(nameof(Index));
-            }
-            return await Index(null);
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(SetDTO setDto)
-        {
-            if (ModelState.IsValid)
-            {
-                if (!await _setService.IsSetMine(setDto.Id.Value, UserId))
-                {
-                    return Forbid();
-                }
-
-                setDto.LastUpdatedAt = DateTime.Now;
-
-                await _setService.UpdateSetAsync(setDto);
-                return RedirectToAction(nameof(Index));
-            }
             return RedirectToAction(nameof(Index));
         }
 
-        public async Task<IActionResult> Delete(int id)
+        if (!await setService.IsSetMine(setDto.Id.Value, UserId))
         {
-            if (!await _setService.IsSetMine(id, UserId))
-            {
-                return Forbid();
-            }
-
-            await _setService.DeleteSetAsync(id);
-            return RedirectToAction(nameof(Index));
+            return Forbid();
         }
 
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> AddToCollection(int setId, int collectionId)
+        setDto.LastUpdatedAt = DateTime.UtcNow;
+        await setService.UpdateSetAsync(setDto);
+
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Delete(int id)
+    {
+        if (!await setService.IsSetMine(id, UserId))
         {
-            if (setId != 0 && collectionId != 0)
-            {
-                await _setService.AddSetToCollectionAsync(setId, collectionId);
-            }
-            return RedirectToAction(nameof(Index));
+            return Forbid();
         }
+
+        await setService.DeleteSetAsync(id);
+        return RedirectToAction(nameof(Index));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> AddToCollection(int setId, int collectionId)
+    {
+        if (setId != 0 && collectionId != 0)
+        {
+            await setService.AddSetToCollectionAsync(setId, collectionId);
+        }
+        return RedirectToAction(nameof(Index));
     }
 }

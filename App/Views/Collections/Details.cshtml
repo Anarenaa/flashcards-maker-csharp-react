@@ -109,7 +109,8 @@
     <div class="grid">
         @foreach (var set in Model.Sets)
         {
-            <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Details", "MySets", new { id = set.Id })')">
+            <div class="set-card"
+                 onclick="handleCardClick(event, '@(User.IsInRole("Admin") ? Url.Action("SetDetails", "Admin", new { id = set.Id }) : Url.Action("Sets", "DetailsInMain", new { id = set.Id }))')">
 
                 @* МЕНЮ ⋮ *@
                 <div class="dots" onclick="toggleMenu(event)">⋮</div>

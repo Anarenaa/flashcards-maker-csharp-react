@@ -220,9 +220,10 @@
             else
             {
                 <a asp-controller="Main" asp-action="Index"
-                   class="nav-btn @(controller == "Main" && action == "Index" ? "active" : "")">Головна</a>
+                   class="nav-btn @(controller == "Main" ? "active" : "")">Головна</a>
+
                 <a asp-controller="MySets" asp-action="Index"
-                   class="nav-btn @(controller == "MySets" ? "active" : "")">Мої сети</a>
+                   class="nav-btn @(controller == "MySets" || controller == "Details" ? "active" : "")">Мої сети</a>
 
                 <a asp-controller="Collections" asp-action="Index"
                    class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
