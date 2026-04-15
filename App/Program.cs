@@ -11,6 +11,7 @@ using Repositories;
 using Repositories.Interfaces;
 using Services;
 using Services.Interfaces;
+using Services.Practice;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -111,6 +112,9 @@ builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PracticeService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 
