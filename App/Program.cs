@@ -1,8 +1,8 @@
 using System.Text;
 using Core.Context;
 using Core.Models;
+using Core.DTOs;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +10,7 @@ using Microsoft.IdentityModel.Tokens;
 using Repositories;
 using Repositories.Interfaces;
 using Services;
+using Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,8 +21,9 @@ builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddIdentity<User, IdentityRole<int>>()
-    .AddEntityFrameworkStores<DataContext>()
-    .AddDefaultTokenProviders();
+.AddEntityFrameworkStores<DataContext>()
+.AddDefaultTokenProviders()
+.AddRoles<IdentityRole<int>>();
 
 builder.Services.AddAuthentication(options =>
 {
@@ -40,7 +42,8 @@ builder.Services.AddAuthentication(options =>
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["Jwt:Issuer"],
         ValidAudience = builder.Configuration["Jwt:Audience"],
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"])),
+        RoleClaimType = System.Security.Claims.ClaimTypes.Role
     };
 
     options.Events = new JwtBearerEvents
@@ -53,6 +56,40 @@ builder.Services.AddAuthentication(options =>
                 context.Token = accessToken;
             }
             return Task.CompletedTask;
+        },
+        OnTokenValidated = async context =>
+        {
+            var userManager = context.HttpContext.RequestServices
+                .GetRequiredService<UserManager<User>>();
+
+            var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                context.Fail("Unauthorized");
+                return;
+            }
+
+            var user = await userManager.FindByIdAsync(userIdClaim.Value);
+
+            if (user == null || user.IsBanned || (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow))
+            {
+                context.Fail("User is banned");
+
+                context.Response.Cookies.Delete("AuthToken");
+            }
+        },
+        OnChallenge = context =>
+        {
+            // 401
+            context.HandleResponse();
+            context.Response.Redirect("/login");
+            return Task.CompletedTask;
+        },
+        OnForbidden = context =>
+        {
+            // 403
+            context.Response.Redirect("/access-denied");
+            return Task.CompletedTask;
         }
     };
 })
@@ -62,21 +99,20 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 
-// �������� � Razor Pages ��� ��������� �����������
-builder.Services.ConfigureApplicationCookie(options =>
-{
-    options.LoginPath = "/Account/Login";
-    options.AccessDeniedPath = "/Account/AccessDenied";
-});
+builder.Services.Configure<EmailSettingsDTO>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<SetService>();
 builder.Services.AddScoped<FlashcardService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
+builder.Services.AddScoped<ReportService>();
+
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PracticeService>();
+builder.Services.AddTransient<EmailService>();
+builder.Services.AddTransient<IEmailService, EmailService>();
 
 var app = builder.Build();
 

@@ -3,6 +3,7 @@ using System.Security.Claims;
 using System.Text;
 using Core.DTOs;
 using Core.Models;
+using Core.Models.Constants;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
@@ -14,7 +15,10 @@ namespace Services
         private readonly UserManager<User> _userManager;
         private readonly IConfiguration _configuration;
 
-        public AuthService(UserManager<User> userManager, IConfiguration configuration)
+        public AuthService(
+            UserManager<User> userManager,
+            IConfiguration configuration
+        )
         {
             _userManager = userManager;
             _configuration = configuration;
@@ -28,28 +32,36 @@ namespace Services
                 Email = dto.Email
             };
 
-            return await _userManager.CreateAsync(user, dto.Password);
+            var result = await _userManager.CreateAsync(user, dto.Password);
+
+            if (result.Succeeded)
+            {
+                await _userManager.AddToRoleAsync(user, RoleNames.User);
+            }
+
+            return result;
         }
 
         public async Task<string> LoginAsync(LoginDto dto)
         {
             var user = await _userManager.FindByEmailAsync(dto.UserNameOrEmail);
-            if(user == null)
+            if (user == null)
                 user = await _userManager.FindByNameAsync(dto.UserNameOrEmail);
 
             if (user == null || !await _userManager.CheckPasswordAsync(user, dto.Password))
                 throw new UnauthorizedAccessException("Неправильний логін або пароль");
 
-            return GenerateJwtToken(user);
+            return await GenerateJwtToken(user);
         }
 
-        private string GenerateJwtToken(User user)
+        private async Task<string> GenerateJwtToken(User user)
         {
             var claims = new List<Claim>
         {
             new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
             new Claim(ClaimTypes.Name, user.UserName),
-            new Claim(ClaimTypes.Email, user.Email)
+            new Claim(ClaimTypes.Email, user.Email),
+            new Claim(ClaimTypes.Role, string.Join(",", await _userManager.GetRolesAsync(user)))
         };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["Jwt:Key"]));
@@ -75,9 +87,19 @@ namespace Services
 
                 if (user == null)
                 {
+                    var baseUserName = email.Split('@')[0];
+                    var userName = baseUserName;
+                    int counter = 1;
+
+                    while (await _userManager.FindByNameAsync(userName) != null)
+                    {
+                        userName = $"{baseUserName}{counter}";
+                        counter++;
+                    }
+
                     user = new User
                     {
-                        UserName = email.Split('@')[0],
+                        UserName = userName,
                         Email = email,
                         AvatarUrl = avatarUrl,
                         EmailConfirmed = true
@@ -86,6 +108,8 @@ namespace Services
                     var createResult = await _userManager.CreateAsync(user);
                     if (!createResult.Succeeded)
                         throw new Exception(string.Join(", ", createResult.Errors.Select(e => e.Description)));
+
+                    await _userManager.AddToRoleAsync(user, RoleNames.User);
                 }
 
                 var addLoginResult = await _userManager.AddLoginAsync(user, new UserLoginInfo("Google", googleId, "Google"));
@@ -93,13 +117,34 @@ namespace Services
                     throw new Exception("Не вдалося прив'язати Google-акаунт");
             }
 
+            bool needsUpdate = false;
+
+            if (!user.EmailConfirmed)
+            {
+                user.EmailConfirmed = true;
+                needsUpdate = true;
+            }
+
             if (!string.IsNullOrEmpty(avatarUrl) && user.AvatarUrl != avatarUrl)
             {
                 user.AvatarUrl = avatarUrl;
-                await _userManager.UpdateAsync(user);
+                needsUpdate = true;
             }
 
-            return GenerateJwtToken(user);
+            if (needsUpdate)
+            {
+                var updateResult = await _userManager.UpdateAsync(user);
+                if (!updateResult.Succeeded)
+                    throw new Exception("Помилка при оновленні профілю");
+            }
+
+            return await GenerateJwtToken(user);
+        }
+        public async Task<bool> IsUserHasPassword(string userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId);
+            if (user == null) return false;
+            return await _userManager.HasPasswordAsync(user);
         }
     }
 }

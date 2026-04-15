@@ -8,6 +8,8 @@ namespace Core.Models
         public string? AvatarUrl { get; set; }
         public DateTime CreatedAt { get; set; }
         public DateTime UpdatedAt { get; set; }
+        public bool IsPublic { get; set; } = true;
+        public bool IsBanned { get; set; } = false;
 
         public ICollection<Collection> Collections { get; set; } = new List<Collection>();
         public ICollection<Set> Sets { get; set; } = new List<Set>();

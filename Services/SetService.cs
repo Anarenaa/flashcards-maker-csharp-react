@@ -12,10 +12,11 @@ namespace Services
         {
             _unitOfWork = unitOfWork;
         }
-        public async Task<List<SetDTO>> GetAllSetsAsync(List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllSetsAsync(int currentUserId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.IsPublic
+                    && s.UserId != currentUserId
                     && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
                     includeProperties: "User"
@@ -38,11 +39,11 @@ namespace Services
 
             return setDtos;
         }
-        public async Task<List<SetDTO>> GetAllUserSetsAsync(int? userId, List<int>? categoryIds, string? searchText = null)
+        public async Task<List<SetDTO>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
-                    //filter: s => s.UserId == userId &&
-                    s => (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
+                    filter: s => s.UserId == userId &&
+                    (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
             );
 
@@ -116,14 +117,14 @@ namespace Services
             };
         }
 
-        public async Task AddSetAsync(SetDTO setDto)
+        public async Task AddSetAsync(SetDTO setDto, int userId)
         {
             var set = new Set
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
-                IsPublic = setDto.IsPublic
-                //UserId should be set based on the authenticated user
+                IsPublic = setDto.IsPublic,
+                UserId = userId
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
@@ -206,6 +207,7 @@ namespace Services
             if (collection == null) throw new NotFoundException("Колекцію не знайдено");
 
             collection.Sets.Add(set);
+            collection.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
         }
@@ -222,5 +224,36 @@ namespace Services
             await _unitOfWork.SaveChangesAsync();
         }
 
+        public async Task CopySetToUser(int setId, int userId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards, Categories");
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+            var newSet = new Set
+            {
+                Name = set.Name + " (Копія)",
+                Description = set.Description,
+                IsPublic = false,
+                UserId = userId,
+                Categories = set.Categories.ToList()
+            };
+            foreach (var flashcard in set.Flashcards)
+            {
+                var newFlashcard = new Flashcard
+                {
+                    Term = flashcard.Term,
+                    Definition = flashcard.Definition
+                };
+                newSet.Flashcards.Add(newFlashcard);
+            }
+            await _unitOfWork.Sets.AddAsync(newSet);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsSetMine(int setId, int userId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set == null) throw new NotFoundException("Сет не знайдено");
+            return set.UserId == userId;
+        }
     }
 }

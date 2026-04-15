@@ -1,24 +1,37 @@
-using System.Security.Claims;
 using Core.DTOs;
-using Core.Exceptions;
 using Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Interfaces;
+using System.Security.Claims;
 
 namespace App.Controllers
 {
     public class AccountController : BaseController
     {
         private readonly IAuthService _authService;
+        private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly UserService _userService;
+        private readonly EmailService _emailService;
 
-        public AccountController(IAuthService authService, UserService userService)
+        public AccountController(
+            IAuthService authService,
+            UserManager<User> userManager,
+            UserService userService,
+            SignInManager<User> signInManager,
+            EmailService emailService
+        )
         {
             _authService = authService;
+            _userManager = userManager;
             _userService = userService;
+            _signInManager = signInManager;
+            _emailService = emailService;
         }
 
         [HttpGet("register")]
@@ -28,25 +41,88 @@ namespace App.Controllers
         }
 
         [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterDto dto)
+        public async Task<IActionResult> Register(RegisterDto dto, string? confirm)
         {
+            // Спочатку перевіряємо базову валідацію
             if (!ModelState.IsValid)
             {
                 return View(dto);
             }
 
+            // Потім перевіряємо підтвердження пароля
+            if (dto.Password != confirm)
+            {
+                ModelState.AddModelError("confirm", "Паролі не збігаються");
+                return View(dto);
+            }
+
+            // Перевірка унікальності email
+            var existingUser = await _userManager.FindByEmailAsync(dto.Email);
+            if (existingUser != null)
+            {
+                ModelState.AddModelError("Email", "Користувач з таким email вже існує");
+                return View(dto);
+            }
+
+            // Перевірка унікальності імені користувача
+            var existingUserName = await _userManager.FindByNameAsync(dto.UserName);
+            if (existingUserName != null)
+            {
+                ModelState.AddModelError("UserName", "Користувач з таким іменем вже існує");
+                return View(dto);
+            }
+
             var result = await _authService.RegisterAsync(dto);
-            
+
             if (result.Succeeded)
             {
-                return RedirectToAction("Login");
+
+                var loginDto = new LoginDto
+                {
+                    UserNameOrEmail = dto.Email,
+                    Password = dto.Password
+                };
+
+                try
+                {
+
+                    var token = await _authService.LoginAsync(loginDto);
+
+                    Response.Cookies.Append("AuthToken", token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = true,
+                        Expires = DateTime.UtcNow.AddDays(7)
+                    });
+
+                    return RedirectToAction("Index", "Main");
+                }
+                catch
+                {
+                    return RedirectToAction("Login");
+                }
             }
-            
+
             foreach (var error in result.Errors)
             {
-                ModelState.AddModelError(string.Empty, error.Description);
+                if (error.Code.Contains("Email"))
+                {
+                    ModelState.AddModelError("Email", error.Description);
+                }
+                else if (error.Code.Contains("UserName") || error.Code.Contains("User"))
+                {
+                    ModelState.AddModelError("UserName", error.Description);
+                }
+                else if (error.Code.Contains("Password"))
+                {
+                    ModelState.AddModelError("Password", error.Description);
+                }
+                else
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
             }
-            
+
             return View(dto);
         }
 
@@ -58,6 +134,7 @@ namespace App.Controllers
         }
 
         [HttpPost("login")]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Login(LoginDto dto, string? returnUrl = null)
         {
             if (!ModelState.IsValid)
@@ -65,33 +142,42 @@ namespace App.Controllers
                 ViewData["ReturnUrl"] = returnUrl;
                 return View(dto);
             }
-
             try
             {
                 var token = await _authService.LoginAsync(dto);
-                
-                // Зберігаємо JWT токен в cookie для Razor
                 Response.Cookies.Append("AuthToken", token, new CookieOptions
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
-
-                // Додаємо токен в ViewBag для JavaScript
                 ViewBag.AuthToken = token;
-
                 if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 {
                     return Redirect(returnUrl);
                 }
-
                 return RedirectToAction("Index", "Main");
             }
             catch (UnauthorizedAccessException)
             {
-                ModelState.AddModelError(string.Empty, "Неправильний email або пароль");
+                var user = await _userManager.FindByEmailAsync(dto.UserNameOrEmail)
+                           ?? await _userManager.FindByNameAsync(dto.UserNameOrEmail);
+                if (user == null)
+                {
+                    ModelState.AddModelError("UserNameOrEmail", "Користувача з таким логіном або email не знайдено");
+                }
+                else
+                {
+                    ModelState.AddModelError("Password", "Неправильний пароль");
+                }
+
+                ViewData["ReturnUrl"] = returnUrl;
+                return View(dto);
+            }
+            catch (Exception ex)
+            {
+                ModelState.AddModelError(string.Empty, "Сталася помилка на сервері. Спробуйте пізніше.");
                 ViewData["ReturnUrl"] = returnUrl;
                 return View(dto);
             }
@@ -107,10 +193,8 @@ namespace App.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Витягуємо унікальний Google ID (це і є наш ProviderKey)
             var googleId = result.Principal.FindFirstValue(ClaimTypes.NameIdentifier);
 
-            // Інші дані для створення профілю
             var email = result.Principal.FindFirstValue(ClaimTypes.Email);
             var name = result.Principal.FindFirstValue(ClaimTypes.Name);
             var avatar = result.Principal.FindFirstValue("picture")
@@ -126,7 +210,7 @@ namespace App.Controllers
                 {
                     HttpOnly = true,
                     Secure = true,
-                    SameSite = SameSiteMode.Strict,
+                    SameSite = SameSiteMode.Lax,
                     Expires = DateTime.UtcNow.AddDays(7)
                 });
 
@@ -138,54 +222,70 @@ namespace App.Controllers
                 return RedirectToAction("Login");
             }
         }
-
-        [Authorize]
-        [HttpGet("my-profile")]
-        public async Task<IActionResult> MyProfile()
+        [HttpGet("google-login")]
+        public IActionResult GoogleLogin()
         {
-            if (!int.TryParse(UserId, out int currentUserId))
+            var properties = new AuthenticationProperties
             {
-                Response.Cookies.Delete("AuthToken");
-                return RedirectToAction("Login");
-            }
-            try
-            {
-                var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
-                return View(userDto);
-            }
-            catch (Exception ex)
-            {
-                return RedirectToAction("Index", "Home");
-            }
+                RedirectUri = Url.Action("GoogleResponse")
+            };
+
+            return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
         }
-
-        [Authorize]
-        [HttpPost("update-avatar")]
-        [ValidateAntiForgeryToken] // Захист від підробки запитів з інших сайтів
-        public async Task<IActionResult> UpdateAvatar(string newPath)
+        [HttpGet("ExternalLogin")]
+        [AllowAnonymous]
+        public IActionResult ExternalLogin(string provider, string? returnUrl = null)
         {
-            if (string.IsNullOrWhiteSpace(newPath))
+           
+            if (provider == "Google")
             {
-                TempData["ErrorMessage"] = "Посилання на фото не може бути порожнім.";
-                return RedirectToAction("MyProfile");
+                var properties = new AuthenticationProperties
+                {
+                    RedirectUri = Url.Action("GoogleResponse", new { returnUrl })
+                };
+                return Challenge(properties, Microsoft.AspNetCore.Authentication.Google.GoogleDefaults.AuthenticationScheme);
             }
 
+            return RedirectToAction("Login");
+        }
+        [Authorize]
+        [HttpPost("update-general-profile")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateGeneralProfile(string? userName, IFormFile? avatarFile)
+        {
             try
             {
-                await _userService.UpdateMyProfileAvatarAsync(int.Parse(UserId), newPath);
 
-                TempData["SuccessMessage"] = "Аватар успішно оновлено!";
-            }
-            catch (NotFoundException)
-            {
-                return NotFound("Користувача не знайдено в системі.");
+                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
+
+                TempData["SuccessMessage"] = "Профіль успішно оновлено!";
             }
             catch (Exception ex)
             {
-                TempData["ErrorMessage"] = "Сталася помилка при оновленні: " + ex.Message;
+
+                TempData["ErrorMessage"] = ex.Message;
             }
 
-            return RedirectToAction("MyProfile");
+            return RedirectToAction("Index", "Settings");
+        }
+        [Authorize]
+        [HttpPost("update-profile")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> UpdateProfile(string? userName, IFormFile? avatarFile)
+        {
+            try
+            {
+
+                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
+
+                TempData["SuccessMessage"] = "Профіль успішно оновлено!";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+
+            return RedirectToAction("Settings");
         }
         [Authorize]
         [HttpPost("delete-profile")]
@@ -194,12 +294,7 @@ namespace App.Controllers
         {
             try
             {
-                if (!int.TryParse(UserId, out int currentUserId))
-                {
-                    return RedirectToAction("Login");
-                }
-
-                await _userService.DeleteUserAsync(currentUserId);
+                await _userService.DeleteUserAsync(UserId);
                 Response.Cookies.Delete("AuthToken");
 
                 TempData["SuccessMessage"] = "Ваш профіль було успішно видалено.";
@@ -211,17 +306,121 @@ namespace App.Controllers
                 return RedirectToAction("MyProfile");
             }
         }
+        [Authorize]
+        [HttpPost("save-theme")]
+        public async Task<IActionResult> SaveTheme(string bg, string accent, string btn)
+        {
+            try
+            {
 
+                var themeData = $"{bg}|{accent}|{btn}";
+                Response.Cookies.Append("UserTheme", themeData, new CookieOptions
+                {
+                    Expires = DateTime.UtcNow.AddYears(1),
+                    HttpOnly = false
+                });
+
+                return Ok();
+            }
+            catch { return BadRequest(); }
+        }
         [HttpPost("logout")]
-        public IActionResult Logout()
+        [ValidateAntiForgeryToken]
+        [AllowAnonymous]
+        public async Task<IActionResult> Logout()
         {
             Response.Cookies.Delete("AuthToken");
-            
-            return RedirectToAction("Login");
+            Response.Cookies.Delete(".AspNetCore.Identity.Application");
+            Response.Cookies.Delete(".AspNetCore.Identity.External");
+
+            await _signInManager.SignOutAsync();
+
+            await HttpContext.SignOutAsync(IdentityConstants.ExternalScheme);
+            await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+
+            return RedirectToAction("Index", "Home");
+        }
+        [HttpGet]
+        public IActionResult VerifyEmail()
+        {
+            return View();
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> VerifyEmail(VerifyEmailDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Користувача з таким email не знайдено");
+                return View(model);
+            } 
+            var resetToken = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var resetLink = Url.Action("ChangePassword", "Account", new { email=model.Email, token = resetToken }, Request.Scheme);
+            var subject = "Скидання пароля ";
+            var body = $"Щоб скинути пароль, натисніть на посилання: <a href='{resetLink}'>Скинути пароль</a>";
+            await _emailService.SendEmailAsync(model.Email, subject, body);
+            return RedirectToAction("EmailSent", "Account");
+        }
+        [HttpGet]
+        public IActionResult ChangePassword(string email, string token)
+        {
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(token))
+            {
+                return RedirectToAction("VerifyEmail", "Account");
+            }
+
+            var model = new ChangePasswordDTO
+            {
+                Email = email,
+                Token = token,
+                NewPassword = "",
+                ConfirmPassword = ""
+            };
+
+            return View(model);
+        }
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ChangePassword(ChangePasswordDTO model)
+        {
+            if (!ModelState.IsValid)
+            {
+                ModelState.AddModelError(string.Empty, "Користувача з таким email не знайдено");
+                return View(model);
+            }
+            var user = await _userManager.FindByEmailAsync(model.Email);
+            if (user == null)
+            {
+                ModelState.AddModelError(string.Empty, "Користувача з таким email не знайдено");
+                return View(model);
+            }
+            var resetResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
+            if (!resetResult.Succeeded)
+            {
+                foreach (var error in resetResult.Errors)
+                {
+                    ModelState.AddModelError(string.Empty, error.Description);
+                }
+            }
+            else
+            {
+                return RedirectToAction("Login", "Account");
+            }
+            return View(model);
+        }
         [HttpGet("access-denied")]
         public IActionResult AccessDenied()
+        {
+            return View();
+        }
+        [HttpGet]
+        public IActionResult EmailSent()
         {
             return View();
         }

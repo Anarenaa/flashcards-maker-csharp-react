@@ -1,11 +1,13 @@
 ﻿using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
 namespace App.Controllers
 {
     [Route("MySets/[controller]")]
-    public class DetailsController : Controller
+    [Authorize]
+    public class DetailsController : BaseController
     {
         private readonly SetService _setService;
         private readonly FlashcardService _flashcardService;
@@ -20,18 +22,16 @@ namespace App.Controllers
             _flashcardService = flashcardService;
             _categoryService = categoryService;
         }
-
-
         [HttpGet("{id}")]
         public async Task<IActionResult> Index(int id)
         {
             try
             {
+                if (await _setService.IsSetMine(id, UserId) == false)
+                    throw new Exception("Цей сет не належить вам");
+
                 var setDetail = await _setService.GetSetByIdAsync(id);
-
-                
-                ViewBag.AllCategories = await _categoryService.GetCategoriesByUserIdAsync();
-
+                ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
                 return View(setDetail);
             }
             catch
@@ -40,7 +40,7 @@ namespace App.Controllers
                 return RedirectToAction("Index", "MySets");
             }
         }
-
+        
         // --- РОБОТА З КАРТКАМИ ---
         [HttpPost("SaveCard")]
         public async Task<IActionResult> SaveCard(int setId, FlashcardDTO cardDto)
@@ -65,7 +65,29 @@ namespace App.Controllers
 
             return RedirectToAction("Index", new { id = setId });
         }
+        [HttpPost("DeleteCard")]
+        public async Task<IActionResult> DeleteCard(int cardId, int setId)
+        {
+            // 1. Видаляємо саму картку через сервіс
+            await _flashcardService.DeleteFlashcardAsync(cardId);
 
+            // 2. СИНХРОНІЗАЦІЯ ЧАСУ: Оновлюємо дату останньої зміни сету
+            var setDetail = await _setService.GetSetByIdAsync(setId);
+            if (setDetail != null)
+            {
+                var setUpdate = new SetDTO
+                {
+                    Id = setDetail.Id,
+                    Name = setDetail.Name,
+                    Description = setDetail.Description,
+                    IsPublic = setDetail.IsPublic,
+                };
+                await _setService.UpdateSetAsync(setUpdate);
+            }
+
+            // 3. Повертаємось назад у цей же сет
+            return RedirectToAction("Index", new { id = setId });
+        }
         // --- РОБОТА З КАТЕГОРІЯМИ ---
 
         [HttpPost("SaveCategory")]
@@ -74,7 +96,7 @@ namespace App.Controllers
             int categoryId = 0;
             if (!string.IsNullOrWhiteSpace(newCategoryName))
             {
-                var userCats = await _categoryService.GetCategoriesByUserIdAsync();
+                var userCats = await _categoryService.GetAllCategoriesAsync();
                 var existing = userCats.FirstOrDefault(c => c.Name.Equals(newCategoryName.Trim(), StringComparison.OrdinalIgnoreCase));
 
                 if (existing == null)
@@ -82,7 +104,7 @@ namespace App.Controllers
                     var newCat = new CategoryDTO { Name = newCategoryName.Trim() };
                     await _categoryService.CreateCategoryAsync(newCat);
                     
-                    var updated = await _categoryService.GetCategoriesByUserIdAsync();
+                    var updated = await _categoryService.GetAllCategoriesAsync();
                     categoryId = updated.First(c => c.Name.Equals(newCategoryName.Trim())).Id.Value;
                 }
                 else { categoryId = existing.Id.Value; }

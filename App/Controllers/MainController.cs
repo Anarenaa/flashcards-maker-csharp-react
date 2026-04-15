@@ -1,30 +1,40 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Core.DTOs;
+using Core.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Repositories.Interfaces;
 using Services;
-using Core.DTOs;
 using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace App.Controllers
 {
-    public class MainController : Controller
+    [Authorize]
+    public class MainController : BaseController
     {
         private readonly SetService _setService;
         private readonly CollectionService _collectionService;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public MainController(SetService setService, CollectionService collectionService)
+        public MainController(SetService setService, CollectionService collectionService, IUnitOfWork unitOfWork)
         {
             _setService = setService;
             _collectionService = collectionService;
+            _unitOfWork = unitOfWork;
         }
 
-        // ТІЛЬКИ ОДИН МЕТОД INDEX
         public async Task<IActionResult> Index(string? searchText, string sortOrder = "newest")
         {
-            // 1. Отримуємо всі публічні сети з урахуванням пошуку
-            var sets = await _setService.GetAllSetsAsync(null, searchText);
+            if (User.IsInRole("Admin"))
+            {
 
-            // 2. Логіка сортування
+                return RedirectToAction("Users", "Admin");
+            }
+
+            var sets = await _setService.GetAllSetsAsync(UserId, null, searchText);
+
             sets = sortOrder switch
             {
                 "oldest" => sets.OrderBy(s => s.CreatedAt).ToList(),
@@ -32,40 +42,80 @@ namespace App.Controllers
                 _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
             };
 
-            // 3. Передаємо дані у View
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentSort"] = sortOrder;
 
-            // Завантажуємо колекції для модалки збереження (userId = 1)
-            ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(1);
+            if (UserId > 0)
+            {
+                ViewBag.UserCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
+            }
 
             return View(sets);
         }
 
+        // Додавання сету в колекцію
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)
         {
+            if (User.IsInRole("Admin")) return Forbid();
+
             int finalCollectionId = collectionId ?? 0;
 
-            // Створення нової колекції, якщо вписана назва
             if (!string.IsNullOrWhiteSpace(newCollectionName))
             {
                 var newCol = new CollectionDTO { Name = newCollectionName.Trim() };
-                await _collectionService.CreateCollectionAsync(newCol);
+                await _collectionService.CreateCollectionAsync(newCol, UserId);
 
-                var userCollections = await _collectionService.GetCollectionsByUserIdAsync(1);
+                var userCollections = await _collectionService.GetCollectionsByUserIdAsync(UserId);
                 var createdCol = userCollections.FirstOrDefault(c => c.Name == newCollectionName.Trim());
 
                 if (createdCol != null) finalCollectionId = createdCol.Id.Value;
             }
 
-            // Додавання сету в колекцію
             if (setId != 0 && finalCollectionId != 0)
             {
                 await _setService.AddSetToCollectionAsync(setId, finalCollectionId);
             }
 
             return RedirectToAction(nameof(Index));
+        }
+
+        // Створення скарги
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> CreateReport(CreateReportDTO dto)
+        {
+            if (dto.ReportedUserId == null && dto.ReportedSetId == null)
+            {
+                TempData["ErrorMessage"] = "Об'єкт скарги не вказано";
+                return RedirectToAction("Index");
+            }
+
+            try
+            {
+                var report = new Report
+                {
+                    ReporterId = UserId,
+                    ReportedUserId = dto.ReportedUserId,
+                    ReportedSetId = dto.ReportedSetId,
+                    Reason = dto.Reason,
+                    CustomReason = dto.CustomReason,
+                    CreatedAt = DateTime.UtcNow,
+                    IsResolved = false
+                };
+
+                await _unitOfWork.Reports.AddAsync(report);
+                await _unitOfWork.SaveChangesAsync();
+
+                TempData["SuccessMessage"] = "Вашу скаргу надіслано на розгляд модераторам.";
+            }
+            catch (Exception ex)
+            {
+                TempData["ErrorMessage"] = "Помилка при відправці скарги: " + ex.Message;
+            }
+
+            return RedirectToAction("Index");
         }
     }
 }

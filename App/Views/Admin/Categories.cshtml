@@ -1,0 +1,332 @@
+﻿@model List<Core.Models.Category>
+@{
+    ViewData["Title"] = "Керування категоріями";
+}
+
+<style>
+    .admin-page-wrapper {
+        display: flex;
+        gap: 25px;
+        align-items: flex-start;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .categories-main-panel {
+        flex: 2.5;
+        background: rgba(255, 255, 255, 0.03);
+        backdrop-filter: blur(15px);
+        border: 1px solid rgba(240, 255, 255, 0.1);
+        padding: 35px;
+        border-radius: 24px;
+        box-shadow: 0 15px 40px rgba(0,0,0,0.2);
+    }
+
+    .categories-side-panel {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+        position: sticky;
+        top: 20px;
+    }
+
+    .cat-input-section {
+        width: 100%;
+        margin-bottom: 40px;
+        background: rgba(255, 255, 255, 0.02);
+        padding: 20px 25px;
+        border-radius: 15px;
+        border: 1px solid rgba(129, 131, 117, 0.1);
+    }
+
+    .cat-input-group {
+        display: flex;
+        gap: 20px;
+        align-items: flex-end;
+    }
+
+    .input-wrapper {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .cat-label {
+        font-size: 0.7rem;
+        opacity: 0.4;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        margin-bottom: 6px;
+    }
+
+    .cat-input {
+        background: transparent;
+        border: none;
+        border-bottom: 2px solid rgba(129, 131, 117, 0.3);
+        color: white;
+        padding: 8px 0;
+        outline: none;
+        font-size: 1.05rem;
+        transition: 0.3s;
+        width: 100%;
+    }
+
+        .cat-input:focus {
+            border-bottom-color: var(--accent-color);
+        }
+
+    .btn-add-mini {
+        background: var(--accent-color);
+        color: #141B25 !important;
+        border: none;
+        padding: 0 25px;
+        height: 38px;
+        border-radius: 8px;
+        font-weight: 700;
+        font-size: 0.8rem;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        white-space: nowrap;
+        margin-bottom: 2px;
+    }
+
+        .btn-add-mini:hover {
+            background: #fff;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(240, 255, 255, 0.3);
+        }
+
+    .cat-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 15px;
+    }
+
+    .cat-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(240, 255, 255, 0.05);
+        padding: 15px 20px;
+        border-radius: 12px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        transition: 0.3s;
+    }
+
+        .cat-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent-color);
+        }
+
+    .cat-actions {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+
+    .btn-icon {
+        background: none;
+        border: none;
+        cursor: pointer;
+        opacity: 0.4;
+        padding: 5px;
+        transition: 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        .btn-icon:hover {
+            opacity: 1;
+        }
+
+    .btn-edit {
+        color: var(--accent-color);
+    }
+
+    .btn-del {
+        color: #ff6464;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: #1C2531;
+        border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 20px;
+        width: 400px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+        .modal-content input {
+            width: 100%;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            outline: none;
+        }
+
+    .info-card {
+        background: rgba(255, 255, 255, 0.02);
+        border: 1px solid rgba(240, 255, 255, 0.05);
+        padding: 25px;
+        border-radius: 20px;
+    }
+
+    .live-dot {
+        width: 8px;
+        height: 8px;
+        background: #00ff00;
+        border-radius: 50%;
+        display: inline-block;
+        margin-right: 8px;
+        animation: pulse 1.5s infinite;
+    }
+
+    @@keyframes pulse {
+        0% {
+            opacity: 1;
+        }
+
+        50% {
+            opacity: 0.3;
+        }
+
+        100% {
+            opacity: 1;
+        }
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+</style>
+
+<div class="admin-page-wrapper">
+    <div class="categories-main-panel">
+        <h2 style="margin: 0 0 30px 0; color: white;">Глобальні категорії</h2>
+
+        <div class="cat-input-section">
+            <form asp-action="CreateCategory" method="post" class="cat-input-group">
+                <div class="input-wrapper">
+                    <span class="cat-label">Назва нової категорії</span>
+                    <input type="text" name="name" class="cat-input" placeholder="Наприклад: Мистецтво та Дизайн" required />
+                </div>
+                <button type="submit" class="btn-add-mini">Додати</button>
+            </form>
+        </div>
+
+        <div class="cat-grid">
+            @foreach (var cat in Model.OrderBy(c => c.Name))
+            {
+                <div class="cat-card">
+                    <span style="font-weight: 500;">@cat.Name</span>
+                    <div class="cat-actions">
+                     
+                        <button type="button" class="btn-icon btn-edit" onclick="openEditCatModal('@cat.Id', '@cat.Name')" title="Редагувати">
+                            <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        </button>
+
+                        <form asp-action="DeleteCategory" method="post" onsubmit="return confirm('Видалити?')">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="id" value="@cat.Id" />
+                            <button type="submit" class="btn-icon btn-del" title="Видалити">
+                                <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="categories-side-panel">
+        <div class="info-card">
+            <div style="font-size: 0.7rem; color: #88ff88; font-weight: bold; text-transform: uppercase; margin-bottom: 12px;">
+                <span class="live-dot"></span> System Status
+            </div>
+            <h4 style="margin: 0; color: var(--accent-color);">Статистика</h4>
+            <div style="display:flex; justify-content:space-between; margin-top: 15px; font-size: 0.9rem;">
+                <span style="opacity: 0.6;">Всього тем:</span>
+                <span style="font-weight: bold;">@Model.Count</span>
+            </div>
+        </div>
+
+        <div class="info-card" style="border-left: 3px solid var(--accent-color);">
+            <h4 style="margin: 0; color: var(--accent-color);">💡 Порада</h4>
+            <p style="font-size: 0.85rem; opacity: 0.7; line-height: 1.6; margin-top: 10px;">
+                Ці категорії будуть доступні всім користувачам при створенні їхніх навчальних сетів.
+            </p>
+        </div>
+        <div class="info-card">
+            <h4 style="margin: 0; opacity: 0.8;">🛠️ Модерація</h4>
+            <p style="font-size: 0.85rem; opacity: 0.5; margin-top: 10px;">
+                Видалення категорії прибере тег із системи, але не зачепить існуючі картки.
+            </p>
+        </div>
+    </div>
+</div>
+
+<div class="modal-overlay" id="editCatModal" onclick="closeEditModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <form asp-action="UpdateCategory" method="post">
+            <h3 style="color: var(--accent-color); margin: 0 0 20px 0;">Редагувати категорію</h3>
+            <input type="hidden" name="id" id="editCatId" />
+
+            <label style="font-size: 0.8rem; opacity: 0.6; margin-bottom: 8px; display: block;">Нова назва</label>
+            <input type="text" name="name" id="editCatName" required autocomplete="off" />
+
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button type="button" onclick="closeEditModal()" style="background:none; border:none; color:#818375; cursor:pointer; font-weight:bold;">Скасувати</button>
+                <button type="submit" class="btn-add-mini" style="height: 40px; padding: 0 20px;">Зберегти</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openEditCatModal(id, name) {
+            document.getElementById('editCatId').value = id;
+            document.getElementById('editCatName').value = name;
+            document.getElementById('editCatModal').style.display = 'flex';
+        }
+
+        function closeEditModal() {
+            document.getElementById('editCatModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('editCatModal');
+            if (event.target == modal) closeEditModal();
+        }
+    </script>
+}

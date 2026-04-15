@@ -12,6 +12,7 @@ namespace Core.Context
         public DbSet<Set> Sets { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Flashcard> Flashcards { get; set; }
+        public DbSet<Report> Reports { get; set; }
         public DbSet<CardProgress> CardProgresses { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options)
@@ -45,6 +46,17 @@ namespace Core.Context
                 .WithMany(u => u.Sets)
                 .HasForeignKey(s => s.UserId)
                 .OnDelete(DeleteBehavior.SetNull);
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.Reporter)
+                .WithMany() 
+                .HasForeignKey(r => r.ReporterId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<Report>()
+                .HasOne(r => r.ReportedUser)
+                .WithMany()
+                .HasForeignKey(r => r.ReportedUserId)
+                .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<CardProgress>()
                 .HasOne(cp => cp.Flashcard)
                 .WithMany()

@@ -1,17 +1,45 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using System.Threading.Tasks;
+using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using Services; 
 
 namespace App.Controllers
 {
-    public class SettingsController1 : Controller
+    [Authorize]
+    public class SettingsController : Controller
     {
-        public IActionResult Index()
+        private readonly UserService _userService;
+
+        public SettingsController(UserService userService)
         {
-            return View();
+            _userService = userService;
         }
+
+        public async Task<IActionResult> Index()
+        {
+            int currentUserId = 1;
+
+            try
+            {
+                var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
+                return View(userDto);
+            }
+            catch
+            {
+                var fallbackModel = new PrivateUserDTO
+                {
+                    UserName = "Користувач",
+                    Email = "email@example.com",
+                    AvatarUrl = ""
+				};
+                return View(fallbackModel);
+            }
+        }
+
         public IActionResult Settings()
         {
-            ViewData["Title"] = "Налаштування";
-            return View();
+            return RedirectToAction("Index");
         }
 
         public IActionResult Profile()

@@ -1,0 +1,287 @@
+﻿@using Core.DTOs
+@model SetDetailDTO
+@{
+    ViewData["Title"] = "Модерація: " + Model.Name;
+}
+
+<style>
+    .admin-set-view {
+        max-width: 1000px;
+        margin: 0 auto;
+        animation: fadeIn 0.4s ease;
+    }
+
+    .back-btn {
+        color: var(--accent-color);
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        opacity: 0.7;
+        font-size: 0.9rem;
+    }
+
+    .set-header-card {
+        background: rgba(255, 100, 100, 0.05);
+        border: 1px solid rgba(255, 100, 100, 0.2);
+        padding: 35px;
+        border-radius: 24px;
+        margin-bottom: 30px;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+    }
+
+    .admin-badge {
+        background: #ff6464;
+        color: white;
+        padding: 4px 10px;
+        border-radius: 6px;
+        font-size: 0.7rem;
+        font-weight: 800;
+        text-transform: uppercase;
+        margin-bottom: 12px;
+        display: inline-block;
+    }
+
+    .cards-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+        gap: 25px;
+    }
+
+    .admin-card {
+        background: rgba(255, 255, 255, 0.03);
+        border: 1px solid var(--btn-border);
+        padding: 25px;
+        border-radius: 18px;
+        position: relative;
+        transition: 0.3s;
+        min-height: 150px;
+    }
+
+        .admin-card:hover {
+            border-color: var(--accent-color);
+        }
+
+    .card-term {
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 1.2rem;
+        margin-bottom: 12px;
+        padding-right: 60px;
+    }
+
+    .card-def {
+        opacity: 0.8;
+        font-size: 1rem;
+        line-height: 1.4;
+    }
+
+    .card-actions {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        display: flex;
+        gap: 10px;
+    }
+
+    .action-btn {
+        background: none;
+        border: none;
+        cursor: pointer;
+        opacity: 0.5;
+        transition: 0.2s;
+        padding: 5px;
+    }
+
+        .action-btn:hover {
+            opacity: 1;
+            transform: scale(1.1);
+        }
+
+    .btn-edit {
+        color: var(--accent-color);
+    }
+
+    .btn-delete {
+        color: #ff6464;
+    }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.8);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 1000;
+    }
+
+    .modal-content {
+        background: #1C2531;
+        border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 20px;
+        width: 450px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+    }
+
+        .modal-content textarea {
+            width: 100%;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            resize: none;
+            font-family: inherit;
+            outline: none;
+        }
+
+            .modal-content textarea:focus {
+                border-color: var(--accent-color);
+            }
+
+    .btn-save-modal {
+        background-color: var(--accent-color);
+        color: #141B25 !important; 
+        border: none;
+        padding: 10px 25px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        font-size: 0.9rem;
+    }
+
+        .btn-save-modal:hover {
+            background-color: #ffffff;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(240, 255, 255, 0.3);
+        }
+
+    .btn-cancel-modal {
+        background: none;
+        border: none;
+        color: #818375;
+        cursor: pointer;
+        font-weight: 600;
+        font-size: 0.9rem;
+        transition: 0.3s;
+        margin-right: 10px;
+    }
+
+        .btn-cancel-modal:hover {
+            color: white;
+        }
+</style>
+
+<div class="admin-set-view">
+    <a asp-action="Reports" class="back-btn">← Назад до модерації</a>
+
+    <div class="set-header-card">
+        <div>
+            <span class="admin-badge">Режим модератора</span>
+            <h2 style="margin: 0; color: white; font-size: 2rem;">@Model.Name</h2>
+            <p style="opacity: 0.6; margin-top: 10px; font-size: 1.1rem;">@Model.Description</p>
+        </div>
+        <form asp-action="DeleteSetByAdmin" method="post" onsubmit="return confirm('Видалити весь сет?')">
+            <input type="hidden" name="setId" value="@Model.Id" />
+            <button type="submit" class="nav-btn" style="border-color: #ff6464; color: #ff6464 !important; padding: 12px 20px;">Видалити весь сет</button>
+        </form>
+    </div>
+
+    @if (TempData["Success"] != null)
+    {
+        <div style="background: rgba(136, 255, 136, 0.1); border: 1px solid #88ff88; color: #88ff88; padding: 12px; border-radius: 10px; margin-bottom: 20px;">
+            ✓ @TempData["Success"]
+        </div>
+    }
+
+    <div class="cards-grid">
+        @foreach (var card in Model.Flashcards)
+        {
+            <div class="admin-card">
+                <div class="card-actions">
+                    <button class="action-btn btn-edit" title="Редагувати"
+                            type="button"
+                            data-cardid="@card.Id"
+                            data-term="@card.Term"
+                            data-definition="@card.Definition"
+                            onclick="openEditModal(this)">
+                        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                            <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                            <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                        </svg>
+                    </button>
+
+                    <form asp-action="DeleteCardByAdmin" method="post" onsubmit="return confirm('Видалити картку?')">
+                        <input type="hidden" name="cardId" value="@card.Id" />
+                        <input type="hidden" name="setId" value="@Model.Id" />
+                        <button type="submit" class="action-btn btn-delete">
+                            <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                        </button>
+                    </form>
+                </div>
+
+                <div class="card-term">@card.Term</div>
+                <div style="height: 1px; background: rgba(255,255,255,0.05); margin-bottom: 12px;"></div>
+                <div class="card-def">@card.Definition</div>
+            </div>
+        }
+    </div>
+</div>
+
+<div class="modal-overlay" id="editCardModal" onclick="closeModal()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+        <form asp-action="UpdateCardByAdmin" method="post">
+            <h3 style="color: var(--accent-color); margin: 0 0 20px 0;">Редагувати вміст</h3>
+            <input type="hidden" name="cardId" id="modalCardId" />
+            <input type="hidden" name="setId" value="@Model.Id" />
+
+            <label style="font-size:0.8rem; opacity:0.6; display:block; margin-bottom:5px;">Питання (Термін)</label>
+            <textarea name="term" id="modalTerm" rows="2" required></textarea>
+
+            <label style="font-size:0.8rem; opacity:0.6; display:block; margin-bottom:5px;">Відповідь (Визначення)</label>
+            <textarea name="definition" id="modalDef" rows="4" required></textarea>
+
+            <div style="display:flex; justify-content:flex-end; align-items:center; gap:15px; margin-top: 10px;">
+                <button type="button" onclick="closeModal()" class="btn-cancel-modal">Скасувати</button>
+                <button type="submit" class="btn-save-modal">Зберегти</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function openEditModal(button) {
+            const id = button.getAttribute('data-cardid');
+            const term = button.getAttribute('data-term');
+            const definition = button.getAttribute('data-definition');
+
+            document.getElementById('modalCardId').value = id;
+            document.getElementById('modalTerm').value = term;
+            document.getElementById('modalDef').value = definition;
+
+            document.getElementById('editCardModal').style.display = 'flex';
+        }
+
+        function closeModal() {
+            document.getElementById('editCardModal').style.display = 'none';
+        }
+
+        window.onclick = function(event) {
+            const modal = document.getElementById('editCardModal');
+            if (event.target == modal) {
+                closeModal();
+            }
+        }
+    </script>
+}

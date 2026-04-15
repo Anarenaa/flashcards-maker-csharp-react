@@ -29,5 +29,9 @@ namespace Repositories
                 set.IsAccessible = false;
             }
         }
+        public async Task<int> GetUserSetsCount(int userId)
+        {
+            return await _dbSet.CountAsync(s => s.UserId == userId);
+        }
     }
 }
