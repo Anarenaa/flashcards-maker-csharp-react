@@ -13,6 +13,7 @@ namespace Core.Context
         public DbSet<Category> Categories { get; set; }
         public DbSet<Flashcard> Flashcards { get; set; }
         public DbSet<Report> Reports { get; set; }
+        public DbSet<CardProgress> CardProgresses { get; set; }
 
         public DataContext(DbContextOptions<DataContext> options)
            : base(options)
@@ -21,6 +22,10 @@ namespace Core.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<CardProgress>()
+                .HasKey(cp => new { cp.UserId, cp.FlashcardId });
+
 
             // Шукаємо всі сутності, які наслідують BaseModel, і налаштовуємо їхні поля
             foreach (var entity in modelBuilder.Model.GetEntityTypes())
@@ -52,6 +57,11 @@ namespace Core.Context
                 .WithMany()
                 .HasForeignKey(r => r.ReportedUserId)
                 .OnDelete(DeleteBehavior.Restrict);
+            modelBuilder.Entity<CardProgress>()
+                .HasOne(cp => cp.Flashcard)
+                .WithMany()
+                .HasForeignKey(cp => cp.FlashcardId)
+                .OnDelete(DeleteBehavior.Cascade);
 
 
             modelBuilder.Entity<User>()
@@ -59,6 +69,12 @@ namespace Core.Context
                 .HasDefaultValueSql("GETUTCDATE()");
             modelBuilder.Entity<User>()
                 .Property(u => u.UpdatedAt)
+                .HasDefaultValueSql("GETUTCDATE()");
+            modelBuilder.Entity<CardProgress>()
+                .Property(cp => cp.LastReview)
+                .HasDefaultValueSql("GETUTCDATE()");
+            modelBuilder.Entity<CardProgress>()
+                .Property(cp => cp.NextReview)
                 .HasDefaultValueSql("GETUTCDATE()");
 
             ModelBuilderSeedExtension.SeedAll(modelBuilder);

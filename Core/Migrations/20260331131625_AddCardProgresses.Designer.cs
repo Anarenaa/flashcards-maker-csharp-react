@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260331131625_AddCardProgresses")]
+    partial class AddCardProgresses
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -334,46 +337,6 @@ namespace Core.Migrations
                         });
                 });
 
-            modelBuilder.Entity("Core.Models.Report", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
-
-                    b.Property<DateTime>("CreatedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CustomReason")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsResolved")
-                        .HasColumnType("bit");
-
-                    b.Property<int>("Reason")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ReportedSetId")
-                        .HasColumnType("int");
-
-                    b.Property<int?>("ReportedUserId")
-                        .HasColumnType("int");
-
-                    b.Property<int>("ReporterId")
-                        .HasColumnType("int");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("ReportedSetId");
-
-                    b.HasIndex("ReportedUserId");
-
-                    b.HasIndex("ReporterId");
-
-                    b.ToTable("Reports");
-                });
-
             modelBuilder.Entity("Core.Models.Set", b =>
                 {
                     b.Property<int>("Id")
@@ -407,7 +370,7 @@ namespace Core.Migrations
                         .HasColumnType("datetime2")
                         .HasDefaultValueSql("GETUTCDATE()");
 
-                    b.Property<int>("UserId")
+                    b.Property<int?>("UserId")
                         .HasColumnType("int");
 
                     b.HasKey("Id");
@@ -482,12 +445,6 @@ namespace Core.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("bit");
 
-                    b.Property<bool>("IsBanned")
-                        .HasColumnType("bit");
-
-                    b.Property<bool>("IsPublic")
-                        .HasColumnType("bit");
-
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("bit");
 
@@ -547,12 +504,10 @@ namespace Core.Migrations
                             CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
                             Email = "john_doe@gmail.com",
                             EmailConfirmed = true,
-                            IsBanned = false,
-                            IsPublic = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "JOHN_DOE@GMAIL.COM",
                             NormalizedUserName = "JOHN_DOE",
-                            PasswordHash = "AQAAAAIAAYagAAAAECWiT3PBdFR8jFPQAbbr/xZW0nPeypMwcicb5XAnXqxtp7h3mVfSfN4t2UQEzlwEcg==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,
@@ -567,37 +522,15 @@ namespace Core.Migrations
                             CreatedAt = new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Local),
                             Email = "jane_smith@gmail.com",
                             EmailConfirmed = true,
-                            IsBanned = false,
-                            IsPublic = true,
                             LockoutEnabled = false,
                             NormalizedEmail = "JANE_SMITH@GMAIL.COM",
                             NormalizedUserName = "JANE_SMITH",
-                            PasswordHash = "AQAAAAIAAYagAAAAEEzkdq2JyhFWGCHP/KtVdIRcOheqDIHWulCLEYW1h6RefsLHVko0jduu4Zcu2Bwt1g==",
+                            PasswordHash = "AQAAAAEAACcQAAAAEKqYkx8X+OZkG8B3JzQX5Y3Z7Q9W8V5N2M1K4P6R0T3U7I9S2L5",
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "0B4D1A60-F22B-4467-93C0-94D1898E5E7C",
                             TwoFactorEnabled = false,
                             UpdatedAt = new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Local),
                             UserName = "jane_smith"
-                        },
-                        new
-                        {
-                            Id = 13,
-                            AccessFailedCount = 0,
-                            ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
-                            Email = "admin@example.com",
-                            EmailConfirmed = true,
-                            IsBanned = false,
-                            IsPublic = true,
-                            LockoutEnabled = false,
-                            NormalizedEmail = "ADMIN@EXAMPLE.COM",
-                            NormalizedUserName = "ADMIN",
-                            PasswordHash = "AQAAAAIAAYagAAAAEFgsHMTnZXkcaw1E4PQs9bvYxtiRXQo18Lr3rmtablo5pOsn5PC6XEs7CiZIZKTkTA==",
-                            PhoneNumberConfirmed = false,
-                            SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
-                            TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
-                            UserName = "admin"
                         });
                 });
 
@@ -629,22 +562,6 @@ namespace Core.Migrations
                         .HasFilter("[NormalizedName] IS NOT NULL");
 
                     b.ToTable("AspNetRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            Id = 1,
-                            ConcurrencyStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
-                            Name = "User",
-                            NormalizedName = "USER"
-                        },
-                        new
-                        {
-                            Id = 2,
-                            ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                            Name = "Admin",
-                            NormalizedName = "ADMIN"
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<int>", b =>
@@ -729,23 +646,6 @@ namespace Core.Migrations
                     b.HasIndex("RoleId");
 
                     b.ToTable("AspNetUserRoles", (string)null);
-
-                    b.HasData(
-                        new
-                        {
-                            UserId = 13,
-                            RoleId = 2
-                        },
-                        new
-                        {
-                            UserId = 1,
-                            RoleId = 1
-                        },
-                        new
-                        {
-                            UserId = 2,
-                            RoleId = 1
-                        });
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<int>", b =>
@@ -838,37 +738,12 @@ namespace Core.Migrations
                     b.Navigation("Set");
                 });
 
-            modelBuilder.Entity("Core.Models.Report", b =>
-                {
-                    b.HasOne("Core.Models.Set", "ReportedSet")
-                        .WithMany()
-                        .HasForeignKey("ReportedSetId");
-
-                    b.HasOne("Core.Models.User", "ReportedUser")
-                        .WithMany()
-                        .HasForeignKey("ReportedUserId")
-                        .OnDelete(DeleteBehavior.Restrict);
-
-                    b.HasOne("Core.Models.User", "Reporter")
-                        .WithMany()
-                        .HasForeignKey("ReporterId")
-                        .OnDelete(DeleteBehavior.Restrict)
-                        .IsRequired();
-
-                    b.Navigation("ReportedSet");
-
-                    b.Navigation("ReportedUser");
-
-                    b.Navigation("Reporter");
-                });
-
             modelBuilder.Entity("Core.Models.Set", b =>
                 {
                     b.HasOne("Core.Models.User", "User")
                         .WithMany("Sets")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull)
-                        .IsRequired();
+                        .OnDelete(DeleteBehavior.SetNull);
 
                     b.Navigation("User");
                 });
