@@ -1,0 +1,309 @@
+﻿@using Core.DTOs.Practice
+@model PracticeSessionDTO
+
+@{
+    ViewData["Title"] = "Практика: " + Model.SelectedActivity;
+}
+
+<style>
+    .practice-wrapper {
+        max-width: 800px;
+        margin: 40px auto;
+        text-align: center;
+        animation: fadeIn 0.5s ease;
+    }
+
+    .stage {
+        background: var(--btn-bg);
+        backdrop-filter: blur(15px);
+        border: 1px solid var(--btn-border);
+        border-radius: 24px;
+        padding: 60px 40px;
+        min-height: 450px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
+        transition: transform 0.3s ease, border-color 0.3s ease;
+    }
+
+    .term {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--accent-color);
+        margin-bottom: 20px;
+        line-height: 1.2;
+    }
+
+    .hint {
+        font-size: 0.8rem;
+        opacity: 0.5;
+        margin-bottom: 30px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+        color: var(--text-color);
+    }
+
+    .quiz-options {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+        width: 100%;
+        margin-top: 20px;
+    }
+
+    .opt-btn {
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        color: var(--text-color);
+        padding: 18px;
+        border-radius: 12px;
+        cursor: pointer;
+        transition: 0.2s;
+        font-size: 1.1rem;
+        font-weight: 500;
+    }
+
+        .opt-btn:hover:not(:disabled) {
+            border-color: var(--accent-color);
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+        .opt-btn.correct {
+            background: #28a745 !important;
+            border-color: #28a745;
+            color: white !important;
+        }
+
+        .opt-btn.wrong {
+            background: #dc3545 !important;
+            border-color: #dc3545;
+            color: white !important;
+        }
+
+    .write-input {
+        width: 100%;
+        background: var(--bg-color);
+        border: 2px solid var(--btn-border);
+        color: var(--text-color);
+        padding: 20px;
+        border-radius: 15px;
+        font-size: 1.4rem;
+        text-align: center;
+        outline: none;
+        transition: 0.3s;
+    }
+
+        .write-input:focus {
+            border-color: var(--accent-color);
+            box-shadow: 0 0 15px var(--btn-border);
+        }
+
+    .progress-container {
+        width: 100%;
+        height: 8px;
+        background: var(--btn-bg);
+        border-radius: 4px;
+        margin-bottom: 30px;
+        overflow: hidden;
+        border: 1px solid var(--btn-border);
+    }
+
+    .progress-bar {
+        height: 100%;
+        background: var(--accent-color);
+        width: 0%;
+        transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        box-shadow: 0 0 10px var(--accent-color);
+    }
+
+    #resultText {
+        margin-top: 25px;
+        font-size: 1.3rem;
+        font-weight: 600;
+        min-height: 1.5em;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @@media (max-width: 600px) {
+        .quiz-options {
+            grid-template-columns: 1fr;
+        }
+
+        .term {
+            font-size: 2rem;
+        }
+    }
+</style>
+
+<div class="practice-wrapper">
+    <div class="progress-container">
+        <div id="bar" class="progress-bar"></div>
+    </div>
+
+    <p style="color: var(--text-color); opacity: 0.6; margin-bottom: 15px; font-size: 0.9rem;">
+        Етап: <span id="modeName">...</span>
+    </p>
+
+    <div class="stage" id="mainStage">
+        <div id="modeHint" class="hint"></div>
+        <div id="questionText" class="term"></div>
+
+        <div id="answerZone" style="width: 100%;">
+           
+        </div>
+
+        <div id="resultText" style="display: none;"></div>
+    </div>
+
+    <div style="margin-top: 40px;">
+        <button id="actionBtn" class="nav-btn" style="display:none; padding: 15px 40px; min-width: 200px;" onclick="handleAction()">
+            Підтвердити
+        </button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const session = @Json.Serialize(Model);
+        let currentIdx = 0;
+        const finalData = { results: [], isTrainingMode: false };
+
+        function render() {
+            const card = session.flashcards[currentIdx];
+            const zone = document.getElementById('answerZone');
+            const hint = document.getElementById('modeHint');
+            const btn = document.getElementById('actionBtn');
+            const modeName = document.getElementById('modeName');
+
+            zone.innerHTML = '';
+            btn.style.display = 'none';
+            btn.onclick = handleAction; 
+            document.getElementById('resultText').style.display = 'none';
+            document.getElementById('questionText').innerText = card.term;
+
+            const progress = (currentIdx / session.totalCards) * 100;
+            document.getElementById('bar').style.width = progress + '%';
+
+            switch(card.cardType) {
+                case 1: 
+                    modeName.innerText = "Огляд";
+                    hint.innerText = "Запам'ятайте переклад";
+                    btn.innerText = "Показати відповідь";
+                    btn.style.display = 'inline-block';
+                    break;
+                case 2: 
+                    modeName.innerText = "Вікторина";
+                    hint.innerText = "Оберіть правильний варіант";
+                    const grid = document.createElement('div');
+                    grid.className = 'quiz-options';
+
+                    card.distractors.forEach(opt => {
+                        const b = document.createElement('button');
+                        b.className = 'opt-btn';
+                        b.innerText = opt;
+                        b.onclick = () => submitAnswer(opt === card.definition, b, card.definition);
+                        grid.appendChild(b);
+                    });
+                    zone.appendChild(grid);
+                    break;
+                case 4: 
+                    modeName.innerText = "Письмо";
+                    hint.innerText = "Введіть переклад";
+                    const input = document.createElement('input');
+                    input.className = 'write-input';
+                    input.id = 'activeInput';
+                    input.placeholder = "Пишіть тут...";
+                    input.autocomplete = "off";
+                    input.onkeypress = (e) => { if(e.key === 'Enter') handleAction() };
+                    zone.appendChild(input);
+
+                    btn.innerText = "Перевірити";
+                    btn.style.display = 'inline-block';
+                    setTimeout(() => input.focus(), 100);
+                    break;
+            }
+        }
+
+        function handleAction() {
+            const card = session.flashcards[currentIdx];
+            const resText = document.getElementById('resultText');
+            const btn = document.getElementById('actionBtn');
+
+            if (card.cardType === 1) { 
+                resText.innerHTML = `<span style="color:var(--accent-color); font-size:1.8rem">${card.definition}</span>`;
+                resText.style.display = 'block';
+                btn.innerText = "Далі →";
+  
+                btn.onclick = () => {
+                    record(true);
+                    next();
+                };
+            }
+            else if (card.cardType === 4) { 
+                const val = document.getElementById('activeInput').value.trim().toLowerCase();
+                const isOk = val === card.definition.toLowerCase();
+                submitAnswer(isOk, null, card.definition);
+            }
+        }
+
+        function submitAnswer(isCorrect, btnElement, correctVal) {
+           
+            document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+
+            if (btnElement) {
+                btnElement.classList.add(isCorrect ? 'correct' : 'wrong');
+            }
+
+            const resText = document.getElementById('resultText');
+            resText.innerHTML = isCorrect ? "✅ Правильно!" : `❌ Помилка. Правильно: <b style="color:var(--accent-color)">${correctVal}</b>`;
+            resText.style.color = isCorrect ? "#28a745" : "#dc3545";
+            resText.style.display = 'block';
+
+            record(isCorrect);
+            setTimeout(next, 1500);
+        }
+
+        function record(ok) {
+            finalData.results.push({
+                flashcardId: session.flashcards[currentIdx].id,
+                isCorrect: ok,
+                responseTimeMs: 0,
+                reviewType: session.flashcards[currentIdx].cardType
+            });
+        }
+
+        async function next() {
+            currentIdx++;
+            if (currentIdx < session.totalCards) {
+                render();
+            } else {
+                document.getElementById('bar').style.width = '100%';
+
+                const res = await fetch('/Test/SaveResults', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(finalData)
+                });
+                const data = await res.json();
+                window.location.href = data.redirectUrl;
+            }
+        }
+
+        
+        render();
+    </script>
+}
