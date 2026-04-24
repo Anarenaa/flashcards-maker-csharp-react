@@ -1,0 +1,50 @@
+# .NET
+bin/
+obj/
+out/
+build/
+*.user
+*.suo
+*.cache
+*.dll
+*.exe
+*.pdb
+*.json
+
+# Visual Studio
+.vs/
+.vscode/
+
+# User secrets
+secrets.json
+appsettings.Development.json
+appsettings.Production.json
+
+# Logs
+logs/
+*.log
+
+# Git
+.git/
+.gitignore
+
+# Docker
+Dockerfile
+.dockerignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE files
+*.swp
+*.swo
+*~
+
+# Test results
+TestResults/
+coverage/
+
+# Temporary files
+tmp/
+temp/
