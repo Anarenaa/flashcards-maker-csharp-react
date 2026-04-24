@@ -1,11 +1,12 @@
 using System.Text;
 using Core.Context;
-using Core.Models;
 using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using Repositories;
 using Repositories.Interfaces;
@@ -23,7 +24,9 @@ builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), 
-    b => b.MigrationsAssembly("Core")));
+    b => b.MigrationsAssembly("Core"))
+    .ConfigureWarnings(warnings =>
+        warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 builder.Services.AddIdentity<User, IdentityRole<int>>()
 .AddEntityFrameworkStores<DataContext>()
