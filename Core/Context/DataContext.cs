@@ -34,10 +34,10 @@ namespace Core.Context
                 {
                     modelBuilder.Entity(entity.ClrType)
                         .Property(nameof(BaseModel.CreatedAt))
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
                     modelBuilder.Entity(entity.ClrType)
                         .Property(nameof(BaseModel.UpdatedAt))
-                        .HasDefaultValueSql("GETUTCDATE()");
+                        .HasDefaultValueSql("now() at time zone 'utc'");
                 }
             }
             
@@ -66,16 +66,16 @@ namespace Core.Context
 
             modelBuilder.Entity<User>()
                 .Property(u => u.CreatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("now() at time zone 'utc'");
             modelBuilder.Entity<User>()
                 .Property(u => u.UpdatedAt)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("now() at time zone 'utc'");
             modelBuilder.Entity<CardProgress>()
                 .Property(cp => cp.LastReview)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("now() at time zone 'utc'");
             modelBuilder.Entity<CardProgress>()
                 .Property(cp => cp.NextReview)
-                .HasDefaultValueSql("GETUTCDATE()");
+                .HasDefaultValueSql("now() at time zone 'utc'");
 
             ModelBuilderSeedExtension.SeedAll(modelBuilder);
         }

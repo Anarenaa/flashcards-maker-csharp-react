@@ -13,13 +13,17 @@ using Services;
 using Services.Interfaces;
 using Services.Practice;
 
+// Дозволяємо .NET працювати з датами Postgres без проблем із часовими поясами
+AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+    b => b.MigrationsAssembly("Core")));
 
 builder.Services.AddIdentity<User, IdentityRole<int>>()
 .AddEntityFrameworkStores<DataContext>()
@@ -119,6 +123,22 @@ builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
 
 var app = builder.Build();
+
+// 2. ВАЖЛИВО: Автоматичний запуск міграцій при старті
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider; // Створюємо змінну services всередині scope
+    try
+    {
+        var context = services.GetRequiredService<DataContext>();
+        context.Database.Migrate();
+        Console.WriteLine("----> Database Migration Successful");
+    }
+    catch (Exception ex)
+    {
+        Console.WriteLine($"----> Migration Error: {ex.Message}");
+    }
+}
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
