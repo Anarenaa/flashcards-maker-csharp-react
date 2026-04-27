@@ -18,14 +18,38 @@ namespace Repositories
 
         public async Task<List<CardProgress>> GetNewBatchForPracticeAsync(int setId, int userId, int limit)
         {
-            return await _dbSet
-                .Include(cp => cp.Flashcard)
-                .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
-                .Where(cp => cp.Progress < 1.0f) // Тільки те, що не вивчено на 100%
-                .OrderBy(cp => cp.Progress)     // Спочатку найменш вивчені
-                .ThenBy(cp => cp.NextReview)    // Потім ті, що пора повторити
-                .Take(limit)
+            var allCardsInSet = await _context.Flashcards
+                .Where(f => f.SetId == setId)
                 .ToListAsync();
+            var existingProgress = await _dbSet
+                .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
+                .ToListAsync();
+            
+            var missingCards = allCardsInSet.Where(f => !existingProgress.Any(cp => cp.FlashcardId == f.Id)).ToList();
+            
+            if (missingCards.Any())
+            {
+                var newEntries = missingCards.Select(f => new CardProgress
+                {
+                    FlashcardId = f.Id,
+                    UserId = userId,
+                    Progress = 0.0f,
+                    LastReview = DateTime.MinValue,
+                    NextReview = DateTime.UtcNow
+                }).ToList();
+
+                await _dbSet.AddRangeAsync(newEntries);
+                await _context.SaveChangesAsync();
+
+                // Оновлюємо список прогресу після додавання
+                existingProgress.AddRange(newEntries);
+            }
+            
+            return existingProgress
+                    .OrderBy(cp => cp.Progress)
+                    .ThenBy(cp => cp.NextReview)
+                    .Take(limit)
+                    .ToList();
         }
 
         public async Task UpdateProgressAsync(CardProgress progress)
