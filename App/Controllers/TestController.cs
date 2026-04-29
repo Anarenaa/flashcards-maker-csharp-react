@@ -7,9 +7,10 @@ using Services.Interfaces;
 namespace App.Controllers
 {
     [Authorize]
+    [Route("Test")]
     public class TestController(IPracticeService practiceService, IUnitOfWork unitOfWork) : BaseController
     {
-        // Карта шляху практики
+        [HttpGet("Map")]
         public async Task<IActionResult> Map(int setId)
         {
             var progress = await practiceService.GetSetProgressAsync(setId, UserId);
@@ -20,27 +21,33 @@ namespace App.Controllers
 
             return View("~/Views/Practic/Map.cshtml", progress);
         }
-        // Запуск конкретного режиму з карти
+
+        [HttpGet("Index")]
         public async Task<IActionResult> Index(int setId, int mode)
         {
             var activityType = (PracticeActivityType)mode;
             var session = await practiceService.GetPracticeSessionAsync(setId, UserId, activityType);
 
-            if (session == null || !session.Flashcards.Any())
+            if (session == null || session.Flashcards == null || !session.Flashcards.Any())
             {
-                TempData["Info"] = "Цей етап уже пройдено або картки відсутні!";
+                TempData["Info"] = $"Помилка: Картки для сету #{setId} не знайдені в режимі {activityType}. Перевірте, чи є картки в самому сеті.";
                 return RedirectToAction(nameof(Map), new { setId });
             }
 
             return View("~/Views/Practic/Index.cshtml", session);
         }
 
-        [HttpPost]
+        [HttpPost("SaveResults")]
         public async Task<IActionResult> SaveResults([FromBody] PracticeResultsDTO results)
         {
             await practiceService.SavePracticeResultsAsync(UserId, results);
-            var setId = results.Results.FirstOrDefault()?.FlashcardId;
-            return Ok(new { redirectUrl = Url.Action(nameof(Map), new { setId = results.Results.Any() ? results.Results.First().FlashcardId : 0 }) });
+
+         
+            var firstCardId = results.Results.FirstOrDefault()?.FlashcardId ?? 0;
+            var card = await unitOfWork.Flashcards.GetByIdAsync(firstCardId);
+            int setId = card?.SetId ?? 0;
+
+            return Ok(new { redirectUrl = Url.Action(nameof(Map), new { setId }) });
         }
     }
 }

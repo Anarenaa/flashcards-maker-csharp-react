@@ -1,177 +1,170 @@
 ﻿@using Core.DTOs.Practice
 @model PracticeSessionDTO
 
-@{
-    ViewData["Title"] = "Практика: " + Model.SelectedActivity;
-}
-
 <style>
-    .practice-wrapper {
+    .practice-page {
         max-width: 800px;
         margin: 40px auto;
         text-align: center;
-        animation: fadeIn 0.5s ease;
+        perspective: 1000px;
     }
 
-    .stage {
-        background: var(--btn-bg);
-        backdrop-filter: blur(15px);
-        border: 1px solid var(--btn-border);
-        border-radius: 24px;
-        padding: 60px 40px;
-        min-height: 450px;
+    .timer-container {
+        width: 100%;
+        height: 4px;
+        background: rgba(255,255,255,0.1);
+        margin-bottom: 10px;
+        border-radius: 2px;
+        overflow: hidden;
+        visibility: hidden;
+    }
+
+    .timer-bar {
+        height: 100%;
+        background: #ffbd44;
+        width: 100%;
+    }
+
+    .flashcard {
+        width: 100%;
+        height: 400px;
+        cursor: pointer;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 30px;
+    }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+    .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
         display: flex;
         flex-direction: column;
         justify-content: center;
         align-items: center;
+        padding: 40px;
+        border-radius: 30px;
+        border: 2px solid var(--btn-border);
+        background: var(--btn-bg);
+        backdrop-filter: blur(15px);
         box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        transition: transform 0.3s ease, border-color 0.3s ease;
     }
 
-    .term {
-        font-size: 2.8rem;
+    .card-back {
+        transform: rotateY(180deg);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .term-text {
+        font-size: 3rem;
         font-weight: 800;
         color: var(--accent-color);
-        margin-bottom: 20px;
-        line-height: 1.2;
     }
 
-    .hint {
-        font-size: 0.8rem;
-        opacity: 0.5;
-        margin-bottom: 30px;
-        text-transform: uppercase;
-        letter-spacing: 2px;
-        color: var(--text-color);
+    .def-text {
+        font-size: 2rem;
+        color: #fff;
     }
 
-    .quiz-options {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        width: 100%;
+    .navigation-zone {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
         margin-top: 20px;
     }
 
-    .opt-btn {
-        background: var(--btn-bg);
-        border: 1px solid var(--btn-border);
-        color: var(--text-color);
-        padding: 18px;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: 0.2s;
-        font-size: 1.1rem;
-        font-weight: 500;
+    .controls {
+        display: flex;
+        gap: 15px;
     }
 
-        .opt-btn:hover:not(:disabled) {
-            border-color: var(--accent-color);
-            background: var(--btn-hover);
-            transform: translateY(-2px);
-        }
-
-        .opt-btn.correct {
-            background: #28a745 !important;
-            border-color: #28a745;
-            color: white !important;
-        }
-
-        .opt-btn.wrong {
-            background: #dc3545 !important;
-            border-color: #dc3545;
-            color: white !important;
-        }
-
-    .write-input {
-        width: 100%;
-        background: var(--bg-color);
-        border: 2px solid var(--btn-border);
-        color: var(--text-color);
-        padding: 20px;
-        border-radius: 15px;
-        font-size: 1.4rem;
-        text-align: center;
-        outline: none;
+    .btn-circle {
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        background: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        color: white;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
         transition: 0.3s;
     }
 
-        .write-input:focus {
+        .btn-circle:hover:not(:disabled) {
             border-color: var(--accent-color);
-            box-shadow: 0 0 15px var(--btn-border);
+            background: var(--btn-hover);
         }
 
-    .progress-container {
-        width: 100%;
-        height: 8px;
-        background: var(--btn-bg);
-        border-radius: 4px;
-        margin-bottom: 30px;
-        overflow: hidden;
-        border: 1px solid var(--btn-border);
+        .btn-circle:disabled {
+            opacity: 0.2;
+            cursor: not-allowed;
+        }
+
+    .btn-choice {
+        padding: 12px 35px;
+        border-radius: 12px;
+        border: none;
+        font-weight: bold;
+        cursor: pointer;
+        transition: 0.3s;
     }
 
-    .progress-bar {
-        height: 100%;
+    .btn-again {
+        background: rgba(255, 100, 100, 0.1);
+        color: #ff6464;
+        border: 1px solid #ff6464;
+    }
+
+    .btn-know {
         background: var(--accent-color);
-        width: 0%;
-        transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
-        box-shadow: 0 0 10px var(--accent-color);
+        color: #141B25;
     }
 
-    #resultText {
-        margin-top: 25px;
-        font-size: 1.3rem;
-        font-weight: 600;
-        min-height: 1.5em;
-    }
-
-    @@keyframes fadeIn {
-        from {
-            opacity: 0;
-            transform: translateY(10px);
-        }
-
-        to {
-            opacity: 1;
-            transform: translateY(0);
-        }
-    }
-
-    @@media (max-width: 600px) {
-        .quiz-options {
-            grid-template-columns: 1fr;
-        }
-
-        .term {
-            font-size: 2rem;
-        }
+    .hint-text {
+        opacity: 0.4;
+        font-size: 0.8rem;
+        margin-top: 15px;
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
 </style>
 
-<div class="practice-wrapper">
-    <div class="progress-container">
-        <div id="bar" class="progress-bar"></div>
+<div class="practice-page">
+    <div class="progress-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 20px; overflow: hidden;">
+        <div id="p-bar" style="height: 100%; background: var(--accent-color); width: 0%; transition: 0.5s;"></div>
     </div>
 
-    <p style="color: var(--text-color); opacity: 0.6; margin-bottom: 15px; font-size: 0.9rem;">
-        Етап: <span id="modeName">...</span>
-    </p>
+    <div class="timer-container" id="timerBox">
+        <div class="timer-bar" id="timerBar"></div>
+    </div>
 
-    <div class="stage" id="mainStage">
-        <div id="modeHint" class="hint"></div>
-        <div id="questionText" class="term"></div>
+    <div id="card-counter" style="opacity: 0.5; margin-bottom: 10px;">Картка 1 із @Model.TotalCards</div>
 
-        <div id="answerZone" style="width: 100%;">
-           
+    <div class="flashcard" id="mainCard" onclick="flipCard()">
+        <div class="card-face card-front">
+            <div id="frontText" class="term-text"></div>
+            <div class="hint-text">Натисніть, щоб перевернути</div>
         </div>
-
-        <div id="resultText" style="display: none;"></div>
+        <div class="card-face card-back">
+            <div id="backText" class="def-text"></div>
+        </div>
     </div>
 
-    <div style="margin-top: 40px;">
-        <button id="actionBtn" class="nav-btn" style="display:none; padding: 15px 40px; min-width: 200px;" onclick="handleAction()">
-            Підтвердити
+    <div class="navigation-zone">
+        <button class="btn-circle" id="prevBtn" onclick="prevCard()" title="Назад">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg>
+        </button>
+
+        <button class="btn-circle" id="nextBtn" onclick="nextManual()" title="Вперед">
+            <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
         </button>
     </div>
 </div>
@@ -179,131 +172,103 @@
 @section Scripts {
     <script>
         const session = @Json.Serialize(Model);
-        let currentIdx = 0;
-        const finalData = { results: [], isTrainingMode: false };
+        let currentIndex = 0;
+        let autoFlipTimeout = null;
+        const practiceResults = { results: [], isTrainingMode: false };
 
         function render() {
-            const card = session.flashcards[currentIdx];
-            const zone = document.getElementById('answerZone');
-            const hint = document.getElementById('modeHint');
-            const btn = document.getElementById('actionBtn');
-            const modeName = document.getElementById('modeName');
+            stopTimer();
+            const card = session.flashcards[currentIndex];
+            const cardEl = document.getElementById('mainCard');
+            const controls = document.getElementById('controlButtons');
 
-            zone.innerHTML = '';
-            btn.style.display = 'none';
-            btn.onclick = handleAction; 
-            document.getElementById('resultText').style.display = 'none';
-            document.getElementById('questionText').innerText = card.term;
+            cardEl.classList.remove('is-flipped');
+            controls.style.visibility = 'hidden';
 
-            const progress = (currentIdx / session.totalCards) * 100;
-            document.getElementById('bar').style.width = progress + '%';
+            document.getElementById('frontText').innerText = card.term;
+            document.getElementById('backText').innerText = card.definition;
 
-            switch(card.cardType) {
-                case 1: 
-                    modeName.innerText = "Огляд";
-                    hint.innerText = "Запам'ятайте переклад";
-                    btn.innerText = "Показати відповідь";
-                    btn.style.display = 'inline-block';
-                    break;
-                case 2: 
-                    modeName.innerText = "Вікторина";
-                    hint.innerText = "Оберіть правильний варіант";
-                    const grid = document.createElement('div');
-                    grid.className = 'quiz-options';
+            document.getElementById('card-counter').innerText = `Картка ${currentIndex + 1} із ${session.totalCards}`;
+            document.getElementById('p-bar').style.width = ((currentIndex + 1) / session.totalCards * 100) + '%';
 
-                    card.distractors.forEach(opt => {
-                        const b = document.createElement('button');
-                        b.className = 'opt-btn';
-                        b.innerText = opt;
-                        b.onclick = () => submitAnswer(opt === card.definition, b, card.definition);
-                        grid.appendChild(b);
-                    });
-                    zone.appendChild(grid);
-                    break;
-                case 4: 
-                    modeName.innerText = "Письмо";
-                    hint.innerText = "Введіть переклад";
-                    const input = document.createElement('input');
-                    input.className = 'write-input';
-                    input.id = 'activeInput';
-                    input.placeholder = "Пишіть тут...";
-                    input.autocomplete = "off";
-                    input.onkeypress = (e) => { if(e.key === 'Enter') handleAction() };
-                    zone.appendChild(input);
-
-                    btn.innerText = "Перевірити";
-                    btn.style.display = 'inline-block';
-                    setTimeout(() => input.focus(), 100);
-                    break;
-            }
+            document.getElementById('prevBtn').disabled = currentIndex === 0;
         }
 
-        function handleAction() {
-            const card = session.flashcards[currentIdx];
-            const resText = document.getElementById('resultText');
-            const btn = document.getElementById('actionBtn');
+        function flipCard() {
+            const cardEl = document.getElementById('mainCard');
+            if (cardEl.classList.contains('is-flipped')) return;
 
-            if (card.cardType === 1) { 
-                resText.innerHTML = `<span style="color:var(--accent-color); font-size:1.8rem">${card.definition}</span>`;
-                resText.style.display = 'block';
-                btn.innerText = "Далі →";
-  
-                btn.onclick = () => {
-                    record(true);
-                    next();
-                };
-            }
-            else if (card.cardType === 4) { 
-                const val = document.getElementById('activeInput').value.trim().toLowerCase();
-                const isOk = val === card.definition.toLowerCase();
-                submitAnswer(isOk, null, card.definition);
-            }
+            cardEl.classList.add('is-flipped');
+            document.getElementById('controlButtons').style.visibility = 'visible';
+            startTimer();
         }
 
-        function submitAnswer(isCorrect, btnElement, correctVal) {
-           
-            document.querySelectorAll('.opt-btn').forEach(b => b.disabled = true);
+        function startTimer() {
+            const timerBox = document.getElementById('timerBox');
+            const timerBar = document.getElementById('timerBar');
 
-            if (btnElement) {
-                btnElement.classList.add(isCorrect ? 'correct' : 'wrong');
-            }
+            timerBox.style.visibility = 'visible';
+            timerBar.style.transition = 'none';
+            timerBar.style.width = '100%';
 
-            const resText = document.getElementById('resultText');
-            resText.innerHTML = isCorrect ? "✅ Правильно!" : `❌ Помилка. Правильно: <b style="color:var(--accent-color)">${correctVal}</b>`;
-            resText.style.color = isCorrect ? "#28a745" : "#dc3545";
-            resText.style.display = 'block';
+            setTimeout(() => {
+                timerBar.style.transition = 'width 5s linear';
+                timerBar.style.width = '0%';
+            }, 50);
 
-            record(isCorrect);
-            setTimeout(next, 1500);
+            autoFlipTimeout = setTimeout(() => {
+                const cardEl = document.getElementById('mainCard');
+                cardEl.classList.remove('is-flipped');
+                timerBox.style.visibility = 'hidden';
+            }, 5000);
         }
 
-        function record(ok) {
-            finalData.results.push({
-                flashcardId: session.flashcards[currentIdx].id,
-                isCorrect: ok,
-                responseTimeMs: 0,
-                reviewType: session.flashcards[currentIdx].cardType
-            });
+        function stopTimer() {
+            clearTimeout(autoFlipTimeout);
+            document.getElementById('timerBox').style.visibility = 'hidden';
         }
 
-        async function next() {
-            currentIdx++;
-            if (currentIdx < session.totalCards) {
+        function nextManual() {
+            if (currentIndex < session.flashcards.length - 1) {
+                currentIndex++;
                 render();
             } else {
-                document.getElementById('bar').style.width = '100%';
-
-                const res = await fetch('/Test/SaveResults', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(finalData)
-                });
-                const data = await res.json();
-                window.location.href = data.redirectUrl;
+                finishSession();
             }
         }
 
-        
+        function prevCard() {
+            if (currentIndex > 0) {
+                currentIndex--;
+                render();
+            }
+        }
+
+        async function submitResult(isKnown) {
+            practiceResults.results.push({
+                flashcardId: session.flashcards[currentIndex].id,
+                isCorrect: isKnown,
+                reviewType: 1
+            });
+
+            if (currentIndex < session.flashcards.length - 1) {
+                currentIndex++;
+                render();
+            } else {
+                finishSession();
+            }
+        }
+
+        async function finishSession() {
+            const res = await fetch('/Test/SaveResults', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(practiceResults)
+            });
+            const data = await res.json();
+            window.location.href = data.redirectUrl;
+        }
+
         render();
     </script>
 }
