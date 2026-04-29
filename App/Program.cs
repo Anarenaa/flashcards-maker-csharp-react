@@ -1,12 +1,15 @@
 using System.Text;
+using App.Configuration;
 using Core.Context;
-using Core.Models;
 using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Http.Resilience;
+using Polly;
 using Repositories;
 using Repositories.Interfaces;
 using Services;
@@ -26,13 +29,54 @@ builder.Services.AddIdentity<User, IdentityRole<int>>()
 .AddDefaultTokenProviders()
 .AddRoles<IdentityRole<int>>();
 
+builder.Services.AddMemoryCache();
+static bool IsTransient(HttpResponseMessage? response) =>
+    response is null ||
+    (int)response.StatusCode >= 500 ||           // 500, 502, 503, 504 — серверні помилки
+    response.StatusCode == System.Net.HttpStatusCode.RequestTimeout; // 408
+
+var geminiSection = builder.Configuration.GetRequiredSection("ExternalApis:Gemini");
+var geminiOpts = geminiSection.Get<ApiClientOptions>()!;
+
+builder.Services.Configure<ApiClientOptions>("Gemini", geminiSection);
+
+// Реєструємо Typed HttpClient з конвеєром Polly
+builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
+{
+    client.BaseAddress = new Uri(geminiOpts.BaseUrl);
+})
+.AddResilienceHandler("gemini-pipeline", pipelineBuilder =>
+{
+    pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(geminiOpts.TimeoutSeconds * 2));
+    pipelineBuilder.AddRetry(new HttpRetryStrategyOptions
+    {
+        MaxRetryAttempts = geminiOpts.MaxRetryAttempts,
+        Delay = TimeSpan.FromSeconds(1),
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        ShouldHandle = args => ValueTask.FromResult(
+            args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
+
+    });
+    pipelineBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        MinimumThroughput = 5,
+        FailureRatio = 0.5,
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        BreakDuration = TimeSpan.FromSeconds(geminiOpts.BreakDurationSeconds),
+        ShouldHandle = args => ValueTask.FromResult(
+            args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
+    });
+    pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(geminiOpts.TimeoutSeconds));
+});
+
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme) // ������� ��� ����������� ��������� ����� �� Google
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -99,6 +143,7 @@ builder.Services.AddAuthentication(options =>
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
+
 
 builder.Services.Configure<EmailSettingsDTO>(builder.Configuration.GetSection("EmailSettings"));
 
