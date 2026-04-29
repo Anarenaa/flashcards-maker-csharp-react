@@ -77,11 +77,7 @@
         justify-content: space-between;
         align-items: center;
         margin-top: 20px;
-    }
-
-    .controls {
-        display: flex;
-        gap: 15px;
+        min-height: 60px;
     }
 
     .btn-circle {
@@ -104,7 +100,7 @@
         }
 
         .btn-circle:disabled {
-            opacity: 0.2;
+            opacity: 0.1;
             cursor: not-allowed;
         }
 
@@ -128,30 +124,38 @@
         color: #141B25;
     }
 
-    .hint-text {
-        opacity: 0.4;
-        font-size: 0.8rem;
-        margin-top: 15px;
-        text-transform: uppercase;
-        letter-spacing: 1px;
+    .progress-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .p-bar-fill {
+        height: 100%;
+        background: var(--accent-color);
+        width: 0%;
+        transition: 0.5s;
     }
 </style>
 
 <div class="practice-page">
-    <div class="progress-container" style="width: 100%; height: 6px; background: rgba(255,255,255,0.1); border-radius: 3px; margin-bottom: 20px; overflow: hidden;">
-        <div id="p-bar" style="height: 100%; background: var(--accent-color); width: 0%; transition: 0.5s;"></div>
+    <div class="progress-container">
+        <div id="p-bar" class="p-bar-fill"></div>
     </div>
 
     <div class="timer-container" id="timerBox">
         <div class="timer-bar" id="timerBar"></div>
     </div>
 
-    <div id="card-counter" style="opacity: 0.5; margin-bottom: 10px;">Картка 1 із @Model.TotalCards</div>
+    <div id="card-counter" style="opacity: 0.5; margin-bottom: 10px;">Завантаження...</div>
 
     <div class="flashcard" id="mainCard" onclick="flipCard()">
         <div class="card-face card-front">
             <div id="frontText" class="term-text"></div>
-            <div class="hint-text">Натисніть, щоб перевернути</div>
+            <div style="opacity: 0.4; font-size: 0.8rem; margin-top: 15px; text-transform: uppercase;">Натисніть, щоб перевернути</div>
         </div>
         <div class="card-face card-back">
             <div id="backText" class="def-text"></div>
@@ -163,6 +167,11 @@
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg>
         </button>
 
+        <div id="controlButtons" style="display: flex; gap: 15px; visibility: hidden;">
+            <button class="btn-choice btn-again" onclick="submitResult(false)">Ще раз</button>
+            <button class="btn-choice btn-know" onclick="submitResult(true)">Знаю</button>
+        </div>
+
         <button class="btn-circle" id="nextBtn" onclick="nextManual()" title="Вперед">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
         </button>
@@ -172,34 +181,46 @@
 @section Scripts {
     <script>
         const session = @Json.Serialize(Model);
+        const currentProgress = @(ViewBag.CurrentProgress != null ? ViewBag.CurrentProgress.ToString().Replace(",", ".") : "0");
+        const mode = @(ViewBag.Mode ?? 1);
+
         let currentIndex = 0;
         let autoFlipTimeout = null;
-        const practiceResults = { results: [], isTrainingMode: false };
+        let practiceResults = { results: [], isTrainingMode: false };
+
+        const modeLimits = { 1: 0.15, 2: 0.35, 3: 0.55, 4: 0.75, 5: 0.90, 6: 1.0 };
+        const myLimit = modeLimits[mode] || 1.0;
 
         function render() {
             stopTimer();
-            const card = session.flashcards[currentIndex];
+            const flashcards = session.flashcards || session.Flashcards;
+            const total = session.totalCards || session.TotalCards;
+
+            if (!flashcards || !flashcards[currentIndex]) return;
+
+            const card = flashcards[currentIndex];
             const cardEl = document.getElementById('mainCard');
             const controls = document.getElementById('controlButtons');
 
             cardEl.classList.remove('is-flipped');
             controls.style.visibility = 'hidden';
 
-            document.getElementById('frontText').innerText = card.term;
-            document.getElementById('backText').innerText = card.definition;
+            document.getElementById('frontText').innerText = card.term || card.Term;
+            document.getElementById('backText').innerText = card.definition || card.Definition;
 
-            document.getElementById('card-counter').innerText = `Картка ${currentIndex + 1} із ${session.totalCards}`;
-            document.getElementById('p-bar').style.width = ((currentIndex + 1) / session.totalCards * 100) + '%';
+            document.getElementById('card-counter').innerText = `Картка ${currentIndex + 1} із ${total}`;
+            document.getElementById('p-bar').style.width = ((currentIndex + 1) / total * 100) + '%';
 
             document.getElementById('prevBtn').disabled = currentIndex === 0;
         }
 
         function flipCard() {
             const cardEl = document.getElementById('mainCard');
+            const controls = document.getElementById('controlButtons');
             if (cardEl.classList.contains('is-flipped')) return;
 
             cardEl.classList.add('is-flipped');
-            document.getElementById('controlButtons').style.visibility = 'visible';
+            controls.style.visibility = 'visible';
             startTimer();
         }
 
@@ -225,11 +246,13 @@
 
         function stopTimer() {
             clearTimeout(autoFlipTimeout);
-            document.getElementById('timerBox').style.visibility = 'hidden';
+            const timerBox = document.getElementById('timerBox');
+            if(timerBox) timerBox.style.visibility = 'hidden';
         }
 
         function nextManual() {
-            if (currentIndex < session.flashcards.length - 1) {
+            const flashcards = session.flashcards || session.Flashcards;
+            if (currentIndex < flashcards.length - 1) {
                 currentIndex++;
                 render();
             } else {
@@ -245,30 +268,46 @@
         }
 
         async function submitResult(isKnown) {
-            practiceResults.results.push({
-                flashcardId: session.flashcards[currentIndex].id,
-                isCorrect: isKnown,
-                reviewType: 1
-            });
+            const flashcards = session.flashcards || session.Flashcards;
+            const currentCard = flashcards[currentIndex];
 
-            if (currentIndex < session.flashcards.length - 1) {
-                currentIndex++;
-                render();
-            } else {
-                finishSession();
+            if (isKnown === true && currentProgress < myLimit) {
+                const alreadyAdded = practiceResults.results.some(r => r.flashcardId === (currentCard.id || currentCard.Id));
+
+                if (!alreadyAdded) {
+                    practiceResults.results.push({
+                        flashcardId: currentCard.id || currentCard.Id,
+                        isCorrect: true,
+                        responseTimeMs: 0,
+                        reviewType: mode
+                    });
+                }
             }
+
+            nextManual();
         }
 
         async function finishSession() {
-            const res = await fetch('/Test/SaveResults', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(practiceResults)
-            });
-            const data = await res.json();
-            window.location.href = data.redirectUrl;
+            if (practiceResults.results.length === 0) {
+                const setId = session.setId || session.SetId;
+                window.location.href = `/Test/Map/${setId}`;
+                return;
+            }
+
+            try {
+                const res = await fetch('/Test/SaveResults', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(practiceResults)
+                });
+                const data = await res.json();
+                window.location.href = data.redirectUrl;
+            } catch (e) {
+                window.location.href = '/Main';
+            }
         }
 
+        
         render();
     </script>
 }
