@@ -5,12 +5,12 @@
 
     bool IsUnlocked(int mode) => mode switch
     {
-        1 => true,
-        2 => Model.OverallProgress >= 0.15f,
-        3 => Model.OverallProgress >= 0.35f,
-        4 => Model.OverallProgress >= 0.55f,
-        5 => Model.OverallProgress >= 0.75f,
-        6 => Model.OverallProgress >= 0.90f,
+        1 => true,                          
+        2 => Model.OverallProgress > 0,      
+        3 => Model.OverallProgress >= 0.10f, 
+        4 => Model.OverallProgress >= 0.25f, 
+        5 => Model.OverallProgress >= 0.40f, 
+        6 => Model.OverallProgress >= 0.60f, 
         _ => false
     };
 }

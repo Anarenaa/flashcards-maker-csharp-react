@@ -50,17 +50,14 @@ namespace App.Controllers
         [HttpPost("SaveResults")]
         public async Task<IActionResult> SaveResults([FromBody] PracticeResultsDTO results)
         {
-            if (results == null || results.Results == null || !results.Results.Any())
-            {
-                return BadRequest("Результати порожні.");
-            }
-
             await practiceService.SavePracticeResultsAsync(UserId, results);
 
-            var firstCardId = results.Results.First().FlashcardId;
+            // Знаходимо setId, щоб повернутися на карту
+            var firstCardId = results.Results.FirstOrDefault()?.FlashcardId ?? 0;
             var card = await unitOfWork.Flashcards.GetByIdAsync(firstCardId);
             int setId = card?.SetId ?? 0;
 
+            // ПЕРЕНАПРАВЛЕННЯ НА КАРТУ
             return Ok(new { redirectUrl = $"/Test/Map/{setId}" });
         }
     }

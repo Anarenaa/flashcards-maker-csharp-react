@@ -13,7 +13,7 @@
         width: 100%;
         height: 4px;
         background: rgba(255,255,255,0.1);
-        margin-bottom: 10px;
+        margin-bottom: 15px;
         border-radius: 2px;
         overflow: hidden;
         visibility: hidden;
@@ -21,7 +21,7 @@
 
     .timer-bar {
         height: 100%;
-        background: #ffbd44;
+        background: var(--accent-color);
         width: 100%;
     }
 
@@ -62,27 +62,29 @@
     }
 
     .term-text {
-        font-size: 3rem;
+        font-size: 2.8rem;
         font-weight: 800;
         color: var(--accent-color);
+        word-break: break-word;
     }
 
     .def-text {
-        font-size: 2rem;
+        font-size: 1.8rem;
         color: #fff;
+        word-break: break-word;
     }
 
     .navigation-zone {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        margin-top: 20px;
-        min-height: 60px;
+        max-width: 450px;
+        margin: 20px auto;
     }
 
     .btn-circle {
-        width: 50px;
-        height: 50px;
+        width: 60px;
+        height: 60px;
         border-radius: 50%;
         background: var(--btn-bg);
         border: 1px solid var(--btn-border);
@@ -97,6 +99,7 @@
         .btn-circle:hover:not(:disabled) {
             border-color: var(--accent-color);
             background: var(--btn-hover);
+            transform: scale(1.1);
         }
 
         .btn-circle:disabled {
@@ -104,25 +107,27 @@
             cursor: not-allowed;
         }
 
-    .btn-choice {
-        padding: 12px 35px;
-        border-radius: 12px;
-        border: none;
-        font-weight: bold;
-        cursor: pointer;
-        transition: 0.3s;
+    .view-dots {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        margin-bottom: 20px;
     }
 
-    .btn-again {
-        background: rgba(255, 100, 100, 0.1);
-        color: #ff6464;
-        border: 1px solid #ff6464;
+    .view-dot {
+        width: 12px;
+        height: 12px;
+        border-radius: 50%;
+        background: rgba(255,255,255,0.1);
+        border: 1px solid var(--btn-border);
+        transition: 0.4s;
     }
 
-    .btn-know {
-        background: var(--accent-color);
-        color: #141B25;
-    }
+        .view-dot.active {
+            background: var(--accent-color);
+            box-shadow: 0 0 10px var(--accent-color);
+            border-color: white;
+        }
 
     .progress-container {
         width: 100%;
@@ -139,6 +144,44 @@
         width: 0%;
         transition: 0.5s;
     }
+
+    /* QUIZ */
+    .quiz-container {
+        display: grid;
+        gap: 15px;
+        width: 100%;
+        margin-top: 25px;
+    }
+
+    .quiz-option-btn {
+        background: rgba(255, 255, 255, 0.05);
+        border: 1px solid var(--btn-border);
+        color: var(--text-color);
+        padding: 15px;
+        border-radius: 12px;
+        cursor: pointer;
+        font-size: 1rem;
+        transition: 0.3s;
+        font-weight: 600;
+    }
+
+        .quiz-option-btn:hover:not(:disabled) {
+            border-color: var(--accent-color);
+            background: var(--btn-hover);
+            transform: translateY(-2px);
+        }
+
+    .option-correct {
+        background: #28a745 !important;
+        border-color: #28a745 !important;
+        color: white !important;
+    }
+
+    .option-wrong {
+        background: #dc3545 !important;
+        border-color: #dc3545 !important;
+        color: white !important;
+    }
 </style>
 
 <div class="practice-page">
@@ -152,10 +195,18 @@
 
     <div id="card-counter" style="opacity: 0.5; margin-bottom: 10px;">Завантаження...</div>
 
-    <div class="flashcard" id="mainCard" onclick="flipCard()">
+    <div class="view-dots" id="dotsContainer">
+        <div class="view-dot" id="dot-1"></div>
+        <div class="view-dot" id="dot-2"></div>
+    </div>
+
+    <div class="flashcard" id="mainCard">
         <div class="card-face card-front">
             <div id="frontText" class="term-text"></div>
-            <div style="opacity: 0.4; font-size: 0.8rem; margin-top: 15px; text-transform: uppercase;">Натисніть, щоб перевернути</div>
+            <div id="quizOptions" class="quiz-container" style="display: none;"></div>
+            <div id="hintLabel" style="opacity: 0.4; font-size: 0.8rem; margin-top: 15px; text-transform: uppercase;">
+                Натисніть, щоб перевернути
+            </div>
         </div>
         <div class="card-face card-back">
             <div id="backText" class="def-text"></div>
@@ -166,12 +217,6 @@
         <button class="btn-circle" id="prevBtn" onclick="prevCard()" title="Назад">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg>
         </button>
-
-        <div id="controlButtons" style="display: flex; gap: 15px; visibility: hidden;">
-            <button class="btn-choice btn-again" onclick="submitResult(false)">Ще раз</button>
-            <button class="btn-choice btn-know" onclick="submitResult(true)">Знаю</button>
-        </div>
-
         <button class="btn-circle" id="nextBtn" onclick="nextManual()" title="Вперед">
             <svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg>
         </button>
@@ -186,6 +231,7 @@
 
         let currentIndex = 0;
         let autoFlipTimeout = null;
+        let cardViews = {};
         let practiceResults = { results: [], isTrainingMode: false };
 
         const modeLimits = { 1: 0.15, 2: 0.35, 3: 0.55, 4: 0.75, 5: 0.90, 6: 1.0 };
@@ -195,51 +241,122 @@
             stopTimer();
             const flashcards = session.flashcards || session.Flashcards;
             const total = session.totalCards || session.TotalCards;
-
-            if (!flashcards || !flashcards[currentIndex]) return;
-
             const card = flashcards[currentIndex];
+            const cardId = card.id || card.Id;
+
             const cardEl = document.getElementById('mainCard');
-            const controls = document.getElementById('controlButtons');
+            const quizZone = document.getElementById('quizOptions');
+            const hint = document.getElementById('hintLabel');
+            const dotsContainer = document.getElementById('dotsContainer');
 
             cardEl.classList.remove('is-flipped');
-            controls.style.visibility = 'hidden';
+            quizZone.innerHTML = '';
 
             document.getElementById('frontText').innerText = card.term || card.Term;
-            document.getElementById('backText').innerText = card.definition || card.Definition;
-
             document.getElementById('card-counter').innerText = `Картка ${currentIndex + 1} із ${total}`;
             document.getElementById('p-bar').style.width = ((currentIndex + 1) / total * 100) + '%';
-
             document.getElementById('prevBtn').disabled = currentIndex === 0;
+
+            if (mode === 2) {
+                // --- РЕЖИМ ВІКТОРИНИ ---
+                hint.style.display = 'none';
+                dotsContainer.style.display = 'none';
+                quizZone.style.display = 'grid';
+                cardEl.onclick = null;
+
+                const correct = (card.definition || card.Definition).trim();
+                const totalInSet = session.totalCards || session.TotalCards;
+
+                // 1. Визначаємо складність (кількість кнопок)
+                let targetCount = 2;
+                if (totalInSet > 15) targetCount = 5;
+                else if (totalInSet > 10) targetCount = 4;
+                else if (totalInSet > 5) targetCount = 3;
+
+                // 2. Фільтруємо дистрактори
+                let distractors = (card.distractors || card.Distractors || [])
+                                    .filter(d => d.trim().toLowerCase() !== correct.toLowerCase());
+
+                // 3. Створюємо список і перемішуємо
+                let options = [correct, ...distractors.sort(() => Math.random() - 0.5).slice(0, targetCount - 1)];
+                options = [...new Set(options)]; // Видаляємо дублікати
+
+                // План Б: Якщо варіантів все ще один (наприклад, сет замалий)
+                if (options.length < 2) {
+                    options.push("Неправильний варіант (додайте більше карток)");
+                }
+
+                options.sort(() => Math.random() - 0.5); // Фінальне перемішування
+
+                options.forEach(opt => {
+                    const btn = document.createElement('button');
+                    btn.className = 'quiz-option-btn';
+                    btn.innerText = opt;
+                    btn.onclick = () => checkQuizAnswer(btn, opt, correct);
+                    quizZone.appendChild(btn);
+                });
+
+                // Вирівнювання: якщо варіантів 2 — в стовпчик, якщо 3+ — у два стовпчики
+                quizZone.style.gridTemplateColumns = options.length > 2 ? "1fr 1fr" : "1fr";
+            } else {
+                // --- РЕЖИМ КАРТОК ---
+                hint.style.display = 'block';
+                dotsContainer.style.display = 'flex';
+                quizZone.style.display = 'none';
+                cardEl.onclick = flipCard;
+                document.getElementById('backText').innerText = card.definition || card.Definition;
+                updateViewDots(cardId);
+            }
+        }
+
+        function checkQuizAnswer(btn, selected, correct) {
+            const isCorrect = selected === correct;
+            document.querySelectorAll('.quiz-option-btn').forEach(b => b.disabled = true);
+
+            if (isCorrect) {
+                btn.classList.add('option-correct');
+            } else {
+                btn.classList.add('option-wrong');
+                document.querySelectorAll('.quiz-option-btn').forEach(b => {
+                    if(b.innerText === correct) b.classList.add('option-correct');
+                });
+            }
+
+            if (isCorrect && currentProgress < myLimit) saveCorrectResult();
+            setTimeout(nextManual, 1200);
         }
 
         function flipCard() {
             const cardEl = document.getElementById('mainCard');
-            const controls = document.getElementById('controlButtons');
-            if (cardEl.classList.contains('is-flipped')) return;
+            const flashcards = session.flashcards || session.Flashcards;
+            const cardId = flashcards[currentIndex].id || flashcards[currentIndex].Id;
 
+            if (cardEl.classList.contains('is-flipped')) return;
             cardEl.classList.add('is-flipped');
-            controls.style.visibility = 'visible';
+
+            cardViews[cardId] = (cardViews[cardId] || 0) + 1;
+            updateViewDots(cardId);
             startTimer();
+        }
+
+        function updateViewDots(cardId) {
+            const views = cardViews[cardId] || 0;
+            document.getElementById('dot-1').classList.toggle('active', views >= 1);
+            document.getElementById('dot-2').classList.toggle('active', views >= 2);
         }
 
         function startTimer() {
             const timerBox = document.getElementById('timerBox');
             const timerBar = document.getElementById('timerBar');
-
             timerBox.style.visibility = 'visible';
             timerBar.style.transition = 'none';
             timerBar.style.width = '100%';
-
             setTimeout(() => {
                 timerBar.style.transition = 'width 5s linear';
                 timerBar.style.width = '0%';
             }, 50);
-
             autoFlipTimeout = setTimeout(() => {
-                const cardEl = document.getElementById('mainCard');
-                cardEl.classList.remove('is-flipped');
+                document.getElementById('mainCard').classList.remove('is-flipped');
                 timerBox.style.visibility = 'hidden';
             }, 5000);
         }
@@ -248,6 +365,14 @@
             clearTimeout(autoFlipTimeout);
             const timerBox = document.getElementById('timerBox');
             if(timerBox) timerBox.style.visibility = 'hidden';
+        }
+
+        function saveCorrectResult() {
+            const flashcards = session.flashcards || session.Flashcards;
+            const cardId = flashcards[currentIndex].id || flashcards[currentIndex].Id;
+            if (!practiceResults.results.some(r => r.flashcardId === cardId)) {
+                practiceResults.results.push({ flashcardId: cardId, isCorrect: true, responseTimeMs: 0, reviewType: mode });
+            }
         }
 
         function nextManual() {
@@ -267,30 +392,22 @@
             }
         }
 
-        async function submitResult(isKnown) {
+        async function finishSession() {
             const flashcards = session.flashcards || session.Flashcards;
-            const currentCard = flashcards[currentIndex];
 
-            if (isKnown === true && currentProgress < myLimit) {
-                const alreadyAdded = practiceResults.results.some(r => r.flashcardId === (currentCard.id || currentCard.Id));
-
-                if (!alreadyAdded) {
-                    practiceResults.results.push({
-                        flashcardId: currentCard.id || currentCard.Id,
-                        isCorrect: true,
-                        responseTimeMs: 0,
-                        reviewType: mode
-                    });
-                }
+            if (mode === 1) {
+                flashcards.forEach(card => {
+                    const id = card.id || card.Id;
+                    if (cardViews[id] >= 2 && currentProgress < myLimit) {
+                        if (!practiceResults.results.some(r => r.flashcardId === id)) {
+                            practiceResults.results.push({ flashcardId: id, isCorrect: true, responseTimeMs: 0, reviewType: 1 });
+                        }
+                    }
+                });
             }
 
-            nextManual();
-        }
-
-        async function finishSession() {
             if (practiceResults.results.length === 0) {
-                const setId = session.setId || session.SetId;
-                window.location.href = `/Test/Map/${setId}`;
+                window.location.href = `/Test/Map/${session.setId || session.SetId}`;
                 return;
             }
 
@@ -302,12 +419,9 @@
                 });
                 const data = await res.json();
                 window.location.href = data.redirectUrl;
-            } catch (e) {
-                window.location.href = '/Main';
-            }
+            } catch (e) { window.location.href = '/Main'; }
         }
 
-        
         render();
     </script>
 }
