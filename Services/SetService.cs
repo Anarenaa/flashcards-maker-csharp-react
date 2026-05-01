@@ -129,6 +129,19 @@ namespace Services
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
         }
+        public async Task<Set> AddSetAsyncWithReturn(SetDTO setDto, int userId)
+        {
+            var set = new Set
+            {
+                Name = setDto.Name,
+                Description = setDto.Description,
+                IsPublic = setDto.IsPublic,
+                UserId = userId
+            };
+            await _unitOfWork.Sets.AddAsync(set);
+            await _unitOfWork.SaveChangesAsync();
+            return set;
+        }
         public async Task UpdateSetAsync(SetDTO setDto)
         {
             var set = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);

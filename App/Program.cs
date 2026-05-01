@@ -7,8 +7,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.IdentityModel.Tokens;
 using Microsoft.Extensions.Http.Resilience;
+using Microsoft.IdentityModel.Tokens;
 using Polly;
 using Repositories;
 using Repositories.Interfaces;
@@ -20,6 +20,20 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// ─── Swagger / OpenAPI ────────────────────────────────────────────────────────
+// Swashbuckle автоматично сканує [ApiController]-и та [ProducesResponseType]-атрибути
+// і генерує інтерактивну документацію на /swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(c =>
+{
+    c.SwaggerDoc("v1", new()
+    {
+        Title = "Flashcards Maker API",
+        Version = "v1",
+        Description = "REST API для управління флеш-картками."
+    });
+});
 
 builder.Services.AddDbContext<DataContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
@@ -35,19 +49,23 @@ static bool IsTransient(HttpResponseMessage? response) =>
     (int)response.StatusCode >= 500 ||           // 500, 502, 503, 504 — серверні помилки
     response.StatusCode == System.Net.HttpStatusCode.RequestTimeout; // 408
 
-var geminiSection = builder.Configuration.GetRequiredSection("ExternalApis:Gemini");
+var geminiSection = builder.Configuration.GetRequiredSection("Gemini");
 var geminiOpts = geminiSection.Get<ApiClientOptions>()!;
 
 builder.Services.Configure<ApiClientOptions>("Gemini", geminiSection);
 
+var geminiApiKey = builder.Configuration["ExternalApis:Gemini:ApiKey"]
+                   ?? throw new Exception("Gemini API Key is missing!");
+
 // Реєструємо Typed HttpClient з конвеєром Polly
-builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
+var httpClientBuilder = builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
 {
     client.BaseAddress = new Uri(geminiOpts.BaseUrl);
-})
-.AddResilienceHandler("gemini-pipeline", pipelineBuilder =>
+});
+httpClientBuilder.AddResilienceHandler("gemini-pipeline", pipelineBuilder =>
 {
     pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(geminiOpts.TimeoutSeconds * 2));
+
     pipelineBuilder.AddRetry(new HttpRetryStrategyOptions
     {
         MaxRetryAttempts = geminiOpts.MaxRetryAttempts,
@@ -56,8 +74,8 @@ builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
         UseJitter = true,
         ShouldHandle = args => ValueTask.FromResult(
             args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
-
     });
+
     pipelineBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
     {
         MinimumThroughput = 5,
@@ -67,8 +85,12 @@ builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
         ShouldHandle = args => ValueTask.FromResult(
             args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
     });
+
     pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(geminiOpts.TimeoutSeconds));
 });
+
+httpClientBuilder.AddTypedClient<IGeminiService>((httpClient, sp) =>
+    new GeminiService(httpClient, geminiApiKey));
 
 builder.Services.AddAuthentication(options =>
 {
@@ -172,6 +194,14 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+if (app.Environment.IsDevelopment())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI(c =>
+    {
+        c.SwaggerEndpoint("/swagger/v1/swagger.json", "Flashcards Maker API v1");
+    });
+}
 
 app.UseHttpsRedirection();
 app.UseRouting();
@@ -180,6 +210,8 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
+
+app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
