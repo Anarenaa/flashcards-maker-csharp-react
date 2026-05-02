@@ -225,68 +225,63 @@
 
 @section Scripts {
     <script>
+        // 1. Ініціалізація даних
         const session = @Json.Serialize(Model);
-        const currentProgress = @(ViewBag.CurrentProgress != null ? ViewBag.CurrentProgress.ToString().Replace(",", ".") : "0");
-        const mode = @(ViewBag.Mode ?? 1);
+        const currentProgress = parseFloat("@(ViewBag.CurrentProgress != null ? ViewBag.CurrentProgress.ToString().Replace(",", ".") : "0")");
+        const mode = parseInt("@(ViewBag.Mode ?? 1)");
+        const setId = session.setId || session.SetId;
 
         let currentIndex = 0;
         let autoFlipTimeout = null;
-        let cardViews = {};
+        let cardViews = {}; // Рахуємо перегляди зворотного боку для кожної карти
         let practiceResults = { results: [], isTrainingMode: false };
 
         const modeLimits = { 1: 0.15, 2: 0.35, 3: 0.55, 4: 0.75, 5: 0.90, 6: 1.0 };
         const myLimit = modeLimits[mode] || 1.0;
 
+        // 2. Основна функція рендеру картки
         function render() {
             stopTimer();
             const flashcards = session.flashcards || session.Flashcards;
             const total = session.totalCards || session.TotalCards;
+
+            if (!flashcards || flashcards.length === 0) return;
+
             const card = flashcards[currentIndex];
             const cardId = card.id || card.Id;
 
+            // Елементи DOM
             const cardEl = document.getElementById('mainCard');
             const quizZone = document.getElementById('quizOptions');
             const hint = document.getElementById('hintLabel');
             const dotsContainer = document.getElementById('dotsContainer');
 
+            // Скидання стану картки
             cardEl.classList.remove('is-flipped');
             quizZone.innerHTML = '';
 
+            // Оновлення текстової інформації
             document.getElementById('frontText').innerText = card.term || card.Term;
             document.getElementById('card-counter').innerText = `Картка ${currentIndex + 1} із ${total}`;
             document.getElementById('p-bar').style.width = ((currentIndex + 1) / total * 100) + '%';
             document.getElementById('prevBtn').disabled = currentIndex === 0;
 
             if (mode === 2) {
-                // --- РЕЖИМ ВІКТОРИНИ ---
+                // --- ЛОГІКА РЕЖИМУ ВІКТОРИНИ ---
                 hint.style.display = 'none';
                 dotsContainer.style.display = 'none';
                 quizZone.style.display = 'grid';
                 cardEl.onclick = null;
 
                 const correct = (card.definition || card.Definition).trim();
-                const totalInSet = session.totalCards || session.TotalCards;
-
-                // 1. Визначаємо складність (кількість кнопок)
-                let targetCount = 2;
-                if (totalInSet > 15) targetCount = 5;
-                else if (totalInSet > 10) targetCount = 4;
-                else if (totalInSet > 5) targetCount = 3;
-
-                // 2. Фільтруємо дистрактори
                 let distractors = (card.distractors || card.Distractors || [])
                                     .filter(d => d.trim().toLowerCase() !== correct.toLowerCase());
 
-                // 3. Створюємо список і перемішуємо
-                let options = [correct, ...distractors.sort(() => Math.random() - 0.5).slice(0, targetCount - 1)];
-                options = [...new Set(options)]; // Видаляємо дублікати
+                // Створюємо набір варіантів
+                let options = [correct, ...distractors].slice(0, 4);
+                options = [...new Set(options)].sort(() => Math.random() - 0.5);
 
-                // План Б: Якщо варіантів все ще один (наприклад, сет замалий)
-                if (options.length < 2) {
-                    options.push("Неправильний варіант (додайте більше карток)");
-                }
-
-                options.sort(() => Math.random() - 0.5); // Фінальне перемішування
+                if (options.length < 2) options.push("Інший варіант");
 
                 options.forEach(opt => {
                     const btn = document.createElement('button');
@@ -296,10 +291,9 @@
                     quizZone.appendChild(btn);
                 });
 
-                // Вирівнювання: якщо варіантів 2 — в стовпчик, якщо 3+ — у два стовпчики
                 quizZone.style.gridTemplateColumns = options.length > 2 ? "1fr 1fr" : "1fr";
             } else {
-                // --- РЕЖИМ КАРТОК ---
+                // --- ЛОГІКА РЕЖИМУ КАРТОК ---
                 hint.style.display = 'block';
                 dotsContainer.style.display = 'flex';
                 quizZone.style.display = 'none';
@@ -309,12 +303,14 @@
             }
         }
 
+        // 3. Обробка відповіді у вікторині
         function checkQuizAnswer(btn, selected, correct) {
             const isCorrect = selected === correct;
             document.querySelectorAll('.quiz-option-btn').forEach(b => b.disabled = true);
 
             if (isCorrect) {
                 btn.classList.add('option-correct');
+                if (currentProgress < myLimit) saveCorrectResult();
             } else {
                 btn.classList.add('option-wrong');
                 document.querySelectorAll('.quiz-option-btn').forEach(b => {
@@ -322,18 +318,20 @@
                 });
             }
 
-            if (isCorrect && currentProgress < myLimit) saveCorrectResult();
             setTimeout(nextManual, 1200);
         }
 
+        // 4. Поворот картки (Mode 1)
         function flipCard() {
             const cardEl = document.getElementById('mainCard');
+            if (cardEl.classList.contains('is-flipped')) return;
+
             const flashcards = session.flashcards || session.Flashcards;
             const cardId = flashcards[currentIndex].id || flashcards[currentIndex].Id;
 
-            if (cardEl.classList.contains('is-flipped')) return;
             cardEl.classList.add('is-flipped');
 
+            // Зараховуємо перегляд
             cardViews[cardId] = (cardViews[cardId] || 0) + 1;
             updateViewDots(cardId);
             startTimer();
@@ -345,16 +343,19 @@
             document.getElementById('dot-2').classList.toggle('active', views >= 2);
         }
 
+        // 5. Таймер авто-повороту назад
         function startTimer() {
             const timerBox = document.getElementById('timerBox');
             const timerBar = document.getElementById('timerBar');
             timerBox.style.visibility = 'visible';
             timerBar.style.transition = 'none';
             timerBar.style.width = '100%';
+
             setTimeout(() => {
                 timerBar.style.transition = 'width 5s linear';
                 timerBar.style.width = '0%';
             }, 50);
+
             autoFlipTimeout = setTimeout(() => {
                 document.getElementById('mainCard').classList.remove('is-flipped');
                 timerBox.style.visibility = 'hidden';
@@ -363,18 +364,26 @@
 
         function stopTimer() {
             clearTimeout(autoFlipTimeout);
-            const timerBox = document.getElementById('timerBox');
-            if(timerBox) timerBox.style.visibility = 'hidden';
+            if(document.getElementById('timerBox'))
+                document.getElementById('timerBox').style.visibility = 'hidden';
         }
 
+        // 6. Збереження результату в локальний масив
         function saveCorrectResult() {
             const flashcards = session.flashcards || session.Flashcards;
             const cardId = flashcards[currentIndex].id || flashcards[currentIndex].Id;
+
             if (!practiceResults.results.some(r => r.flashcardId === cardId)) {
-                practiceResults.results.push({ flashcardId: cardId, isCorrect: true, responseTimeMs: 0, reviewType: mode });
+                practiceResults.results.push({
+                    flashcardId: cardId,
+                    isCorrect: true,
+                    responseTimeMs: 0,
+                    reviewType: mode
+                });
             }
         }
 
+        // 7. Навігація
         function nextManual() {
             const flashcards = session.flashcards || session.Flashcards;
             if (currentIndex < flashcards.length - 1) {
@@ -392,36 +401,53 @@
             }
         }
 
+        // 8. Завершення сесії та відправка на сервер
         async function finishSession() {
             const flashcards = session.flashcards || session.Flashcards;
 
+            // Якщо режим 1, збираємо результати на основі переглядів перед відправкою
             if (mode === 1) {
                 flashcards.forEach(card => {
                     const id = card.id || card.Id;
-                    if (cardViews[id] >= 2 && currentProgress < myLimit) {
+                    if (cardViews[id] >= 1 && currentProgress < myLimit) {
                         if (!practiceResults.results.some(r => r.flashcardId === id)) {
-                            practiceResults.results.push({ flashcardId: id, isCorrect: true, responseTimeMs: 0, reviewType: 1 });
+                            practiceResults.results.push({
+                                flashcardId: id,
+                                isCorrect: true,
+                                responseTimeMs: 0,
+                                reviewType: 1
+                            });
                         }
                     }
                 });
             }
 
+            // Якщо результатів немає (нічого не клікнули), просто виходимо
             if (practiceResults.results.length === 0) {
-                window.location.href = `/Test/Map/${session.setId || session.SetId}`;
+                window.location.href = `/Test/Map/${setId}`;
                 return;
             }
 
             try {
-                const res = await fetch('/Test/SaveResults', {
+                const response = await fetch('/Test/SaveResults', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(practiceResults)
                 });
-                const data = await res.json();
-                window.location.href = data.redirectUrl;
-            } catch (e) { window.location.href = '/Main'; }
+
+                if (response.ok) {
+                    const data = await response.json();
+                    window.location.href = data.redirectUrl;
+                } else {
+                    window.location.href = `/Test/Map/${setId}`;
+                }
+            } catch (error) {
+                console.error("Error saving results:", error);
+                window.location.href = `/Test/Map/${setId}`;
+            }
         }
 
+        // Запуск першого рендеру
         render();
     </script>
 }

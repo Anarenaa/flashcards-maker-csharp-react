@@ -52,12 +52,19 @@ namespace App.Controllers
         {
             await practiceService.SavePracticeResultsAsync(UserId, results);
 
-            // Знаходимо setId, щоб повернутися на карту
-            var firstCardId = results.Results.FirstOrDefault()?.FlashcardId ?? 0;
-            var card = await unitOfWork.Flashcards.GetByIdAsync(firstCardId);
-            int setId = card?.SetId ?? 0;
+            int setId = 0;
+            if (results.Results != null && results.Results.Any())
+            {
+                var firstCardId = results.Results.First().FlashcardId;
+                var card = await unitOfWork.Flashcards.GetByIdAsync(firstCardId);
+                setId = card?.SetId ?? 0;
+            }
 
-            // ПЕРЕНАПРАВЛЕННЯ НА КАРТУ
+            if (setId == 0)
+            {
+                return Ok(new { redirectUrl = "/Main" });
+            }
+
             return Ok(new { redirectUrl = $"/Test/Map/{setId}" });
         }
     }
