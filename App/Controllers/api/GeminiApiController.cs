@@ -67,11 +67,10 @@ namespace App.Controllers.api
 
             if (cards != null && cards.Any())
             {
-                foreach (var card in cards)
+                await _flashcardService.CreateFlashcardsRangeAsync(createdSet.Id, cards);
                 {
                     await _flashcardService.CreateFlashcardAsync(createdSet.Id, card);
                 }
-            }
 
             var resultDto = new SetDTO
             {
