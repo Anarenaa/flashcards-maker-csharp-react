@@ -68,15 +68,24 @@ namespace App.Controllers.api
             if (cards != null && cards.Any())
             {
                 await _flashcardService.CreateFlashcardsRangeAsync(createdSet.Id, cards);
-                {
-                    await _flashcardService.CreateFlashcardAsync(createdSet.Id, card);
-                }
+            }
 
-            var resultDto = new SetDTO
+            var resultDto = new SetDetailDTO
             {
                 Id = createdSet.Id,
                 Name = createdSet.Name,
-                Description = createdSet.Description
+                Description = createdSet.Description,
+                IsPublic = createdSet.IsPublic,
+                UserName = createdSet.User.UserName,
+                FlashcardsCount = cards.Count,
+                Flashcards = createdSet.Flashcards.Select(f => new FlashcardDTO
+                {
+                    Id = f.Id,
+                    Term = f.Term,
+                    Definition = f.Definition
+                }).ToList(),
+                CreatedAt = createdSet.CreatedAt,
+                LastUpdatedAt = createdSet.UpdatedAt
             };
             return Ok(resultDto);
         }
