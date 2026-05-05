@@ -47,7 +47,8 @@ builder.Services.AddMemoryCache();
 static bool IsTransient(HttpResponseMessage? response) =>
     response is null ||
     (int)response.StatusCode >= 500 ||           // 500, 502, 503, 504 — серверні помилки
-    response.StatusCode == System.Net.HttpStatusCode.RequestTimeout; // 408
+    response.StatusCode == System.Net.HttpStatusCode.RequestTimeout || // 408
+    response.StatusCode == System.Net.HttpStatusCode.TooManyRequests; //429
 
 var geminiSection = builder.Configuration.GetRequiredSection("Gemini");
 var geminiOpts = geminiSection.Get<ApiClientOptions>()!;
@@ -90,8 +91,87 @@ httpClientBuilder.AddResilienceHandler("gemini-pipeline", pipelineBuilder =>
 });
 
 httpClientBuilder.AddTypedClient<IGeminiService>((httpClient, sp) =>
-    new GeminiService(httpClient, geminiApiKey));
+    new GeminiService(httpClient, geminiApiKey, sp.GetRequiredService<ILogger<GeminiService>>()));
 
+// --- НАЛАШТУВАННЯ WIKIPEDIA ---
+var wikiConfig = builder.Configuration.GetSection("Wikipedia");
+var wikiUserAgent = wikiConfig["UserAgent"];
+var wikiTimeout = double.Parse(wikiConfig["TimeoutSeconds"]);
+var wikiMaxRetries = int.Parse(wikiConfig["MaxRetryAttempts"]);
+var wikiBreakDuration = double.Parse(wikiConfig["BreakDurationSeconds"]);
+
+var wikiBuilder = builder.Services.AddHttpClient<IWikipediaService, WikipediaService>(client =>
+{
+    client.DefaultRequestHeaders.Add("User-Agent", wikiUserAgent);
+    // Загальний таймаут на рівні клієнта (завжди трохи більший за внутрішній таймаут Polly)
+    client.Timeout = TimeSpan.FromSeconds(wikiTimeout * 2);
+});
+
+wikiBuilder.AddResilienceHandler("wikipedia-pipeline", pipelineBuilder =>
+{
+    pipelineBuilder.AddRetry(new HttpRetryStrategyOptions
+    {
+        MaxRetryAttempts = wikiMaxRetries,
+        Delay = TimeSpan.FromSeconds(1),
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        ShouldHandle = args => ValueTask.FromResult(
+            args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
+    });
+
+    pipelineBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        MinimumThroughput = 5,
+        FailureRatio = 0.5,
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        BreakDuration = TimeSpan.FromSeconds(wikiBreakDuration),
+        ShouldHandle = args => ValueTask.FromResult(
+            args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
+    });
+
+    pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(wikiTimeout));
+});
+
+
+// --- НАЛАШТУВАННЯ MYMEMORY ---
+var myMemoryConfig = builder.Configuration.GetSection("MyMemory");
+var myMemoryBaseUrl = myMemoryConfig["BaseUrl"];
+var myMemoryTimeout = double.Parse(myMemoryConfig["TimeoutSeconds"]);
+var myMemoryMaxRetries = int.Parse(myMemoryConfig["MaxRetryAttempts"]);
+var myMemoryBreakDuration = double.Parse(myMemoryConfig["BreakDurationSeconds"]);
+
+var myMemoryBuilder = builder.Services.AddHttpClient<IDictionaryService, DictionaryService>(client =>
+{
+    client.BaseAddress = new Uri(myMemoryBaseUrl);
+    client.Timeout = TimeSpan.FromSeconds(myMemoryTimeout * 2);
+});
+
+myMemoryBuilder.AddResilienceHandler("mymemory-pipeline", pipelineBuilder =>
+{
+    pipelineBuilder.AddRetry(new HttpRetryStrategyOptions
+    {
+        MaxRetryAttempts = myMemoryMaxRetries,
+        Delay = TimeSpan.FromSeconds(1),
+        BackoffType = DelayBackoffType.Exponential,
+        UseJitter = true,
+        ShouldHandle = args => ValueTask.FromResult(
+            args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
+    });
+
+    pipelineBuilder.AddCircuitBreaker(new HttpCircuitBreakerStrategyOptions
+    {
+        MinimumThroughput = 5,
+        FailureRatio = 0.5,
+        SamplingDuration = TimeSpan.FromSeconds(30),
+        BreakDuration = TimeSpan.FromSeconds(myMemoryBreakDuration),
+        ShouldHandle = args => ValueTask.FromResult(
+            args.Outcome.Exception is not null || IsTransient(args.Outcome.Result))
+    });
+
+    pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(myMemoryTimeout));
+});
+
+// ─── АУТЕНТИФІКАЦІЯ І АВТОРИЗАЦІЯ ─────────────────────────────────────────────
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -166,7 +246,7 @@ builder.Services.AddAuthentication(options =>
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
 });
 
-
+// ─── РЕЄСТРАЦІЯ СЕРВІСІВ І РЕПОЗИТОРІЇВ ─────────────────────────────────────
 builder.Services.Configure<EmailSettingsDTO>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -184,6 +264,10 @@ builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddTransient<EmailService>();
 builder.Services.AddTransient<IEmailService, EmailService>();
+
+builder.Services.AddScoped<IWikipediaService, WikipediaService>();
+builder.Services.AddScoped<IDictionaryService, DictionaryService>();
+builder.Services.AddScoped<IHintService, HintService>();
 
 var app = builder.Build();
 

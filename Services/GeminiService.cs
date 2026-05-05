@@ -3,6 +3,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Core.DTOs;
+using Core.Models;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
 using Services.Interfaces;
@@ -13,11 +14,13 @@ namespace Services
     {
         private readonly HttpClient _client;
         private readonly string _apiKey;
+        private readonly ILogger<GeminiService> _logger;
 
-        public GeminiService(HttpClient client, string apiKey)
+        public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger)
         {
             _client = client;
             _apiKey = apiKey;
+            _logger = logger;
         }
         public async Task<List<FlashcardDTO>> GenerateCardsAsync(string prompt, byte[]? imageBytes = null, string? mimeType = null)
         {
@@ -70,6 +73,45 @@ namespace Services
 
             return JsonSerializer.Deserialize<List<FlashcardDTO>>(rawJson,
                 new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<FlashcardDTO>();
+        }
+        public async Task<string?> GenerateSimpleHintAsync(string term, string lang, SetType type)
+        {
+            var url = $"interactions?key={_apiKey}";
+
+            string prompt = type == SetType.Language
+                ? $"Translate the word '{term}' to language with ISO code '{lang}'. Return ONLY the translated word/phrase, no extra text, no explanations, no quotes."
+                : $"Give a one-sentence definition of the term '{term}' in language with ISO code '{lang}'. Max 15 words. Return ONLY the definition text, no extra words.";
+
+            var requestBody = new
+            {
+                model = "gemini-3-flash-preview",
+                input = prompt
+            };
+
+            try
+            {
+                var response = await _client.PostAsJsonAsync(url, requestBody);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Gemini API returned status code: {StatusCode} during simple hint generation for '{Term}'", response.StatusCode, term);
+                    return null;
+                }
+
+                var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
+                var rawText = result?.Outputs?.LastOrDefault()?.Text;
+
+                if (string.IsNullOrWhiteSpace(rawText)) return null;
+
+                var cleanText = rawText.Trim().Trim('"', '\'', '`', '\n', '\r');
+
+                return string.IsNullOrWhiteSpace(cleanText) ? null : cleanText;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while generating Gemini hint for term: '{Term}'", term);
+                return null;
+            }
         }
     }
     public class GeminiResponse
