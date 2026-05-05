@@ -2,8 +2,14 @@
 
 namespace Core.Models
 {
+    public enum SetType
+    {
+        Language,
+        Subject
+    }
     public class Set : BaseModel
     {
+        public SetType Type { get; set; } = SetType.Language;
 
         [Required]
         [StringLength(100, MinimumLength = 2)]

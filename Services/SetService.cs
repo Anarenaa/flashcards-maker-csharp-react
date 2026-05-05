@@ -30,6 +30,7 @@ namespace Services
                 Id = s.Id,
                 Name = s.Name,
                 Description = s.Description,
+                Type = s.Type,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
@@ -55,6 +56,7 @@ namespace Services
                 Id = s.Id,
                 Name = s.Name,
                 Description = s.Description,
+                Type = s.Type,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 IsPublic = s.IsPublic,
                 CreatedAt = s.CreatedAt,
@@ -76,6 +78,7 @@ namespace Services
                 Id = s.Id,
                 Name = s.Name,
                 Description = s.Description,
+                Type = s.Type,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
@@ -95,6 +98,7 @@ namespace Services
                 Id = set.Id,
                 Name = set.Name,
                 Description = set.Description,
+                Type = set.Type,
                 FlashcardsCount = set.Flashcards.Count(),
                 IsPublic = set.IsPublic,
                 CreatedAt = set.CreatedAt,
@@ -123,6 +127,7 @@ namespace Services
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
+                Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
                 UserId = userId
             };
@@ -135,6 +140,7 @@ namespace Services
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
+                Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
                 UserId = userId
             };
@@ -152,6 +158,7 @@ namespace Services
 
             set.Name = setDto.Name;
             set.Description = setDto.Description;
+            set.Type = setDto.Type;
             set.IsPublic = setDto.IsPublic;
             set.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
