@@ -6,7 +6,38 @@
 }
 
 <style>
-    /* --- ОСНОВНІ СТИЛІ --- */
+   
+    .practice-sticky-container {
+        position: fixed;
+        top: 30px;
+        right: 40px;
+        z-index: 9999; 
+    }
+
+    .btn-practice-float {
+        background: var(--accent-color);
+        color: #141B25 !important;
+        padding: 14px 28px;
+        border-radius: 50px;
+        text-decoration: none;
+        font-weight: 800;
+        font-size: 0.9rem;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        border: 2px solid rgba(255, 255, 255, 0.2);
+    }
+
+        .btn-practice-float:hover {
+            transform: scale(1.08) translateY(-3px);
+            background: #fff;
+            box-shadow: 0 15px 35px rgba(240, 255, 255, 0.4);
+        }
+
     .back-link {
         color: var(--accent-color);
         cursor: pointer;
@@ -33,12 +64,11 @@
         gap: 20px;
     }
 
-    /* --- КАТЕГОРІЇ (ТЕГИ) --- */
     .categories-list {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 15px;
         padding: 0;
         list-style: none;
     }
@@ -71,7 +101,6 @@
             color: #ff4d4d;
         }
 
-    /* --- СІТКА КАРТОК --- */
     .cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -116,7 +145,6 @@
         line-height: 1.4;
     }
 
-    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
     .dots {
         position: absolute;
         top: 15px;
@@ -160,7 +188,6 @@
                 background-color: #6B8789;
             }
 
-    /* --- МОДАЛКИ --- */
     .modal-overlay {
         position: fixed;
         top: 0;
@@ -171,7 +198,7 @@
         display: none;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 10000;
     }
 
     .modal {
@@ -219,15 +246,38 @@
         .btn-main:hover {
             background: #7ba1a3;
         }
+
+    @@media (max-width: 950px) {
+        .practice-sticky-container {
+            top: auto;
+            bottom: 30px;
+            right: 20px;
+        }
+
+        .btn-practice-float {
+            padding: 12px 20px;
+            font-size: 0.8rem;
+        }
+    }
 </style>
+
+<!-- ПЛАВАЮЧА КНОПКА (Додана на початок) -->
+<div class="practice-sticky-container">
+    <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice-float">
+        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
+            <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
+        </svg>
+        ПРАКТИКА
+    </a>
+</div>
 
 <div class="content-area">
     <a asp-controller="MySets" asp-action="Index" class="back-link">← Назад до моїх сетів</a>
 
     <div class="header-row">
         <div>
-            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.8rem;">@Model.Name</h2>
-            <p style="opacity: 0.6; margin: 5px 0 0 0;">@Model.Description</p>
+            <h2 style="color: var(--accent-color); margin: 0; font-size: 2.2rem;">@Model.Name</h2>
+            <p style="opacity: 0.6; margin: 8px 0 0 0; font-size: 1.1rem;">@Model.Description</p>
 
             <ul class="categories-list">
                 @foreach (var cat in Model.Categories)
@@ -237,13 +287,13 @@
                         <form asp-controller="Details" asp-action="RemoveCategory" method="post" style="display:inline;">
                             <input type="hidden" name="setId" value="@Model.Id" />
                             <input type="hidden" name="categoryId" value="@cat.Id" />
-                            <button type="submit" class="remove-cat-btn" title="Прибрати категорію з цього сету">×</button>
+                            <button type="submit" class="remove-cat-btn" title="Прибрати">×</button>
                         </form>
                     </li>
                 }
             </ul>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 12px;">
             <button class="btn-main" onclick="openCreateCardModal()">+ Картка</button>
             <button class="btn-main" onclick="openCategoryModal()">+ Категорія</button>
         </div>
@@ -271,7 +321,7 @@
     </div>
 </div>
 
-<!-- МОДАЛКА КАРТКИ -->
+<!-- МОДАЛКИ (Карток та Категорій) -->
 <div class="modal-overlay" id="cardModal">
     <div class="modal">
         <h2 id="modalTitle" style="color: var(--accent-color); margin: 0;">Нова картка</h2>
@@ -301,27 +351,20 @@
         <form asp-controller="Details" asp-action="SaveCategory" method="post">
             <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Додати категорію</h2>
             <input type="hidden" name="setId" value="@Model.Id" />
-
-            <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px;">
-                Оберіть тематичну категорію для вашого сету з офіційного списку:
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 15px;">
-                <select name="selectedCategoryId" required>
-                    <option value="">-- Оберіть категорію --</option>
-                    @if (ViewBag.AllCategories != null)
+            <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px;">Оберіть категорію зі списку:</p>
+            <select name="selectedCategoryId" required>
+                <option value="">-- Оберіть --</option>
+                @if (ViewBag.AllCategories != null)
+                {
+                    @foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
                     {
-                        @foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
-                        {
-                            <option value="@cat.Id">@cat.Name</option>
-                        }
+                        <option value="@cat.Id">@cat.Name</option>
                     }
-                </select>
-            </div>
-
+                }
+            </select>
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
                 <button type="button" onclick="closeCategoryModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                <button type="submit" class="btn-main">Додати до сету</button>
+                <button type="submit" class="btn-main">Додати</button>
             </div>
         </form>
     </div>
@@ -356,9 +399,7 @@
         function toggleMenu(e) {
             e.stopPropagation();
             const dropdown = e.currentTarget.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(d => {
-                if (d !== dropdown) d.style.display = 'none';
-            });
+            document.querySelectorAll('.dropdown').forEach(d => { if (d !== dropdown) d.style.display = 'none'; });
             dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
         }
 

@@ -220,18 +220,18 @@
             else
             {
                 <a asp-controller="Main" asp-action="Index"
-                   class="nav-btn @(controller == "Main" ? "active" : "")">Головна</a>
-
-                <a asp-controller="MySets" asp-action="Index"
-                   class="nav-btn @(controller == "MySets" || controller == "Details" ? "active" : "")">Мої сети</a>
-
-                <a asp-controller="Collections" asp-action="Index"
+                   class="nav-btn @(controller == "Main" || controller == "DetailsInMain" ? "active" : "")">Головна</a>
+               
+                   <a asp-controller="MySets" asp-action="Index"
+                   class="nav-btn @(controller == "MySets" || controller == "Details" || controller == "Test" ? "active" : "")">Мої сети</a>
+               
+                   <a asp-controller="Collections" asp-action="Index"
                    class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
-
-                <a asp-controller="MyProfile" asp-action="Index"
+               
+                   <a asp-controller="MyProfile" asp-action="Index"
                    class="nav-btn @(controller == "MyProfile" ? "active" : "")">Профіль</a>
-
-                <a asp-controller="Settings" asp-action="Index"
+               
+                   <a asp-controller="Settings" asp-action="Index"
                    class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
             }
 

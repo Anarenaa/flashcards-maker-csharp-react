@@ -1,7 +1,6 @@
-using System.Text;
 using Core.Context;
-using Core.Models;
 using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
@@ -12,6 +11,7 @@ using Repositories.Interfaces;
 using Services;
 using Services.Interfaces;
 using Services.Practice;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -108,7 +108,11 @@ builder.Services.AddScoped<FlashcardService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
 builder.Services.AddScoped<ReportService>();
-
+builder.Services.AddScoped<IPracticeRepository, PracticeRepository>();
+builder.Services.AddScoped<IAnswerService, AnswerService>();
+builder.Services.AddScoped<IProgressService, ProgressService>();
+builder.Services.AddScoped<ISessionService, SessionService>();
+builder.Services.AddScoped<IPracticeService, PracticeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<UserService>();
 builder.Services.AddScoped<PracticeService>();

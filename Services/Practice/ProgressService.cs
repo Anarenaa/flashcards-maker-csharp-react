@@ -1,6 +1,5 @@
 using Core.DTOs.Practice;
 using Core.Models;
-using Microsoft.AspNetCore.Identity;
 using Repositories.Interfaces;
 
 namespace Services.Practice
@@ -8,12 +7,10 @@ namespace Services.Practice
     public class ProgressService : IProgressService
     {
         private readonly IUnitOfWork _unitOfWork;
-        private UserManager<User> _userManager;
 
-        public ProgressService(IUnitOfWork unitOfWork, UserManager<User> userManager)
+        public ProgressService(IUnitOfWork unitOfWork)
         {
             _unitOfWork = unitOfWork;
-            _userManager = userManager;
         }
 
         public async Task<SetProgressDTO> GetSetProgressAsync(int setId, int userId)
@@ -69,9 +66,9 @@ namespace Services.Practice
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {
             // Отримуємо інформацію про користувача
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
-                return new UserProgressDTO { UserId = userId };
+            //var user = await _unitOfWork.Users.GetByIdAsync(userId);
+            //if (user == null)
+            //    return new UserProgressDTO { UserId = userId };
 
             // Отримуємо всі прогреси користувача (з усіх сетів, які він практикував)
             var allCardProgresses = await _unitOfWork.Practice.GetAllUserProgressAsync(userId);
