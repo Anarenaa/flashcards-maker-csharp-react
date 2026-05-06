@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.DTOs.Practice;
 using Core.Models;
 
 namespace Services.Interfaces
@@ -7,5 +8,6 @@ namespace Services.Interfaces
     {
         Task<List<FlashcardDTO>> GenerateCardsAsync(string prompt, byte[]? imageBytes = null, string? mimeType = null);
         Task<string?> GenerateSimpleHintAsync(string term, string targetLang, SetType type);
+        Task<ContextGameDto> GenerateContextSentenceAsync(string term, string definition);
     }
 }

@@ -4,6 +4,6 @@ namespace Services.Practice
 {
     public interface ISessionService
     {
-        Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode);
+        Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode, int currentIndex = 0);
     }
 }

@@ -1,10 +1,9 @@
-﻿using System.Net.Http;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using Core.DTOs;
+using Core.DTOs.Practice;
 using Core.Models;
-using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
 using Services.Interfaces;
 
@@ -111,6 +110,50 @@ namespace Services
             {
                 _logger.LogError(ex, "Error occurred while generating Gemini hint for term: '{Term}'", term);
                 return null;
+            }
+        }
+        public async Task<ContextGameDto> GenerateContextSentenceAsync(string term, string definition)
+        {
+            string shorterTerm = term.Length < definition.Length ? term : definition;
+            string longerDefinition = term.Length >= definition.Length ? term : definition;
+            
+            var url = $"interactions?key={_apiKey}";
+            string prompt = $"Generate a single short-medium easy sentence where the word '{shorterTerm}' (which means '{longerDefinition}') is replaced with '[...]'. " +
+                    $"The sentence must be contextually clear so that '{shorterTerm}' is the only logical answer. " +
+                    $"Return ONLY the sentence text containing '[...]', with no extra explanations, quotes, or formatting.";
+            var requestBody = new
+            {
+                model = "gemini-3-flash-preview",
+                input = prompt
+            };
+            try
+            {
+                var response = await _client.PostAsJsonAsync(url, requestBody);
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Gemini API returned status code: {StatusCode} during context sentence generation for '{Term}'", response.StatusCode, term);
+                    return new ContextGameDto { Sentence = null };
+                }
+                var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
+                var rawText = result?.Outputs?.LastOrDefault()?.Text;
+                
+                var cleanText = rawText.Trim().Trim('"', '\'', '`', '\n', '\r');
+                if (string.IsNullOrWhiteSpace(cleanText) || !cleanText.Contains("[...]"))
+                {
+                    _logger.LogWarning("Gemini API returned an invalid sentence for term: '{Term}'. Raw response: '{RawText}'", term, rawText);
+                    return new ContextGameDto { Sentence = null };
+                }
+
+                return new ContextGameDto 
+                {
+                    Sentence = cleanText,
+                    CorrectAnswer = shorterTerm
+                };
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while generating Gemini context sentence for term: '{Term}'", term);
+                return new ContextGameDto { Sentence = null, CorrectAnswer = shorterTerm };
             }
         }
     }

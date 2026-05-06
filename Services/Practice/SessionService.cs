@@ -1,16 +1,25 @@
 using Core.DTOs.Practice;
 using Core.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Repositories.Interfaces;
+using Services.Interfaces;
 using Services.Practice;
 
 public class SessionService : ISessionService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IGeminiService _geminiService;
+    private readonly IMemoryCache _cache;
     private readonly Random _random = new();
 
-    public SessionService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
+    public SessionService(IUnitOfWork unitOfWork, IGeminiService geminiService, IMemoryCache cache)
+    {
+        _unitOfWork = unitOfWork;
+        _geminiService = geminiService;
+        _cache = cache;
+    }
 
-    public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode)
+    public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode, int currentIndex = 0)
     {
         var cardProgresses = await _unitOfWork.Practice.GetNewBatchForPracticeAsync(setId, userId, 20);
 
@@ -40,7 +49,7 @@ public class SessionService : ISessionService
             PracticeActivityType.Quiz => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Quiz, needsDistractors: true),
             PracticeActivityType.Matching => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Matching, useBatching: true),
             PracticeActivityType.Writing => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Writing),
-            PracticeActivityType.Context => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Context),
+            PracticeActivityType.Context => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Context, currentIndex: currentIndex),
             PracticeActivityType.Mixed => await GetMixedSessionAsync(setId, cardProgresses),
             _ => throw new ArgumentException($"Unsupported activity type: {sessionMode}")
         };
@@ -52,7 +61,8 @@ public class SessionService : ISessionService
         PracticeActivityType type,
         bool needsDistractors = false,
         bool useBatching = false,
-        bool takeOne = false)
+        bool takeOne = false,
+        int currentIndex = 0)
     {
         // Вибираємо картки
         var selected = takeOne ? source.Take(1).ToList() : source;
@@ -82,6 +92,32 @@ public class SessionService : ISessionService
             }
 
             dto.Flashcards.Add(card);
+        }
+
+        if (type == PracticeActivityType.Context && currentIndex < dto.Flashcards.Count)
+        {
+            var currentCard = dto.Flashcards[currentIndex];
+            string cacheKey = $"context_card_{currentCard.Id}";
+
+            if (!_cache.TryGetValue(cacheKey, out ContextGameDto cachedGame))
+            {
+                cachedGame = await _geminiService.GenerateContextSentenceAsync(currentCard.Term, currentCard.Definition);
+
+                if (cachedGame != null && !string.IsNullOrEmpty(cachedGame.Sentence))
+                {
+                    var cacheOptions = new MemoryCacheEntryOptions()
+                        .SetAbsoluteExpiration(TimeSpan.FromDays(1));
+
+                    _cache.Set(cacheKey, cachedGame, cacheOptions);
+                }
+            }
+
+            if (cachedGame != null && !string.IsNullOrEmpty(cachedGame.Sentence))
+            {
+                currentCard.ContextSentence = cachedGame.Sentence;
+                currentCard.ContextHint = (cachedGame.CorrectAnswer == currentCard.Term) ? currentCard.Definition : currentCard.Term;
+                currentCard.Term = cachedGame.CorrectAnswer;
+            }
         }
         return dto;
     }

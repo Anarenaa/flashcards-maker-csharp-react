@@ -27,11 +27,11 @@ namespace App.Controllers
         }
 
         [HttpGet("Index/{setId}/{mode}")]
-        public async Task<IActionResult> Index(int setId, int mode)
+        public async Task<IActionResult> Index(int setId, int mode, int currentIndex = 0)
         {
             var activityType = (PracticeActivityType)mode;
 
-            var session = await practiceService.GetPracticeSessionAsync(setId, UserId, activityType);
+            var session = await practiceService.GetPracticeSessionAsync(setId, UserId, activityType, currentIndex);
 
             var progress = await practiceService.GetSetProgressAsync(setId, UserId);
 
