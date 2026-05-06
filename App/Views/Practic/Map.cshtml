@@ -11,11 +11,11 @@
 
     bool IsUnlocked(int mode) => mode switch
     {
-        1 => true,                          // Завжди відкриті флеш-картки
-        2 => Model.OverallProgress >= 0.02f, // Відкрити після першого проходження карток (3% > 2%)
-        3 => Model.OverallProgress >= 0.07f, // Відкрити після Review(3%) + Quiz(5%) = 8%
-        4 => Model.OverallProgress >= 0.15f, // Відкрити після проходження З'єднання
-        5 => Model.OverallProgress >= 0.25f, // Відкрити далі
+        1 => true,                          // Завжди відкриті
+        2 => Model.OverallProgress >= 0.02f, // Відкрити після 1-го проходження Карток (стало 3%)
+        3 => Model.OverallProgress >= 0.07f, // Відкрити після 1-го проходження Вікторини (3% + 5% = 8%)
+        4 => Model.OverallProgress >= 0.15f, // Відкрити після З'єднання (8% + 8% = 16%)
+        5 => Model.OverallProgress >= 0.25f, // Відкрити після Письма
         6 => Model.OverallProgress >= 0.40f, // Mixed режим
         _ => false
     };
