@@ -2,7 +2,6 @@
 @model PracticeSessionDTO
 
 <style>
-    /* БАЗОВІ СТИЛІ */
     .practice-page {
         max-width: 800px;
         margin: 40px auto;
@@ -75,7 +74,6 @@
         word-break: break-word;
     }
 
-    /* З'ЄДНАННЯ (MATCHING) */
     .matching-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -116,7 +114,6 @@
             border-color: #dc3545 !important;
         }
 
-    /* ПИСЬМО ТА КОНТЕКСТ (INPUT MODES) */
     .input-mode-container {
         background: var(--btn-bg);
         padding: 40px;
@@ -167,13 +164,6 @@
             text-decoration: underline;
         }
 
-    .context-hint {
-        font-style: italic;
-        opacity: 0.6;
-        margin-top: 10px;
-        font-size: 1rem;
-    }
-
     .feedback-zone {
         margin-top: 20px;
         font-size: 1.2rem;
@@ -184,7 +174,6 @@
             display: block;
         }
 
-    /* ЗАГАЛЬНЕ */
     .quiz-container {
         display: grid;
         gap: 15px;
@@ -237,14 +226,29 @@
         .btn-circle:disabled {
             opacity: 0.1;
         }
+
+    .progress-container {
+        width: 100%;
+        height: 6px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 3px;
+        margin-bottom: 20px;
+        overflow: hidden;
+    }
+
+    .p-bar-fill {
+        height: 100%;
+        background: var(--accent-color);
+        width: 0%;
+        transition: 0.5s;
+    }
 </style>
 
 <div class="practice-page">
     <div class="progress-container"><div id="p-bar" class="p-bar-fill"></div></div>
     <div id="card-counter" style="opacity: 0.5; margin-bottom: 10px;">Завантаження...</div>
 
-    <!-- Mode 1 & 2: Standard -->
-    <div id="standardZone">
+    <div id="standardZone" style="display:none">
         <div class="timer-container" id="timerBox"><div class="timer-bar" id="timerBar"></div></div>
         <div class="flashcard" id="mainCard">
             <div class="card-face card-front">
@@ -256,17 +260,12 @@
         </div>
     </div>
 
-    <!-- Mode 3: Matching -->
     <div id="matchingZone" class="matching-container" style="display: none;"></div>
 
-    <!-- Mode 4 & 5: Writing & Context -->
     <div id="inputZone" class="input-mode-container" style="display: none;">
         <div id="contextSentence" class="sentence-display" style="display: none;"></div>
         <div id="inputPrompt" class="term-text"></div>
-        <div id="contextHint" class="context-hint"></div>
-
         <input type="text" id="mainInput" class="mode-input" placeholder="Ваша відповідь..." autocomplete="off">
-
         <div id="inputFeedback" class="feedback-zone">
             <div style="opacity: 0.6; font-size: 0.9rem;">Правильна відповідь:</div>
             <div id="correctValue" style="color: var(--accent-color); font-weight: 700;"></div>
@@ -287,6 +286,13 @@
         const mode = parseInt("@(ViewBag.Mode ?? 1)");
         const setId = sessionData.setId || sessionData.SetId;
 
+        let currentIndex = 0;
+        let cardViews = {};
+        let practiceResults = { results: [], isTrainingMode: false };
+        let selectedTerm = null;
+        let selectedDef = null;
+        let matchedCount = 0;
+
         function shuffleArray(array) {
             for (let i = array.length - 1; i > 0; i--) {
                 const j = Math.floor(Math.random() * (i + 1));
@@ -296,16 +302,12 @@
         }
         if (mode >= 2) flashcards = shuffleArray([...flashcards]);
 
-        let currentIndex = 0;
-        let cardViews = {};
-        let practiceResults = { results: [], isTrainingMode: false };
-
         function getActiveMode(prog) {
             if (prog < 0.02) return 1;
             if (prog < 0.07) return 2;
             if (prog < 0.15) return 3;
             if (prog < 0.25) return 4;
-            if (prog < 0.40) return 5; // Пороговий режим для Контексту
+            if (prog < 0.40) return 5;
             return 6;
         }
         const isProgressAllowed = (mode === getActiveMode(currentProgress));
@@ -331,98 +333,69 @@
             }
         }
 
-        // --- РЕЖИМИ ВВОДУ (4 та 5) ---
-        function renderInputMode() {
-            const card = flashcards[currentIndex];
-            const input = document.getElementById('mainInput');
-            const sentenceBox = document.getElementById('contextSentence');
-            const promptBox = document.getElementById('inputPrompt');
-            const hintBox = document.getElementById('contextHint');
-            const feedback = document.getElementById('inputFeedback');
-
-            input.value = ''; input.className = 'mode-input'; input.disabled = false;
-            feedback.classList.remove('visible');
-
-            if (mode === 5) {
-                // РЕЖИМ КОНТЕКСТУ
-                sentenceBox.style.display = 'block';
-                promptBox.style.display = 'none';
-                // Виводимо речення з пропуском або дефолтне, якщо ШІ не згенерував
-                sentenceBox.innerHTML = (card.contextSentence || card.ContextSentence || "_____ (контекст не знайдено)").replace("_____", "<b>_____</b>");
-                hintBox.innerText = card.contextHint || card.ContextHint || card.definition || card.Definition;
-            } else {
-                // РЕЖИМ ПИСЬМА
-                sentenceBox.style.display = 'none';
-                promptBox.style.display = 'block';
-                promptBox.innerText = card.term || card.Term;
-                hintBox.innerText = '';
-            }
-
-            document.getElementById('card-counter').innerText = `Картка ${currentIndex + 1} із ${flashcards.length}`;
-            document.getElementById('p-bar').style.width = ((currentIndex + 1) / flashcards.length * 100) + '%';
-            document.getElementById('prevBtn').disabled = currentIndex === 0;
-
-            input.focus();
-            input.onkeypress = (e) => { if(e.key === 'Enter') handleInputCheck(); };
-        }
-
-        function handleInputCheck() {
-            const input = document.getElementById('mainInput');
-            if (input.disabled) return;
-            const card = flashcards[currentIndex];
-
-            // Відповідь у контексті — це зазвичай сам Термін (якщо питаємо слово для речення)
-            // Або Визначення (якщо письмо). Backend Service зазвичай перевіряє Term.
-            const userAnswer = input.value.trim().toLowerCase();
-            const correctAnswer = (mode === 5 ? (card.term || card.Term) : (card.definition || card.Definition)).trim().toLowerCase();
-
-            input.disabled = true;
-            if (userAnswer === correctAnswer) {
-                input.classList.add('correct');
-                if (isProgressAllowed) saveCorrectResult();
-                setTimeout(nextManual, 1000);
-            } else {
-                input.classList.add('wrong');
-                document.getElementById('correctValue').innerText = (mode === 5 ? card.term : card.definition);
-                document.getElementById('inputFeedback').classList.add('visible');
-                setTimeout(nextManual, 3000);
-            }
-        }
-
-        // --- РЕЖИМ З'ЄДНАННЯ (3) ---
-        let selectedTerm = null, selectedDef = null, matchedCount = 0;
         function renderMatching() {
             const zone = document.getElementById('matchingZone');
-            zone.innerHTML = ''; matchedCount = 0;
+            zone.innerHTML = '';
+            matchedCount = 0;
+            selectedTerm = null;
+            selectedDef = null;
+
             let terms = flashcards.map(f => ({ id: f.id || f.Id, text: f.term || f.Term, type: 'term' }));
             let defs = flashcards.map(f => ({ id: f.id || f.Id, text: f.definition || f.Definition, type: 'def' }));
-            shuffleArray(terms); shuffleArray(defs);
-            terms.forEach((t, i) => { zone.appendChild(createMatchBtn(t)); zone.appendChild(createMatchBtn(defs[i])); });
+            shuffleArray(terms);
+            shuffleArray(defs);
+
+            terms.forEach((t, i) => {
+                zone.appendChild(createMatchBtn(t));
+                zone.appendChild(createMatchBtn(defs[i]));
+            });
             document.getElementById('card-counter').innerText = "З'єднайте пари";
-        }
-        function createMatchBtn(item) {
-            const div = document.createElement('div'); div.className = 'matching-item'; div.innerText = item.text; div.dataset.id = item.id;
-            div.onclick = () => {
-                if (item.type === 'term') { if(selectedTerm) selectedTerm.classList.remove('selected'); selectedTerm = div; }
-                else { if(selectedDef) selectedDef.classList.remove('selected'); selectedDef = div; }
-                div.classList.add('selected');
-                if (selectedTerm && selectedDef) {
-                    if (selectedTerm.dataset.id === selectedDef.dataset.id) {
-                        selectedTerm.classList.add('matched'); selectedDef.classList.add('matched');
-                        if (isProgressAllowed) saveCorrectResultManually(parseInt(selectedTerm.dataset.id));
-                        selectedTerm = null; selectedDef = null; matchedCount++;
-                        document.getElementById('p-bar').style.width = (matchedCount / flashcards.length * 100) + '%';
-                        if (matchedCount === flashcards.length) setTimeout(finishSession, 800);
-                    } else {
-                        const t = selectedTerm, d = selectedDef; t.classList.add('wrong'); d.classList.add('wrong');
-                        selectedTerm = null; selectedDef = null;
-                        setTimeout(() => { t.classList.remove('wrong', 'selected'); d.classList.remove('wrong', 'selected'); }, 500);
-                    }
-                }
-            }; return div;
+            document.getElementById('p-bar').style.width = '0%';
         }
 
-        // --- СТАНДАРТ (1 та 2) ---
+        function createMatchBtn(item) {
+            const div = document.createElement('div');
+            div.className = 'matching-item';
+            div.innerText = item.text;
+            div.dataset.id = item.id;
+            div.dataset.type = item.type;
+            div.onclick = () => handleMatchClick(div, item);
+            return div;
+        }
+
+        function handleMatchClick(div, item) {
+            if (div.classList.contains('matched')) return;
+
+            if (item.type === 'term') {
+                if (selectedTerm) selectedTerm.classList.remove('selected');
+                selectedTerm = div;
+            } else {
+                if (selectedDef) selectedDef.classList.remove('selected');
+                selectedDef = div;
+            }
+            div.classList.add('selected');
+
+            if (selectedTerm && selectedDef) {
+                if (selectedTerm.dataset.id === selectedDef.dataset.id) {
+                    const t = selectedTerm; const d = selectedDef;
+                    t.classList.add('matched'); d.classList.add('matched');
+                    if (isProgressAllowed) saveCorrectResultManually(parseInt(t.dataset.id));
+                    matchedCount++;
+                    document.getElementById('p-bar').style.width = (matchedCount / flashcards.length * 100) + '%';
+                    selectedTerm = null; selectedDef = null;
+                    if (matchedCount === flashcards.length) setTimeout(finishSession, 800);
+                } else {
+                    const t = selectedTerm; const d = selectedDef;
+                    t.classList.add('wrong'); d.classList.add('wrong');
+                    selectedTerm = null; selectedDef = null;
+                    setTimeout(() => {
+                        t.classList.remove('wrong', 'selected');
+                        d.classList.remove('wrong', 'selected');
+                    }, 500);
+                }
+            }
+        }
+
         function renderStandard() {
             const card = flashcards[currentIndex];
             const cardEl = document.getElementById('mainCard');
@@ -451,24 +424,68 @@
                 document.getElementById('quizOptions').style.display = 'none';
                 document.getElementById('hintLabel').style.display = 'block';
                 document.getElementById('backText').innerText = card.definition || card.Definition;
-                cardEl.onclick = () => cardEl.classList.toggle('is-flipped');
+                cardEl.onclick = () => {
+                    cardEl.classList.toggle('is-flipped');
+                    cardViews[card.id || card.Id] = 1;
+                };
+            }
+        }
+
+        function renderInputMode() {
+            const card = flashcards[currentIndex];
+            const input = document.getElementById('mainInput');
+            const feedback = document.getElementById('inputFeedback');
+            input.value = ''; input.className = 'mode-input'; input.disabled = false;
+            feedback.classList.remove('visible');
+
+            if (mode === 5) {
+                document.getElementById('contextSentence').style.display = 'block';
+                document.getElementById('contextSentence').innerHTML = (card.contextSentence || card.ContextSentence || "_____").replace("_____", "<b>_____</b>");
+                document.getElementById('inputPrompt').innerText = card.definition || card.Definition;
+            } else {
+                document.getElementById('contextSentence').style.display = 'none';
+                document.getElementById('inputPrompt').innerText = card.term || card.Term;
+            }
+
+            document.getElementById('card-counter').innerText = `Картка ${currentIndex+1} з ${flashcards.length}`;
+            document.getElementById('p-bar').style.width = ((currentIndex+1)/flashcards.length*100)+'%';
+            input.focus();
+            input.onkeypress = (e) => { if(e.key === 'Enter') handleInputCheck(); };
+        }
+
+        function handleInputCheck() {
+            const input = document.getElementById('mainInput');
+            if (input.disabled) return;
+            const card = flashcards[currentIndex];
+            const correct = (mode === 5 ? (card.term || card.Term) : (card.definition || card.Definition)).trim().toLowerCase();
+            input.disabled = true;
+            if (input.value.trim().toLowerCase() === correct) {
+                input.classList.add('correct'); if (isProgressAllowed) saveCorrectResult();
+                setTimeout(nextManual, 1000);
+            } else {
+                input.classList.add('wrong');
+                document.getElementById('correctValue').innerText = (mode === 5 ? card.term : card.definition);
+                document.getElementById('inputFeedback').classList.add('visible');
+                setTimeout(nextManual, 3000);
             }
         }
 
         function saveCorrectResult() {
-            const id = flashcards[currentIndex].id || flashcards[currentIndex].Id;
-            if (!practiceResults.results.some(r => r.flashcardId === id))
-                practiceResults.results.push({ flashcardId: id, isCorrect: true, responseTimeMs: 0, reviewType: mode });
+            saveCorrectResultManually(flashcards[currentIndex].id || flashcards[currentIndex].Id);
         }
+
         function saveCorrectResultManually(id) {
-            if (!practiceResults.results.some(r => r.flashcardId === id))
+            if (!practiceResults.results.some(r => r.flashcardId === id)) {
                 practiceResults.results.push({ flashcardId: id, isCorrect: true, responseTimeMs: 0, reviewType: mode });
+            }
         }
+
         function nextManual() { if (currentIndex < flashcards.length - 1) { currentIndex++; render(); } else finishSession(); }
         function prevCard() { if (currentIndex > 0) { currentIndex--; render(); } }
 
         async function finishSession() {
-            if (practiceResults.results.length === 0 && !isProgressAllowed) { window.location.href = `/Test/Map/${setId}`; return; }
+            if (mode === 1) flashcards.forEach(c => { if(cardViews[c.id || c.Id]) saveCorrectResultManually(c.id || c.Id); });
+            if (practiceResults.results.length === 0) { window.location.href = `/Test/Map/${setId}`; return; }
             try {
                 const res = await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(practiceResults) });
                 const data = await res.json(); window.location.href = data.redirectUrl;
