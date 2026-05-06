@@ -9,6 +9,7 @@ namespace Repositories.Interfaces
             string includeProperties = "");
         Task<T?> GetByIdAsync(int id, string includeProperties = "");
         Task AddAsync(T entity);
+        Task AddRangeAsync(IEnumerable<T> entities);
 
         //Справжня робота (сам SQL запит UPDATE або DELETE) відбувається пізніше —
         //у методі SaveChangesAsync(), який вже є асинхронним.

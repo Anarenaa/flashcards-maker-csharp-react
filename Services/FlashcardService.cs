@@ -47,6 +47,17 @@ namespace Services
             await _unitOfWork.Flashcards.AddAsync(flashcard);
             await _unitOfWork.SaveChangesAsync();
         }
+        public async Task CreateFlashcardsRangeAsync(int setId, IEnumerable<FlashcardDTO> flashcardDtos)
+        {
+            var flashcards = flashcardDtos.Select(dto => new Flashcard
+            {
+                Term = dto.Term,
+                Definition = dto.Definition,
+                SetId = setId
+            }).ToList();
+            await _unitOfWork.Flashcards.AddRangeAsync(flashcards);
+            await _unitOfWork.SaveChangesAsync();
+        }
         public async Task UpdateFlashcardAsync(FlashcardDTO flashcardDto)
         {
             var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(flashcardDto.Id.Value);

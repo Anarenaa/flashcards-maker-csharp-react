@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using Core.Models;
 
 namespace Core.DTOs
 {
@@ -10,6 +11,7 @@ namespace Core.DTOs
         public required string Name { get; set; }
         [StringLength(500, ErrorMessage = "Опис занадто довгий")]
         public string? Description { get; set; }
+        public SetType Type { get; set; } = SetType.Language;
         public bool IsPublic { get; set; }
         public string? UserName { get; set; }
         public int FlashcardsCount { get; set; } = 0;
