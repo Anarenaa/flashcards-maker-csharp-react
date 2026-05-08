@@ -193,11 +193,11 @@ public class SessionService : ISessionService
 
     private PracticeActivityType DetermineMode(float progress) => progress switch
     {
-        < 0.15f => PracticeActivityType.Review,
-        < 0.35f => PracticeActivityType.Quiz,
-        < 0.55f => PracticeActivityType.Matching,
-        < 0.75f => PracticeActivityType.Writing,
-        < 0.90f => PracticeActivityType.Context,
+        < PracticeActivityLimit.ReviewLimit => PracticeActivityType.Review,
+        < PracticeActivityLimit.QuizLimit => PracticeActivityType.Quiz,
+        < PracticeActivityLimit.MatchingLimit => PracticeActivityType.Matching,
+        < PracticeActivityLimit.WritingLimit => PracticeActivityType.Writing,
+        < PracticeActivityLimit.ContextLimit => PracticeActivityType.Context,
         _ => PracticeActivityType.Mixed
     };
 }

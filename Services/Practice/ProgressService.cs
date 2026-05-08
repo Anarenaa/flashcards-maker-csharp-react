@@ -1,5 +1,6 @@
 using Core.DTOs.Practice;
 using Core.Models;
+using Microsoft.AspNetCore.Identity;
 using Repositories.Interfaces;
 
 namespace Services.Practice
@@ -7,34 +8,33 @@ namespace Services.Practice
     public class ProgressService : IProgressService
     {
         private readonly IUnitOfWork _unitOfWork;
-
-        public ProgressService(IUnitOfWork unitOfWork)
+        private readonly UserManager<User> _userManager;
+        public ProgressService(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
 
         public async Task<SetProgressDTO> GetSetProgressAsync(int setId, int userId)
         {
-            // Отримуємо всі картки в сеті
             var allFlashcards = await _unitOfWork.Flashcards.GetAllAsync(f => f.SetId == setId);
-            var totalCards = allFlashcards.Count();
-            
-            if (totalCards == 0)
+            if (!allFlashcards.Any())
                 return new SetProgressDTO { SetId = setId, TotalCards = 0, OverallProgress = 0f };
 
-            // Отримуємо прогрес для всіх карток користувача
+            var existingProgress = await _unitOfWork.Practice.GetSetProgressAsync(userId, setId);
+
+            var progressMap = existingProgress.ToDictionary(p => p.FlashcardId);
+
             var cardProgresses = new List<CardProgress>();
-            
+
             foreach (var flashcard in allFlashcards)
             {
-                var progress = await _unitOfWork.Practice.GetCardProgressAsync(userId, flashcard.Id);
-                if (progress != null)
+                if (progressMap.TryGetValue(flashcard.Id, out var progress))
                 {
                     cardProgresses.Add(progress);
                 }
                 else
                 {
-                    // Якщо прогресу немає, вважаємо що картка не вивчена
                     cardProgresses.Add(new CardProgress
                     {
                         FlashcardId = flashcard.Id,
@@ -55,7 +55,7 @@ namespace Services.Practice
             return new SetProgressDTO
             {
                 SetId = setId,
-                TotalCards = totalCards,
+                TotalCards = allFlashcards.Count(),
                 OverallProgress = overallProgress,
                 MasteredCards = masteredCards,
                 InProgressCards = inProgressCards,
@@ -65,10 +65,9 @@ namespace Services.Practice
 
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {
-            // Отримуємо інформацію про користувача
-            //var user = await _unitOfWork.Users.GetByIdAsync(userId);
-            //if (user == null)
-            //    return new UserProgressDTO { UserId = userId };
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null)
+                return new UserProgressDTO { UserId = userId };
 
             // Отримуємо всі прогреси користувача (з усіх сетів, які він практикував)
             var allCardProgresses = await _unitOfWork.Practice.GetAllUserProgressAsync(userId);
@@ -116,7 +115,7 @@ namespace Services.Practice
                 NotStartedCards = notStartedCards,
                 OverallProgress = overallProgress,
                 LastActivity = lastActivity,
-                TotalPracticeSessions = totalPracticeSessions
+                TotalPracticeSessions = totalPracticeSessions,
             };
         }
 
@@ -144,13 +143,24 @@ namespace Services.Practice
 
                 if (result.IsCorrect)
                 {
+                    float modeLimit = result.ReviewType switch
+                    {
+                        PracticeActivityType.Review => PracticeActivityLimit.ReviewLimit,
+                        PracticeActivityType.Quiz => PracticeActivityLimit.QuizLimit,
+                        PracticeActivityType.Matching => PracticeActivityLimit.MatchingLimit,
+                        PracticeActivityType.Writing => PracticeActivityLimit.WritingLimit,
+                        PracticeActivityType.Context => PracticeActivityLimit.ContextLimit,
+                        _ => PracticeActivityLimit.MaxLimit
+                    };
+
                     // Збільшуємо прогрес
-                    progress.Progress = Math.Min(1.0f, progress.Progress + GetProgressIncrease(result.ReviewType));
+                    if (progress.Progress < modeLimit)
+                    {
+                        progress.Progress = Math.Min(modeLimit, progress.Progress + GetProgressIncrease(result.ReviewType));
+                    }
                 }
                 else
                 {
-                    // Зменшуємо прогрес і додаємо в список для повторення
-                    progress.Progress = Math.Max(0.0f, progress.Progress - 0.1f);
                     incorrectCards.Add(result.FlashcardId);
                 }
                 
@@ -162,11 +172,11 @@ namespace Services.Practice
 
         private float GetProgressIncrease(PracticeActivityType type) => type switch
         {
-            PracticeActivityType.Review => 0.03f,
-            PracticeActivityType.Quiz => 0.05f,
-            PracticeActivityType.Matching => 0.08f,
-            PracticeActivityType.Writing => 0.12f,
-            PracticeActivityType.Context => 0.15f,
+            PracticeActivityType.Review => 0.10f,
+            PracticeActivityType.Quiz => 0.20f,
+            PracticeActivityType.Matching => 0.20f,
+            PracticeActivityType.Writing => 0.20f,
+            PracticeActivityType.Context => 0.20f,
             PracticeActivityType.Mixed => 0.10f
         };
     }

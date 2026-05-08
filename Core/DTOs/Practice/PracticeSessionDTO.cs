@@ -9,7 +9,15 @@
         Context = 5,      // AI-контекст у реченні (70-90% прогресу)
         Mixed = 6         // Суміш усіх режимів (90-100% прогресу)
     }
-    
+    public static class PracticeActivityLimit
+    {
+        public const float ReviewLimit = 0.10f;
+        public const float QuizLimit = 0.30f;
+        public const float MatchingLimit = 0.50f;
+        public const float WritingLimit = 0.70f;
+        public const float ContextLimit = 0.90f;
+        public const float MaxLimit = 1.0f;
+    }
     public class PracticeSessionDTO
     {
         public int SetId { get; set; }

@@ -71,7 +71,13 @@ namespace Repositories
                 .Include(cp => cp.Flashcard)
                 .FirstOrDefaultAsync(cp => cp.UserId == userId && cp.FlashcardId == flashcardId);
         }
-
+        public async Task<List<CardProgress>> GetSetProgressAsync(int userId, int setId)
+        {
+            return await _dbSet
+                .Include(cp => cp.Flashcard)
+                .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
+                .ToListAsync();
+        }
         public async Task CreateProgressAsync(CardProgress progress)
         {
             await _context.CardProgresses.AddAsync(progress);

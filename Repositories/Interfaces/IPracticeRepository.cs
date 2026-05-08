@@ -20,6 +20,7 @@ namespace Repositories.Interfaces
 
         // Новий метод для отримання конкретного прогресу картки
         Task<CardProgress> GetCardProgressAsync(int userId, int flashcardId);
+        Task<List<CardProgress>> GetSetProgressAsync(int userId, int setId);
 
         // Новий метод для створення прогресу
         Task CreateProgressAsync(CardProgress progress);
