@@ -4,16 +4,16 @@ using Services.Interfaces;
 
 namespace App.Controllers.api
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
-    public class HintsController : ControllerBase
+    public class HintsApiController : ControllerBase
     {
         private readonly IHintService _hintService;
-        public HintsController(IHintService hintService)
+        public HintsApiController(IHintService hintService)
         {
             _hintService = hintService;
         }
-        [HttpGet]
+        [HttpGet("get-hint")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetHint([FromQuery] string term, [FromQuery] SetType setType, [FromQuery] string fromLang, [FromQuery] string toLang = "uk")
         {

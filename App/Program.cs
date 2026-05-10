@@ -55,7 +55,7 @@ var geminiOpts = geminiSection.Get<ApiClientOptions>()!;
 
 builder.Services.Configure<ApiClientOptions>("Gemini", geminiSection);
 
-var geminiApiKey = builder.Configuration["ExternalApis:Gemini:ApiKey"]
+var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
                    ?? throw new Exception("Gemini API Key is missing!");
 
 // Реєструємо Typed HttpClient з конвеєром Polly

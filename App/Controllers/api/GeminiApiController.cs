@@ -5,7 +5,7 @@ using Services.Interfaces;
 
 namespace App.Controllers.api
 {
-    [Route("api/[controller]")]
+    [Route("api/")]
     [ApiController]
     public class GeminiApiController : ControllerBase
     {
