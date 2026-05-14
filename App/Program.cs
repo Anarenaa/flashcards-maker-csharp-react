@@ -206,23 +206,29 @@ builder.Services.AddAuthentication(options =>
         },
         OnTokenValidated = async context =>
         {
-            var userManager = context.HttpContext.RequestServices
-                .GetRequiredService<UserManager<User>>();
-
-            var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            try
             {
-                context.Fail("Unauthorized");
-                return;
+                var userManager = context.HttpContext.RequestServices
+                    .GetRequiredService<UserManager<User>>();
+
+                var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                {
+                    context.Fail("Unauthorized");
+                    return;
+                }
+
+                var user = await userManager.FindByIdAsync(userIdClaim.Value);
+
+                if (user == null || user.IsBanned || (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow))
+                {
+                    context.Fail("User is banned");
+                    context.Response.Cookies.Delete("AuthToken");
+                }
             }
-
-            var user = await userManager.FindByIdAsync(userIdClaim.Value);
-
-            if (user == null || user.IsBanned || (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow))
+            catch (Exception ex) when (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
             {
-                context.Fail("User is banned");
-
-                context.Response.Cookies.Delete("AuthToken");
+                // for Middleware later
             }
         },
         OnChallenge = context =>
@@ -244,6 +250,15 @@ builder.Services.AddAuthentication(options =>
 {
     options.ClientId = builder.Configuration["Authentication:Google:ClientId"];
     options.ClientSecret = builder.Configuration["Authentication:Google:ClientSecret"];
+    options.Events = new Microsoft.AspNetCore.Authentication.OAuth.OAuthEvents
+    {
+        OnRemoteFailure = context =>
+        {
+            context.Response.Redirect("/Home/ServiceUnavailable");
+            context.HandleResponse();
+            return Task.CompletedTask;
+        }
+    };
 });
 
 // ─── РЕЄСТРАЦІЯ СЕРВІСІВ І РЕПОЗИТОРІЇВ ─────────────────────────────────────
@@ -271,6 +286,41 @@ builder.Services.AddScoped<IHintService, HintService>();
 
 var app = builder.Build();
 
+using (var scope = app.Services.CreateScope())
+{
+    var services = scope.ServiceProvider;
+    try
+    {
+        var context = services.GetRequiredService<DataContext>();
+        context.Database.CanConnect();
+    }
+    catch (Exception ex)
+    {
+        var logger = services.GetRequiredService<ILogger<Program>>();
+        logger.LogCritical(ex, "Критична помилка: База даних недоступна при старті!");
+    }
+}
+
+app.Use(async (context, next) =>
+{
+    try
+    {
+        await next();
+    }
+    catch (Exception ex) when (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
+    {
+        if (!context.Request.Path.Value.StartsWith("/api/"))
+        {
+            context.Response.Redirect("/Home/ServiceUnavailable");
+        }
+        else
+        {
+            context.Response.StatusCode = 503;
+            await context.Response.WriteAsJsonAsync(new { error = "Database connection error." });
+        }
+    }
+});
+
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
@@ -288,6 +338,7 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
+app.UseStatusCodePagesWithReExecute("/Home/NotFoundPage/{0}");
 app.UseRouting();
 
 app.UseAuthentication();

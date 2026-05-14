@@ -25,20 +25,12 @@ namespace App.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Index(int id)
         {
-            try
-            {
-                if (await _setService.IsSetMine(id, UserId) == false)
-                    throw new Exception("Цей сет не належить вам");
+            if (await _setService.IsSetMine(id, UserId) == false)
+                return Forbid();
 
-                var setDetail = await _setService.GetSetByIdAsync(id);
-                ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
-                return View(setDetail);
-            }
-            catch
-            {
-            
-                return RedirectToAction("Index", "MySets");
-            }
+            var setDetail = await _setService.GetSetByIdAsync(id);
+            ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
+            return View(setDetail);
         }
         
         // --- РОБОТА З КАРТКАМИ ---

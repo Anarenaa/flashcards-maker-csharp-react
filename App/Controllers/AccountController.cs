@@ -218,6 +218,10 @@ namespace App.Controllers
             }
             catch (Exception ex)
             {
+                if (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
+                {
+                    return RedirectToAction("ServiceUnavailable", "Home");
+                }
                 TempData["ErrorMessage"] = "Помилка: " + ex.Message;
                 return RedirectToAction("Login");
             }

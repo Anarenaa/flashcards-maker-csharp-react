@@ -1,6 +1,7 @@
-using App.Models;
-using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using App.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace App.Controllers
 {
@@ -22,10 +23,17 @@ namespace App.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        [AllowAnonymous]
+        public IActionResult ServiceUnavailable()
         {
             return View();
         }
+        [AllowAnonymous]
+        public IActionResult NotFoundPage()
+        {
+            return View();
+        }
+
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
