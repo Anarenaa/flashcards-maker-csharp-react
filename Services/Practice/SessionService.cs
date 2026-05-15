@@ -172,7 +172,10 @@ public class SessionService : ISessionService
 
         if (type == PracticeActivityType.Writing)
         {
-            if (term.Length > definition.Length)
+            int termWordsCount = term.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+            int definitionWordsCount = definition.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
+
+            if (termWordsCount > definitionWordsCount)
             {
                 var temp = term;
                 term = definition;
