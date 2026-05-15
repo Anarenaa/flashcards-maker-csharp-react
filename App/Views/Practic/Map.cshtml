@@ -6,10 +6,10 @@
     bool IsUnlocked(int mode) => mode switch
     {
         1 => true,                          // Флеш-картки відкриті завжди
-        2 => Model.OverallProgress >= 0.02f, // Вікторина (після Карток)
-        3 => Model.OverallProgress >= 0.07f, // З'єднання (після Вікторини)
-        4 => Model.OverallProgress >= 0.15f, // Письмо (після З'єднання)
-        6 => Model.OverallProgress >= 0.25f, // Mixed (після Письма)
+        2 => Model.OverallProgress >= PracticeActivityLimit.ReviewLimit, // Вікторина (після Карток)
+        3 => Model.OverallProgress >= PracticeActivityLimit.QuizLimit, // З'єднання (після Вікторини)
+        4 => Model.OverallProgress >= PracticeActivityLimit.MatchingLimit, // Письмо (після З'єднання)
+        6 => Model.OverallProgress >= PracticeActivityLimit.WritingLimit, // Mixed (після Письма)
         _ => false
     };
 

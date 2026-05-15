@@ -197,7 +197,7 @@ public class SessionService : ISessionService
         < PracticeActivityLimit.QuizLimit => PracticeActivityType.Quiz,
         < PracticeActivityLimit.MatchingLimit => PracticeActivityType.Matching,
         < PracticeActivityLimit.WritingLimit => PracticeActivityType.Writing,
-        < PracticeActivityLimit.ContextLimit => PracticeActivityType.Context,
+        //< PracticeActivityLimit.ContextLimit => PracticeActivityType.Context,
         _ => PracticeActivityType.Mixed
     };
 }

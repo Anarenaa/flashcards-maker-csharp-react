@@ -14,7 +14,7 @@
         public const float ReviewLimit = 0.10f;
         public const float QuizLimit = 0.30f;
         public const float MatchingLimit = 0.50f;
-        public const float WritingLimit = 0.70f;
+        public const float WritingLimit = 0.90f;
         public const float ContextLimit = 0.90f;
         public const float MaxLimit = 1.0f;
     }

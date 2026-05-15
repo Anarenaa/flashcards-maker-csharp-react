@@ -175,8 +175,8 @@ namespace Services.Practice
             PracticeActivityType.Review => 0.10f,
             PracticeActivityType.Quiz => 0.20f,
             PracticeActivityType.Matching => 0.20f,
-            PracticeActivityType.Writing => 0.20f,
-            PracticeActivityType.Context => 0.20f,
+            PracticeActivityType.Writing => 0.40f,//0.20f
+            //PracticeActivityType.Context => 0.20f,
             PracticeActivityType.Mixed => 0.10f
         };
     }

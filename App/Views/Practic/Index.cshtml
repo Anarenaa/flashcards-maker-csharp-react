@@ -391,8 +391,11 @@
         flashcards.forEach(c => c.assignedMode = (globalMode === 6) ? (Math.floor(Math.random() * 3) + 2) : globalMode);
 
         function getActiveMode(prog) {
-            if (prog < 0.02) return 1; if (prog < 0.07) return 2; if (prog < 0.15) return 3;
-            if (prog < 0.25) return 4; return 6;
+            if(prog < PracticeActivityType.ReviewLimit) return 1;
+            if(prog < PracticeActivityType.QuizLimit) return 2;
+            if(prog < PracticeActivityType.MatchingLimit) return 3;
+            if(prog < PracticeActivityType.WritingLimit) return 4;
+            return 6;
         }
 
         function render() {
