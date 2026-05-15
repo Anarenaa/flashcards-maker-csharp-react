@@ -93,7 +93,7 @@ public class SessionService : ISessionService
         string mixedTypesKey = $"mixed_types_{userId}_{setId}";
         if (!_cache.TryGetValue(mixedTypesKey, out List<PracticeActivityType> assignedTypes))
         {
-            int[] allowedModes = { 1, 2, 4, 5 };
+            int[] allowedModes = { 2, 4 };
             assignedTypes = source.Select(_ => (PracticeActivityType)allowedModes[_random.Next(allowedModes.Length)]).ToList();
             _cache.Set(mixedTypesKey, assignedTypes, TimeSpan.FromMinutes(30));
         }
