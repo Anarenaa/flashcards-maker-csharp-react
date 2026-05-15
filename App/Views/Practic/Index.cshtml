@@ -104,7 +104,7 @@
         word-break: break-word;
     }
 
-    /* ВВОД СЛОВА */
+    /* ВВОД СЛОВА (ПИСЬМО) */
     .input-mode-container {
         background: var(--btn-bg);
         padding: 50px 40px;
@@ -128,48 +128,18 @@
         outline: none;
     }
 
-    .inline-input {
-        background: none;
-        border: none;
-        border-bottom: 3px solid var(--accent-color);
-        color: var(--accent-color);
-        font-size: inherit;
-        font-family: inherit;
-        font-weight: 800;
-        text-align: center;
-        width: 160px;
-        outline: none;
-        transition: 0.3s;
-        padding: 0 5px;
-    }
-
-        .inline-input.correct {
+        .mode-input.correct {
+            border-color: #28a745 !important;
+            background: rgba(40, 167, 69, 0.15) !important;
             color: #28a745 !important;
-            border-bottom-color: #28a745 !important;
         }
 
-        .inline-input.wrong {
+        .mode-input.wrong {
+            border-color: #dc3545 !important;
+            background: rgba(220, 53, 69, 0.15) !important;
             color: #dc3545 !important;
-            border-bottom-color: #dc3545 !important;
         }
 
-    .sentence-display {
-        font-size: 1.8rem;
-        line-height: 1.6;
-        color: #fff;
-        text-align: center;
-        margin: 20px 0;
-    }
-
-    .feedback-label {
-        margin-top: 20px;
-        font-size: 1.2rem;
-        display: none;
-        color: #28a745;
-        font-weight: bold;
-    }
-
-    /* ІНШІ РЕЖИМИ */
     .quiz-container {
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -194,6 +164,18 @@
         justify-content: center;
         transition: 0.3s;
     }
+
+        .quiz-option-btn.option-correct {
+            background: #28a745 !important;
+            border-color: #28a745 !important;
+            color: white !important;
+        }
+
+        .quiz-option-btn.option-wrong {
+            background: #dc3545 !important;
+            border-color: #dc3545 !important;
+            color: white !important;
+        }
 
     .matching-container {
         display: grid;
@@ -226,7 +208,74 @@
             pointer-events: none;
         }
 
-    /* НАВІГАЦІЯ */
+        .matching-item.wrong {
+            background: #dc3545 !important;
+        }
+
+    .summary-card {
+        background: rgba(255, 255, 255, 0.05);
+        backdrop-filter: blur(15px);
+        padding: 60px 40px;
+        border-radius: 40px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
+        max-width: 500px;
+        margin: 20px auto;
+        display: none;
+        animation: summaryReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @@keyframes summaryReveal {
+        from {
+            opacity: 0;
+            transform: translateY(30px) scale(0.9);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+        }
+    }
+
+    .success-icon {
+        width: 80px;
+        height: 80px;
+        background: var(--accent-color);
+        color: var(--bg-color);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 25px;
+        font-size: 40px;
+        font-weight: bold;
+    }
+
+    .btn-summary-primary {
+        background: var(--accent-color);
+        color: var(--bg-color);
+        border: none;
+        padding: 18px;
+        border-radius: 20px;
+        font-weight: 800;
+        cursor: pointer;
+        transition: 0.3s;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    .btn-summary-outline {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid rgba(255,255,255,0.1);
+        color: #fff;
+        padding: 16px;
+        border-radius: 20px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: 0.3s;
+        width: 100%;
+    }
+
     .navigation-zone {
         display: flex;
         justify-content: space-between;
@@ -268,14 +317,6 @@
         width: 0%;
         transition: 0.5s;
     }
-
-    .summary-card {
-        background: var(--btn-bg);
-        padding: 50px;
-        border-radius: 30px;
-        border: 2px solid var(--btn-border);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-    }
 </style>
 
 <div class="practice-page">
@@ -291,7 +332,7 @@
             <div class="card-face card-front">
                 <div id="frontText" class="term-text"></div>
                 <div id="quizOptions" class="quiz-container" style="display: none;"></div>
-                <div id="hintLabel" style="opacity: 0.4; font-size: 0.8rem; margin-top: 15px; text-transform: uppercase;">Натисніть, щоб перевернути</div>
+                <div id="hintLabel" style="opacity: 0.4; font-size: 0.8rem; margin-top: 15px; text-transform: uppercase;">Натисніть перевернути</div>
             </div>
             <div class="card-face card-back"><div id="backText" class="def-text"></div></div>
         </div>
@@ -300,22 +341,22 @@
     <div id="matchingZone" class="matching-container" style="display: none;"></div>
 
     <div id="inputZone" class="input-mode-container" style="display: none;">
-        <div id="sentenceContainer" class="sentence-display"></div>
         <div id="writingBox">
             <div id="writingPrompt" class="term-text" style="font-size: 2.2rem;"></div>
-            <input type="text" id="simpleInput" class="mode-input" placeholder="Ваша відповідь...">
+            <input type="text" id="simpleInput" class="mode-input" placeholder="Ваша відповідь..." autocomplete="off">
         </div>
         <div id="inputHintText" style="margin-top: 15px; opacity: 0.5; font-style: italic;"></div>
-        <div id="inputFeedback" class="feedback-label">Правильно: <span id="correctVal" style="color:white; border-bottom: 2px solid #28a745;"></span></div>
+        <div id="inputFeedback" style="display:none; margin-top:15px; color:#28a745; font-weight:bold;">Правильно: <span id="correctVal" style="color:white; border-bottom: 2px solid #28a745;"></span></div>
     </div>
 
-    <div id="summaryZone" class="summary-card" style="display: none;">
-        <div class="summary-title">Готово!</div>
-        <div id="summaryStat" style="margin-bottom: 30px; opacity: 0.8;"></div>
-        <div class="summary-btns">
-            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-retry-wrong">Вивчити помилки</button>
-            <button onclick="retryAll()" class="btn-retry">Пройти ще раз</button>
-            <button onclick="location.href='/Test/Map/@Model.SetId'" style="background:none; border:1px solid var(--btn-border); color:white; padding:12px; border-radius:15px; cursor:pointer;">До мапи</button>
+    <div id="summaryZone" class="summary-card">
+        <div class="success-icon" id="summaryIcon">✓</div>
+        <div class="summary-title" id="summaryTitle">Готово!</div>
+        <div id="summaryStat" class="summary-stat"></div>
+        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 280px; margin: 0 auto;">
+            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-summary-outline" style="border-color: #dc3545; color: #dc3545; display: none;">Вивчити помилки</button>
+            <button onclick="retryAll()" class="btn-summary-primary">Пройти ще раз</button>
+            <button onclick="location.href='/Test/Map/@Model.SetId'" class="btn-summary-outline">До мапи</button>
         </div>
     </div>
 
@@ -328,7 +369,6 @@
 @section Scripts {
     <script>
         const originalCards = @Json.Serialize(Model.Flashcards);
-        const currentProgress = parseFloat("@(ViewBag.CurrentProgress != null ? ViewBag.CurrentProgress.ToString().Replace(",", ".") : "0")");
         const globalMode = parseInt("@(ViewBag.Mode ?? 1)");
         const setId = @Model.SetId;
 
@@ -336,107 +376,115 @@
         let currentIndex = 0, cardViews = {}, practiceResults = { results: [] }, wrongFlashcardIds = new Set();
         let matchingBatchIndex = 0, MATCHING_LIMIT = 5;
 
-        flashcards.forEach(c => {
-            c.assignedMode = (globalMode === 6) ? (Math.floor(Math.random() * 4) + 2) : globalMode;
-        });
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+            return arr;
+        }
+
+        if (globalMode >= 2) {
+            shuffle(flashcards);
+        }
+
+        flashcards.forEach(c => c.assignedMode = (globalMode === 6) ? (Math.floor(Math.random() * 3) + 2) : globalMode);
 
         function getActiveMode(prog) {
             if (prog < 0.02) return 1; if (prog < 0.07) return 2; if (prog < 0.15) return 3;
-            if (prog < 0.25) return 4; if (prog < 0.40) return 5; return 6;
+            if (prog < 0.25) return 4; return 6;
         }
-        const isProgressAllowed = (globalMode === getActiveMode(currentProgress));
 
         function render() {
             const card = flashcards[currentIndex];
             const currentCardMode = card ? card.assignedMode : globalMode;
-
-            if (currentCardMode !== 3 && currentIndex >= flashcards.length) { showSummary(); return; }
+            if (currentIndex >= flashcards.length && currentCardMode !== 3) { showSummary(); return; }
 
             document.getElementById('card-counter').innerText = `Картка ${currentIndex+1} з ${flashcards.length}`;
             document.getElementById('p-bar').style.width = ((currentIndex+1)/flashcards.length*100)+'%';
-
             document.getElementById('standardZone').style.display = 'none';
             document.getElementById('matchingZone').style.display = 'none';
             document.getElementById('inputZone').style.display = 'none';
             document.getElementById('summaryZone').style.display = 'none';
-
-            // ВИПРАВЛЕНО: Стрілки показуємо ТІЛЬКИ для режиму 1
             document.getElementById('navZone').style.display = (currentCardMode === 1) ? 'flex' : 'none';
 
             if (currentCardMode === 3) {
                 document.getElementById('matchingZone').style.display = 'grid'; renderMatching();
-            } else if (currentCardMode === 4 || currentCardMode === 5) {
-                document.getElementById('inputZone').style.display = 'block'; renderInputMode(currentCardMode);
+            } else if (currentCardMode === 4) {
+                document.getElementById('inputZone').style.display = 'block'; renderInputMode();
             } else {
                 document.getElementById('standardZone').style.display = 'block'; renderStandard(currentCardMode);
             }
         }
 
-        function renderInputMode(cMode) {
+        function renderInputMode() {
             const card = flashcards[currentIndex];
-            const sentenceContainer = document.getElementById('sentenceContainer');
-            const writingBox = document.getElementById('writingBox');
-            const hintText = document.getElementById('inputHintText');
-            const simpleInput = document.getElementById('simpleInput');
+            const input = document.getElementById('simpleInput');
             document.getElementById('inputFeedback').style.display = 'none';
-
-            if (cMode === 5) {
-                writingBox.style.display = 'none';
-                sentenceContainer.style.display = 'block';
-                let sentence = card.contextSentence || card.ContextSentence || "_____";
-                const blankRegex = /_{2,}|\[\.{1,}\]|\(\.{1,}\)|\[\.\.\.\]|\.{3,}/g;
-                sentenceContainer.innerHTML = sentence.replace(blankRegex, `<input type="text" id="activeInput" class="inline-input" placeholder="...">`);
-                hintText.innerText = "Впишіть слово англійською (Підказка: " + (card.definition || card.Definition) + ")";
-            } else {
-                sentenceContainer.style.display = 'none';
-                writingBox.style.display = 'block';
-                document.getElementById('writingPrompt').innerText = card.definition || card.Definition;
-                simpleInput.value = ''; simpleInput.disabled = false; simpleInput.className = 'mode-input';
-                simpleInput.setAttribute('id', 'activeInput');
-                hintText.innerText = "Впишіть відповідний термін англійською";
-            }
-
-            const inputField = document.getElementById('activeInput');
-            if (inputField) {
-                inputField.focus();
-                inputField.onkeypress = (e) => { if(e.key === 'Enter') handleInputCheck(cMode); };
-            }
+            document.getElementById('writingPrompt').innerText = card.definition || card.Definition;
+            input.value = ''; input.className = 'mode-input'; input.disabled = false;
+            document.getElementById('inputHintText').innerText = "Впишіть відповідний термін";
+            input.focus();
+            input.onkeypress = (e) => { if(e.key === 'Enter') handleInputCheck(); };
         }
 
-        function handleInputCheck(cMode) {
-            const input = document.getElementById('activeInput');
-            if (!input || input.disabled) return;
+        function handleInputCheck() {
+            const input = document.getElementById('simpleInput');
+            if (input.disabled) return;
             const card = flashcards[currentIndex];
             const rawCorrect = (card.term || card.Term).trim();
             const cleanCorrect = rawCorrect.toLowerCase().replace(/[?!.,]/g, "").trim();
             const cleanUser = input.value.trim().toLowerCase().replace(/[?!.,]/g, "").trim();
             input.disabled = true;
+
             if (cleanUser === cleanCorrect) {
-                input.classList.add('correct'); if (isProgressAllowed) saveResult(card.id || card.Id, true);
+                input.classList.add('correct'); saveResult(card.id || card.Id, true);
                 setTimeout(nextManual, 1000);
             } else {
                 input.classList.add('wrong'); wrongFlashcardIds.add(card.id || card.Id);
+                saveResult(card.id || card.Id, false);
                 document.getElementById('correctVal').innerText = rawCorrect;
                 document.getElementById('inputFeedback').style.display = 'block';
                 setTimeout(nextManual, 3000);
             }
-            if (cMode === 4) input.setAttribute('id', 'simpleInput');
+        }
+
+        function renderStandard(cMode) {
+            const card = flashcards[currentIndex];
+            const cardEl = document.getElementById('mainCard');
+            const optsBox = document.getElementById('quizOptions');
+            cardEl.classList.remove('is-flipped');
+            document.getElementById('frontText').innerText = card.term || card.Term;
+            if (cMode === 2) {
+                optsBox.style.display = 'grid'; document.getElementById('hintLabel').style.display = 'none';
+                cardEl.onclick = null; optsBox.innerHTML = '';
+                const correct = (card.definition || card.Definition).trim();
+                let distractors = [...new Set(originalCards.map(f => (f.definition || f.Definition).trim()).filter(d => d !== correct))];
+                let opts = shuffle([correct, ...shuffle(distractors).slice(0, 3)]);
+                opts.forEach(o => {
+                    const b = document.createElement('button'); b.className = 'quiz-option-btn'; b.innerText = o;
+                    b.onclick = () => {
+                        document.querySelectorAll('.quiz-option-btn').forEach(btn => btn.disabled = true);
+                        if (o === correct) { b.classList.add('option-correct'); saveResult(card.id || card.Id, true); }
+                        else { b.classList.add('option-wrong'); wrongFlashcardIds.add(card.id || card.Id); saveResult(card.id || card.Id, false); document.querySelectorAll('.quiz-option-btn').forEach(btn => { if(btn.innerText === correct) btn.classList.add('option-correct'); }); }
+                        setTimeout(nextManual, 1200);
+                    }; optsBox.appendChild(b);
+                });
+            } else {
+                optsBox.style.display = 'none'; document.getElementById('hintLabel').style.display = 'block';
+                document.getElementById('backText').innerText = card.definition || card.Definition;
+                cardEl.onclick = () => { cardEl.classList.toggle('is-flipped'); cardViews[card.id || card.Id] = 1; };
+            }
         }
 
         function renderMatching() {
             const zone = document.getElementById('matchingZone'); zone.innerHTML = '';
-            mCount = 0; sT = null; sD = null;
             let start = matchingBatchIndex * MATCHING_LIMIT;
             let batch = flashcards.slice(start, start + MATCHING_LIMIT);
             if (!batch.length) { showSummary(); return; }
-            document.getElementById('card-counter').innerText = `З'єднання (Група ${matchingBatchIndex+1})`;
-            document.getElementById('p-bar').style.width = (start/flashcards.length*100)+'%';
-            let terms = batch.map(f => ({ id: f.id || f.Id, text: f.term || f.Term, type: 't' })).sort(() => Math.random() - 0.5);
-            let defs = batch.map(f => ({ id: f.id || f.Id, text: f.definition || f.Definition, type: 'd' })).sort(() => Math.random() - 0.5);
-            for (let i = 0; i < terms.length; i++) {
-                zone.appendChild(createMatchBtn(terms[i]));
-                zone.appendChild(createMatchBtn(defs[i]));
-            }
+            let terms = shuffle(batch.map(f => ({ id: f.id || f.Id, text: f.term || f.Term, type: 't' })));
+            let defs = shuffle(batch.map(f => ({ id: f.id || f.Id, text: f.definition || f.Definition, type: 'd' })));
+            for (let i = 0; i < terms.length; i++) { zone.appendChild(createMatchBtn(terms[i])); zone.appendChild(createMatchBtn(defs[i])); }
         }
         let sT = null, sD = null, mCount = 0;
         function createMatchBtn(item) {
@@ -449,76 +497,55 @@
                 if (sT && sD) {
                     if (sT.dataset.id === sD.dataset.id) {
                         sT.classList.add('matched'); sD.classList.add('matched');
-                        if (isProgressAllowed) saveResult(parseInt(sT.dataset.id), true);
-                        mCount++; sT = null; sD = null;
-                        if (mCount === Math.min(MATCHING_LIMIT, flashcards.length - (matchingBatchIndex * MATCHING_LIMIT))) {
-                            matchingBatchIndex++; setTimeout(render, 600);
-                        }
+                        saveResult(parseInt(sT.dataset.id), true); mCount++; sT = null; sD = null;
+                        if (mCount === Math.min(MATCHING_LIMIT, flashcards.length - (matchingBatchIndex * MATCHING_LIMIT))) { matchingBatchIndex++; setTimeout(render, 600); }
                     } else {
                         const a = sT, b = sD; a.classList.add('wrong'); b.classList.add('wrong');
-                        wrongFlashcardIds.add(parseInt(a.dataset.id)); sT = null; sD = null;
-                        setTimeout(() => { a.classList.remove('wrong', 'selected'); b.classList.remove('wrong', 'selected'); }, 400);
+                        wrongFlashcardIds.add(parseInt(a.dataset.id)); saveResult(parseInt(a.dataset.id), false);
+                        sT = null; sD = null; setTimeout(() => { a.classList.remove('wrong', 'selected'); b.classList.remove('wrong', 'selected'); }, 400);
                     }
                 }
             }; return div;
-        }
-
-        function renderStandard(cMode) {
-            const card = flashcards[currentIndex];
-            const cardEl = document.getElementById('mainCard');
-            const optsBox = document.getElementById('quizOptions');
-            cardEl.classList.remove('is-flipped');
-            document.getElementById('frontText').innerText = card.term || card.Term;
-            document.getElementById('prevBtn').disabled = (currentIndex === 0);
-            if (cMode === 2) {
-                optsBox.style.display = 'grid'; document.getElementById('hintLabel').style.display = 'none';
-                cardEl.onclick = null; optsBox.innerHTML = '';
-                const correct = (card.definition || card.Definition).trim();
-                let distractors = [...new Set(originalCards.map(f => (f.definition || f.Definition).trim()).filter(d => d !== correct))];
-                let opts = [correct, ...distractors.sort(() => Math.random() - 0.5).slice(0, 3)].sort(() => Math.random() - 0.5);
-                opts.forEach(o => {
-                    const b = document.createElement('button'); b.className = 'quiz-option-btn'; b.innerText = o;
-                    b.onclick = () => {
-                        document.querySelectorAll('.quiz-option-btn').forEach(btn => btn.disabled = true);
-                        if (o === correct) { b.classList.add('option-correct'); if (isProgressAllowed) saveResult(card.id || card.Id, true); }
-                        else {
-                            b.classList.add('option-wrong'); wrongFlashcardIds.add(card.id || card.Id);
-                            document.querySelectorAll('.quiz-option-btn').forEach(btn => { if(btn.innerText === correct) btn.classList.add('option-correct'); });
-                        }
-                        setTimeout(nextManual, 1200);
-                    }; optsBox.appendChild(b);
-                });
-            } else {
-                optsBox.style.display = 'none'; document.getElementById('hintLabel').style.display = 'block';
-                document.getElementById('backText').innerText = card.definition || card.Definition;
-                cardEl.onclick = () => { cardEl.classList.toggle('is-flipped'); cardViews[card.id || card.Id] = 1; };
-            }
         }
 
         function showSummary() {
             finishSession(false);
             document.getElementById('standardZone').style.display='none'; document.getElementById('matchingZone').style.display='none';
             document.getElementById('inputZone').style.display='none'; document.getElementById('navZone').style.display='none';
-            document.getElementById('card-counter').style.display='none'; document.getElementById('summaryZone').style.display='block';
+            document.getElementById('card-counter').style.display='none'; document.getElementById('p-bar').style.width = '100%';
+            const summaryZone = document.getElementById('summaryZone');
+            const summaryIcon = document.getElementById('summaryIcon');
+            summaryZone.style.display = 'block';
             const wCount = wrongFlashcardIds.size;
-            document.getElementById('summaryStat').innerText = wCount > 0 ? `Помилок у картках: ${wCount}.` : "Чудово! Жодної помилки.";
-            document.getElementById('retryWrongBtn').style.display = wCount > 0 ? 'block' : 'none';
+            if (wCount > 0) {
+                document.getElementById('summaryTitle').innerText = "Майже ідеально!";
+                document.getElementById('summaryStat').innerText = `Ви пройшли ${flashcards.length} карток. Помилок: ${wCount}.`;
+                document.getElementById('retryWrongBtn').style.display = 'block';
+                summaryIcon.innerText = "!"; summaryIcon.style.background = "#dc3545";
+            } else {
+                document.getElementById('summaryTitle').innerText = "Неймовірно!";
+                document.getElementById('summaryStat').innerText = "Жодної помилки. Ви ідеально знаєте цей набір!";
+                document.getElementById('retryWrongBtn').style.display = 'none';
+                summaryIcon.innerText = "✓"; summaryIcon.style.background = "var(--accent-color)";
+            }
         }
 
-        function saveResult(id, correct) { if (!practiceResults.results.some(r => r.flashcardId === id)) practiceResults.results.push({ flashcardId: id, isCorrect: correct, responseTimeMs: 0, reviewType: globalMode }); }
-
-        function nextManual() {
-            if (currentIndex < flashcards.length - 1) { currentIndex++; render(); } else showSummary();
+        function saveResult(id, correct) {
+            const existing = practiceResults.results.find(r => r.FlashcardId === id);
+            if (existing) { existing.IsCorrect = correct; }
+            else { practiceResults.results.push({ FlashcardId: id, IsCorrect: correct, ResponseTimeMs: 0, ReviewType: globalMode }); }
         }
+
+        function nextManual() { if (currentIndex < flashcards.length - 1) { currentIndex++; render(); } else showSummary(); }
         function prevCard() { if (currentIndex > 0) { currentIndex--; render(); } }
-        function retryAll() { flashcards = [...originalCards]; resetSession(); }
-        function retryIncorrect() { flashcards = originalCards.filter(c => wrongFlashcardIds.has(c.id || c.Id)); resetSession(); }
+        function retryAll() { flashcards = [...originalCards]; if (globalMode >= 2) shuffle(flashcards); resetSession(); }
+        function retryIncorrect() { flashcards = originalCards.filter(c => wrongFlashcardIds.has(c.id || c.Id)); shuffle(flashcards); resetSession(); }
         function resetSession() { currentIndex = 0; matchingBatchIndex = 0; wrongFlashcardIds.clear(); practiceResults.results = []; document.getElementById('card-counter').style.display = 'block'; render(); }
 
         async function finishSession(redirect = true) {
             if (globalMode === 1) flashcards.forEach(c => { if(cardViews[c.id || c.Id]) saveResult(c.id || c.Id, true); });
             if (!practiceResults.results.length) { if(redirect) window.location.href = `/Test/Map/${setId}`; return; }
-            await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(practiceResults) });
+            await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Results: practiceResults.results, IsTrainingMode: false }) });
             if(redirect) window.location.href = `/Test/Map/${setId}`;
         }
         async function exitToMap() { if (confirm("Зберегти прогрес і вийти?")) await finishSession(true); }

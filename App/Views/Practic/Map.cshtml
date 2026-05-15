@@ -3,22 +3,17 @@
 @{
     ViewData["Title"] = "Мапа практики";
 
-    // ПОРІГ РОЗБЛОКУВАННЯ:
-    // Mode 1 (Review) дає 3% (0.03)
-    // Mode 2 (Quiz) дає 5% (0.05)
-    // Mode 3 (Matching) дає 8% (0.08)
-    // ... і так далі.
-
     bool IsUnlocked(int mode) => mode switch
     {
-        1 => true,                          // Завжди відкриті
-        2 => Model.OverallProgress >= 0.02f, // Відкрити після 1-го проходження Карток (стало 3%)
-        3 => Model.OverallProgress >= 0.07f, // Відкрити після 1-го проходження Вікторини (3% + 5% = 8%)
-        4 => Model.OverallProgress >= 0.15f, // Відкрити після З'єднання (8% + 8% = 16%)
-        5 => Model.OverallProgress >= 0.25f, // Відкрити після Письма
-        6 => Model.OverallProgress >= 0.40f, // Mixed режим
+        1 => true,                          // Флеш-картки відкриті завжди
+        2 => Model.OverallProgress >= 0.02f, // Вікторина (після Карток)
+        3 => Model.OverallProgress >= 0.07f, // З'єднання (після Вікторини)
+        4 => Model.OverallProgress >= 0.15f, // Письмо (після З'єднання)
+        6 => Model.OverallProgress >= 0.25f, // Mixed (після Письма)
         _ => false
     };
+
+    int[] visibleModes = { 1, 2, 3, 4, 6 };
 }
 
 <style>
@@ -181,10 +176,16 @@
     </div>
 
     <div class="roadmap">
-        @for (int i = 1; i <= 6; i++)
+        @for (int i = 0; i < visibleModes.Length; i++)
         {
-            var unlocked = IsUnlocked(i);
-            var nextWillBeUnlocked = (i < 6) && IsUnlocked(i + 1);
+            var modeId = visibleModes[i];
+            var unlocked = IsUnlocked(modeId);
+
+            bool nextWillBeUnlocked = false;
+            if (i < visibleModes.Length - 1)
+            {
+                nextWillBeUnlocked = IsUnlocked(visibleModes[i + 1]);
+            }
 
             <div class="node">
                 @if (unlocked)
@@ -192,20 +193,20 @@
                     <a asp-controller="Test"
                        asp-action="Index"
                        asp-route-setId="@Model.SetId"
-                       asp-route-mode="@i"
+                       asp-route-mode="@modeId"
                        class="circle unlocked">
-                        @GetModeName(i)
+                        @GetModeName(modeId)
                     </a>
                 }
                 else
                 {
                     <div class="circle locked">
-                        @GetModeName(i)
+                        @GetModeName(modeId)
                         <div class="lock-tag">🔒 Заблоковано</div>
                     </div>
                 }
 
-                @if (i < 6)
+                @if (i < visibleModes.Length - 1)
                 {
                     <div class="line @(nextWillBeUnlocked ? "active" : "")"></div>
                 }
@@ -221,7 +222,6 @@
         2 => "Вікторина",
         3 => "З'єднання",
         4 => "Письмо",
-        5 => "Контекст",
         6 => "Mixed-режим",
         _ => ""
     };
