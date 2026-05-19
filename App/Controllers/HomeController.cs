@@ -26,20 +26,27 @@ namespace App.Controllers
         [AllowAnonymous]
         public IActionResult ServiceUnavailable()
         {
-            return View();
-        }
-        [AllowAnonymous]
-        public IActionResult NotFoundPage()
-        {
-            return View();
+            return View("/Views/Shareds/ServiceUnavailable.cshtml");
         }
 
+        [AllowAnonymous]
+        [Route("Home/NotFoundPage/{id?}")]
+        public IActionResult NotFoundPage(int? id)
+        {
+            return View("/Views/Shareds/NotFoundPage.cshtml");
+        }
+
+        [AllowAnonymous]
+        [Route("access-denied")]
+        public IActionResult AccessDenied()
+        {
+            return View("/Views/Shareds/AccessDenied.cshtml");
+        }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
         public IActionResult Error()
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        
     }
 }
