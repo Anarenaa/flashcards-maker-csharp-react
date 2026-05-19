@@ -6,7 +6,7 @@
 }
 
 <style>
-    /* --- ДИЗАЙН СІТКИ ТА КАРТОК --- */
+    /* --- Твій оригінальний дизайн (без змін) --- */
     .sets-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -43,7 +43,6 @@
         background: transparent;
     }
 
-    /* --- НИЖНЯ ЧАСТИНА КАРТКИ (ФУТЕР) --- */
     .card-footer {
         margin-top: auto;
         padding-top: 15px;
@@ -71,7 +70,6 @@
         margin-bottom: 5px;
     }
 
-    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -120,7 +118,6 @@
                 background-color: #6B8789;
             }
 
-    /* --- ФІЛЬТРИ --- */
     .filter-container {
         display: flex;
         gap: 15px;
@@ -170,7 +167,6 @@
         font-weight: bold;
     }
 
-    /* --- TOGGLE SWITCH --- */
     .toggle-row {
         display: flex;
         justify-content: space-between;
@@ -238,7 +234,7 @@
 
     .modal {
         background: #1C2531;
-         border: 1px solid var(--accent-color);
+        border: 1px solid var(--accent-color);
         padding: 30px;
         border-radius: 15px;
         width: 420px;
@@ -247,11 +243,34 @@
         flex-direction: column;
         gap: 15px;
     }
+
+    /* --- НОВІ СТИЛІ ДЛЯ ВИБОРУ МОВ --- */
+    .lang-row {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        justify-content: space-between;
+    }
+
+    .lang-group {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        flex: 1;
+    }
+
+    .lang-input {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 10px;
+        border-radius: 8px;
+        outline: none;
+    }
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
-
 
     <div class="filter-container">
         <form asp-controller="MySets" asp-action="Index" method="get" class="filter-form">
@@ -289,8 +308,9 @@
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
 
                 <div class="dropdown" onclick="event.stopPropagation()">
-                    <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase())">Редагувати</button>
-                    
+                    @* Додано передачу Type в EditModal *@
+                    <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
+
                     <a asp-controller="MySets" asp-action="Delete" asp-route-id="@set.Id"
                        onclick="event.stopPropagation(); return confirm('Видалити цей сет?')">Видалити</a>
                 </div>
@@ -337,8 +357,34 @@
 <div class="modal-overlay" id="setModal">
     <div class="modal">
         <form id="setForm" method="post">
-            <h2 id="modalTitle">Сет</h2>
+            <h2 id="modalTitle" style="margin-top: 0;">Сет</h2>
             <input type="hidden" name="Id" id="setIdField">
+
+            @* --- НОВИЙ ВИБІР ТИПУ --- *@
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <label style="font-size: 0.8rem; opacity: 0.6;">Тип навчання</label>
+                <select name="Type" id="setTypeField" class="sort-select" style="min-width: 100%;" onchange="toggleLanguageSelection()">
+                    <option value="0">Мова (Language)</option>
+                    <option value="1">Предмет (Subject)</option>
+                </select>
+            </div>
+
+            @* --- БЛОК ВИБОРУ МОВ (ЗГІДНО МАЛЮНКУ) --- *@
+            <div id="languageSelectionRow" class="lang-row" style="display: none;">
+                <div class="lang-group">
+                    <label style="font-size: 0.75rem; opacity: 0.5;">Вивчаю</label>
+                    <select id="learnLangList" class="lang-input">
+                        @* Заповнюється JS *@
+                    </select>
+                </div>
+                <div style="margin-top: 20px; color: var(--accent-color);">→</div>
+                <div class="lang-group">
+                    <label style="font-size: 0.75rem; opacity: 0.5;">Переклад</label>
+                    <select id="nativeLangList" class="lang-input">
+                        @* Заповнюється JS *@
+                    </select>
+                </div>
+            </div>
 
             <div style="display: flex; flex-direction: column; gap: 5px;">
                 <label style="font-size: 0.8rem; opacity: 0.6;">Назва сету</label>
@@ -370,6 +416,43 @@
     <script>
         const modal = document.getElementById('setModal');
         const form = document.getElementById('setForm');
+        const langRow = document.getElementById('languageSelectionRow');
+        const typeSelect = document.getElementById('setTypeField');
+
+        // Список мов
+        const languages = [
+            { code: "uk", name: "Українська" },
+            { code: "en", name: "Англійська" },
+            { code: "de", name: "Німецька" },
+            { code: "fr", name: "Французька" },
+            { code: "es", name: "Іспанська" }
+        ];
+
+        // Заповнення списків мов при завантаженні сторінки
+        document.addEventListener("DOMContentLoaded", () => {
+            const learnSelect = document.getElementById('learnLangList');
+            const nativeSelect = document.getElementById('nativeLangList');
+
+            languages.forEach(l => {
+                let opt1 = new Option(l.name, l.code);
+                let opt2 = new Option(l.name, l.code);
+                learnSelect.add(opt1);
+                nativeSelect.add(opt2);
+            });
+
+            // Встановити дефолт (Англ -> Укр)
+            learnSelect.value = "en";
+            nativeSelect.value = "uk";
+        });
+
+        function toggleLanguageSelection() {
+            // 0 - Language (Мова)
+            if (typeSelect.value === "0") {
+                langRow.style.display = 'flex';
+            } else {
+                langRow.style.display = 'none';
+            }
+        }
 
         function openCreateModal() {
             document.getElementById('modalTitle').innerText = "Новий навчальний сет";
@@ -378,10 +461,14 @@
             document.getElementById('setNameField').value = "";
             document.getElementById('setDescField').value = "";
             document.getElementById('setPublicField').checked = true;
+
+            typeSelect.value = "0"; // Дефолт - Мова
+            toggleLanguageSelection();
+
             modal.style.display = 'flex';
         }
 
-        function openEditModal(e, id, name, desc, isPublic) {
+        function openEditModal(e, id, name, desc, isPublic, type) {
             e.stopPropagation();
             document.getElementById('modalTitle').innerText = "Редагувати сет";
             form.action = "@Url.Action("Edit", "MySets")";
@@ -389,6 +476,10 @@
             document.getElementById('setNameField').value = name;
             document.getElementById('setDescField').value = desc;
             document.getElementById('setPublicField').checked = (isPublic === 'true');
+
+            typeSelect.value = type;
+            toggleLanguageSelection();
+
             modal.style.display = 'flex';
             closeAllDropdowns();
         }
