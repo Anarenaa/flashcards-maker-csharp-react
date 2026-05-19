@@ -2,6 +2,7 @@ using System.Text;
 using App.Configuration;
 using Core.Context;
 using Core.DTOs;
+using Core.Exceptions;
 using Core.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -306,6 +307,11 @@ app.Use(async (context, next) =>
     try
     {
         await next();
+    }
+    catch (NotFoundException)
+    {
+        context.Response.StatusCode = 404;
+        context.Response.Redirect($"/Home/NotFoundPage/404");
     }
     catch (Exception ex) when (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
     {
