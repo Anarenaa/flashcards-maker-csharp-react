@@ -6,7 +6,47 @@
 }
 
 <style>
-    /* --- Твій оригінальний дизайн (без змін) --- */
+    /* --- 1. ФІКС ПОШУКУ --- */
+    .filter-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        align-items: center;
+    }
+
+    .filter-form {
+        display: flex;
+        flex-grow: 1;
+        gap: 12px;
+    }
+
+        .filter-form input, .sort-select {
+            flex-grow: 1;
+            background: #141B25 !important;
+            border: 1px solid #818375 !important;
+            color: white !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
+            outline: none;
+            height: 45px;
+        }
+
+    .btn-search {
+        background: #f4a261 !important;
+        color: #141B25 !important;
+        border: none !important;
+        padding: 0 25px !important;
+        border-radius: 8px !important;
+        cursor: pointer;
+        font-weight: bold;
+        height: 45px;
+    }
+
+    /* --- 2. СІТКА КАРТОК --- */
     .sets-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -25,19 +65,17 @@
         justify-content: flex-start;
         position: relative;
         cursor: pointer;
-        transition: all 0.3s ease;
-        z-index: 1;
+        transition: 0.3s ease;
     }
 
         .set-card:hover {
             border-color: var(--accent-color);
-            background-color: var(--btn-hover);
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
     .create-card {
-        border: 2px dashed rgba(240, 255, 255, 0.3);
+        border: 2px dashed rgba(240, 255, 255, 0.2);
         text-align: center;
         justify-content: center;
         background: transparent;
@@ -45,18 +83,8 @@
 
     .card-footer {
         margin-top: auto;
-        padding-top: 15px;
+        padding-top: 10px;
         border-top: 1px solid rgba(240, 255, 255, 0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
-    }
-
-    .date-info {
-        font-size: 0.7rem;
-        opacity: 0.4;
-        display: flex;
-        justify-content: space-between;
     }
 
     .sets-count-badge {
@@ -66,8 +94,6 @@
         border-radius: 6px;
         font-size: 0.75rem;
         font-weight: bold;
-        width: fit-content;
-        margin-bottom: 5px;
     }
 
     .card-menu-btn {
@@ -76,17 +102,9 @@
         right: 15px;
         cursor: pointer;
         font-size: 1.5rem;
-        line-height: 1;
-        padding: 5px;
-        z-index: 10;
         opacity: 0.5;
-        transition: 0.3s;
+        z-index: 10;
     }
-
-        .card-menu-btn:hover {
-            opacity: 1;
-            color: var(--accent-color);
-        }
 
     .dropdown {
         position: absolute;
@@ -98,7 +116,6 @@
         display: none;
         flex-direction: column;
         z-index: 100;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.6);
         overflow: hidden;
     }
 
@@ -106,72 +123,129 @@
             background: none;
             border: none;
             color: white;
-            padding: 12px 20px;
+            padding: 10px 20px;
             text-decoration: none;
             font-size: 0.9rem;
-            text-align: left;
             cursor: pointer;
-            width: 100%;
+            text-align: left;
         }
 
             .dropdown button:hover, .dropdown a:hover {
                 background-color: #6B8789;
             }
 
-    .filter-container {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 30px;
-        background: rgba(255, 255, 255, 0.03);
-        padding: 15px;
-        border-radius: 12px;
-        border: 1px solid var(--btn-border);
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.85);
+        display: none;
+        justify-content: center;
         align-items: center;
+        z-index: 1000;
     }
 
-    .filter-form {
-        display: flex;
-        flex-grow: 1;
-        gap: 12px;
+    .modal {
+        background: #1C2531;
+        border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 15px;
+        width: 480px;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
     }
 
-        .filter-form input {
-            flex-grow: 1;
+        .modal form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .modal input, .modal select, .modal textarea {
             background: #141B25;
             border: 1px solid #818375;
             color: white;
-            padding: 12px 15px;
+            padding: 12px;
             border-radius: 8px;
             outline: none;
+            width: 100%;
+            box-sizing: border-box;
             font-family: inherit;
         }
 
-    .sort-select {
+        .modal label {
+            font-size: 0.8rem;
+            opacity: 0.6;
+            display: block;
+            margin-bottom: 5px;
+        }
+
+    .stepper {
+        display: flex;
+        align-items: center;
         background: #141B25;
         border: 1px solid #818375;
-        color: white;
-        padding: 11px 15px;
         border-radius: 8px;
-        outline: none;
-        cursor: pointer;
-        min-width: 150px;
+        overflow: hidden;
+        width: 100%;
     }
 
-    .btn-search {
-        background: var(--accent-color);
+        .stepper button {
+            background: none;
+            border: none;
+            color: var(--accent-color);
+            width: 40px;
+            height: 42px;
+            cursor: pointer;
+            font-size: 1.2rem;
+            transition: 0.2s;
+        }
+
+            .stepper button:hover {
+                background: rgba(255,255,255,0.05);
+            }
+
+        .stepper input {
+            width: 100% !important;
+            border: none !important;
+            text-align: center !important;
+            padding: 0 !important;
+            background: none !important;
+            font-weight: bold;
+        }
+ 
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
+
+    input[type=number] {
+        -moz-appearance: textfield;
+    }
+
+    .btn-ai {
+        background: #f4a261;
         color: #141B25;
         border: none;
-        padding: 0 25px;
+        padding: 12px 20px;
         border-radius: 8px;
-        cursor: pointer;
         font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
     }
 
-    .toggle-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-top: 10px;
+    .ai-preview-container {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 10px;
+        max-height: 140px;
+        overflow-y: auto;
+        display: none;
     }
 
     .switch {
@@ -219,75 +293,38 @@
             transform: translateX(22px);
         }
 
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0,0,0,0.8);
-        display: none;
-        justify-content: center;
-        align-items: center;
-        z-index: 1000;
+    .spinner-mini {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
     }
 
-    .modal {
-        background: #1C2531;
-        border: 1px solid var(--accent-color);
-        padding: 30px;
-        border-radius: 15px;
-        width: 420px;
-        max-width: 90%;
-        display: flex;
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    /* --- НОВІ СТИЛІ ДЛЯ ВИБОРУ МОВ --- */
-    .lang-row {
-        display: flex;
-        align-items: center;
-        gap: 10px;
-        justify-content: space-between;
-    }
-
-    .lang-group {
-        display: flex;
-        flex-direction: column;
-        gap: 5px;
-        flex: 1;
-    }
-
-    .lang-input {
-        background: #141B25;
-        border: 1px solid #818375;
-        color: white;
-        padding: 10px;
-        border-radius: 8px;
-        outline: none;
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 </style>
 
 <div class="content-area">
-    <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
+    <h2>Ваші навчальні сети</h2>
 
     <div class="filter-container">
         <form asp-controller="MySets" asp-action="Index" method="get" class="filter-form">
-            <input type="text" name="searchText" placeholder="Пошук ваших сетів..." value="@ViewData["CurrentFilter"]" />
+            <input type="text" name="searchText" placeholder="Пошук вашіх сетів..." value="@ViewData["CurrentFilter"]" />
             <select name="categoryId" class="sort-select" onchange="this.form.submit()">
                 <option value="">Усі категорії</option>
                 @if (ViewBag.Categories != null)
                 {
                     foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.Categories)
                     {
-                        <!option value="@cat.Id" @(ViewData["CurrentCategory"]?.ToString() == cat.Id.ToString() ? "selected" : "")>
-                        @cat.Name
-                        </!option>
+                        <!option value="@cat.Id" @(ViewData["CurrentCategory"]?.ToString() == cat.Id.ToString() ? "selected" : "")>@cat.Name</!option>
                     }
                 }
             </select>
-
             <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
                 <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
                 <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
@@ -298,7 +335,7 @@
 
     <div class="sets-grid">
         <div class="set-card create-card" onclick="openCreateModal()">
-            <div style="font-size: 3rem; color: var(--accent-color); line-height: 1;">+</div>
+            <div style="font-size: 3rem; color: var(--accent-color);">+</div>
             <div style="font-weight: 500;">Створити новий сет</div>
         </div>
 
@@ -306,46 +343,23 @@
         {
             <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
-
-                <div class="dropdown" onclick="event.stopPropagation()">
-                    @* Додано передачу Type в EditModal *@
+                <div class="dropdown">
                     <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
-
-                    <a asp-controller="MySets" asp-action="Delete" asp-route-id="@set.Id"
-                       onclick="event.stopPropagation(); return confirm('Видалити цей сет?')">Видалити</a>
+                    <a asp-action="Delete" asp-route-id="@set.Id">Видалити</a>
                 </div>
-
                 <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
-
                 <div class="card-footer">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span class="sets-count-badge">@set.FlashcardsCount карток</span>
-                        <span style="font-size: 0.75rem; opacity: 0.6;">@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
+                        @if (set.FlashcardsCount > 5)
+                        {
+                            <span style="font-size: 0.7rem; color: #f4a261; font-weight: bold;">✨ ШІ</span>
+                        }
                     </div>
-
-                    @{
-                        var localUpdate = set.LastUpdatedAt.ToLocalTime();
-                        var localCreate = set.CreatedAt.ToLocalTime();
-                    }
-
-                    <div class="date-info">
-                        <span>Створено:</span>
-                        <span>@localCreate.ToString("dd.MM.yyyy")</span>
-                    </div>
-
-                    <div class="date-info">
-                        <span>Оновлено:</span>
-                        <span style="color: var(--accent-color); opacity: 0.9;">
-                            @if (localUpdate.Date == DateTime.Now.Date)
-                            {
-                                @localUpdate.ToString("HH:mm")
-                            }
-                            else
-                            {
-                                @localUpdate.ToString("dd.MM.yyyy")
-                            }
-                        </span>
+                    <div style="font-size: 0.7rem; opacity: 0.4; display: flex; justify-content: space-between; margin-top: 5px;">
+                        <span>@((int)set.Type == 0 ? "Мова" : "Предмет")</span>
+                        <span>@set.CreatedAt.ToString("dd.MM.yyyy")</span>
                     </div>
                 </div>
             </div>
@@ -353,60 +367,53 @@
     </div>
 </div>
 
-@* Модалка *@
 <div class="modal-overlay" id="setModal">
     <div class="modal">
-        <form id="setForm" method="post">
-            <h2 id="modalTitle" style="margin-top: 0;">Сет</h2>
+        <form id="setForm" method="post" asp-action="Create">
+            <h2 id="modalTitle" style="margin-bottom: 5px;">Новий сет</h2>
             <input type="hidden" name="Id" id="setIdField">
 
-            @* --- НОВИЙ ВИБІР ТИПУ --- *@
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-size: 0.8rem; opacity: 0.6;">Тип навчання</label>
-                <select name="Type" id="setTypeField" class="sort-select" style="min-width: 100%;" onchange="toggleLanguageSelection()">
-                    <option value="0">Мова (Language)</option>
-                    <option value="1">Предмет (Subject)</option>
-                </select>
-            </div>
-
-            @* --- БЛОК ВИБОРУ МОВ (ЗГІДНО МАЛЮНКУ) --- *@
-            <div id="languageSelectionRow" class="lang-row" style="display: none;">
-                <div class="lang-group">
-                    <label style="font-size: 0.75rem; opacity: 0.5;">Вивчаю</label>
-                    <select id="learnLangList" class="lang-input">
-                        @* Заповнюється JS *@
+            <div style="display: flex; gap: 10px;">
+                <div style="flex: 2;">
+                    <label>Тип навчання</label>
+                    <select name="Type" id="setTypeField" onchange="toggleLanguageSelection()">
+                        <option value="0">Мова (Language)</option>
+                        <option value="1">Предмет (Subject)</option>
                     </select>
                 </div>
-                <div style="margin-top: 20px; color: var(--accent-color);">→</div>
-                <div class="lang-group">
-                    <label style="font-size: 0.75rem; opacity: 0.5;">Переклад</label>
-                    <select id="nativeLangList" class="lang-input">
-                        @* Заповнюється JS *@
-                    </select>
+                <div style="flex: 1;">
+                    <label>К-сть карток</label>
+                    <div class="stepper">
+                        <button type="button" onclick="stepCount(-1)">−</button>
+                        <input type="number" id="aiCount" value="10" min="1" max="30" readonly>
+                        <button type="button" onclick="stepCount(1)">+</button>
+                    </div>
                 </div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-size: 0.8rem; opacity: 0.6;">Назва сету</label>
-                <input type="text" name="Name" id="setNameField" required style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px;">
+            <div id="languageSelectionRow" style="display: none; align-items: center; gap: 10px;">
+                <div style="flex: 1;"><label>Вивчаю</label><select id="learnLangList"></select></div>
+                <div style="margin-top: 25px; color: var(--accent-color);">→</div>
+                <div style="flex: 1;"><label>На яку</label><select id="nativeLangList"></select></div>
             </div>
 
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <label style="font-size: 0.8rem; opacity: 0.6;">Опис</label>
-                <input type="text" name="Description" id="setDescField" style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px;">
+            <div><label>Назва сету</label><input type="text" name="Name" id="setNameField" placeholder="Введіть назву..." required /></div>
+
+            <div><label>Опис (Промпт для ШІ)</label><textarea name="Description" id="setDescField" placeholder="Сет про космос..." rows="3" style="resize: none;"></textarea></div>
+
+            <div id="aiPreviewArea" class="ai-preview-container"><div id="aiCardsList"></div><input type="hidden" name="GeneratedCardsJson" id="generatedCardsJson" /></div>
+
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
+                <span style="font-size: 0.8rem; opacity: 0.7;">Зробити публічним</span>
+                <label class="switch"><input type="checkbox" name="IsPublic" id="setPublicField" checked value="true"><span class="slider"></span></label>
             </div>
 
-            <div class="toggle-row">
-                <span>Зробити публічним</span>
-                <label class="switch">
-                    <input type="checkbox" name="IsPublic" id="setPublicField" value="true">
-                    <span class="slider"></span>
-                </label>
-            </div>
-
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
-                <button type="button" onclick="closeModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 25px; border-radius:6px; cursor:pointer; font-weight:bold;">Зберегти</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #333; padding-top: 15px;">
+                <button type="button" onclick="closeModal()" style="background: none; border: none; color: #818375; cursor: pointer; font-weight: bold;">Скасувати</button>
+                <div style="display: flex; gap: 10px;">
+                    <button type="button" id="btnAiGen" class="btn-ai" onclick="generateWithAI()">✨ ШІ Генерація</button>
+                    <button type="submit" style="background: #6B8789; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">Зберегти</button>
+                </div>
             </div>
         </form>
     </div>
@@ -415,97 +422,57 @@
 @section Scripts {
     <script>
         const modal = document.getElementById('setModal');
-        const form = document.getElementById('setForm');
-        const langRow = document.getElementById('languageSelectionRow');
-        const typeSelect = document.getElementById('setTypeField');
+        const languages = [ { code: "uk", name: "Українська" }, { code: "en", name: "Англійська" }, { code: "de", name: "Німецька" } ];
+        let tempCards = [];
 
-        // Список мов
-        const languages = [
-            { code: "uk", name: "Українська" },
-            { code: "en", name: "Англійська" },
-            { code: "de", name: "Німецька" },
-            { code: "fr", name: "Французька" },
-            { code: "es", name: "Іспанська" }
-        ];
+        function stepCount(val) {
+            const input = document.getElementById('aiCount');
+            let res = parseInt(input.value) + val;
+            if (res >= 1 && res <= 30) input.value = res;
+        }
 
-        // Заповнення списків мов при завантаженні сторінки
         document.addEventListener("DOMContentLoaded", () => {
-            const learnSelect = document.getElementById('learnLangList');
-            const nativeSelect = document.getElementById('nativeLangList');
-
+            const l1 = document.getElementById('learnLangList');
+            const l2 = document.getElementById('nativeLangList');
             languages.forEach(l => {
-                let opt1 = new Option(l.name, l.code);
-                let opt2 = new Option(l.name, l.code);
-                learnSelect.add(opt1);
-                nativeSelect.add(opt2);
+                l1.add(new Option(l.name, l.code));
+                l2.add(new Option(l.name, l.code));
             });
-
-            // Встановити дефолт (Англ -> Укр)
-            learnSelect.value = "en";
-            nativeSelect.value = "uk";
+            l1.value = "en"; l2.value = "uk";
         });
 
-        function toggleLanguageSelection() {
-            // 0 - Language (Мова)
-            if (typeSelect.value === "0") {
-                langRow.style.display = 'flex';
-            } else {
-                langRow.style.display = 'none';
-            }
+        async function generateWithAI() {
+            const prompt = document.getElementById('setDescField').value;
+            const count = document.getElementById('aiCount').value;
+            const btn = document.getElementById('btnAiGen');
+            if (!prompt) { alert("Вкажіть опис!"); return; }
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span> Генерую...';
+            try {
+                const response = await fetch(`/api/sets/generate?prompt=${encodeURIComponent(prompt)}&count=${count}`);
+                if (!response.ok) throw new Error();
+                tempCards = await response.json();
+                const listDiv = document.getElementById('aiCardsList');
+                listDiv.innerHTML = '';
+                tempCards.forEach((c, i) => {
+                    listDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:6px; border-bottom:1px solid #333;"><span><b>${c.term}</b> - ${c.definition}</span><span onclick="removeAiCard(${i})" style="color:#ff8080; cursor:pointer;">✕</span></div>`;
+                });
+                document.getElementById('aiPreviewArea').style.display = 'block';
+                document.getElementById('generatedCardsJson').value = JSON.stringify(tempCards);
+            } catch (e) { alert("Помилка ШІ."); }
+            finally { btn.disabled = false; btn.innerHTML = "✨ ШІ Генерація"; }
         }
 
-        function openCreateModal() {
-            document.getElementById('modalTitle').innerText = "Новий навчальний сет";
-            form.action = "@Url.Action("Create", "MySets")";
-            document.getElementById('setIdField').value = "";
-            document.getElementById('setNameField').value = "";
-            document.getElementById('setDescField').value = "";
-            document.getElementById('setPublicField').checked = true;
-
-            typeSelect.value = "0"; // Дефолт - Мова
-            toggleLanguageSelection();
-
-            modal.style.display = 'flex';
+        function removeAiCard(i) {
+            tempCards.splice(i, 1);
+            document.getElementById('aiCardsList').children[i].style.display = 'none';
+            document.getElementById('generatedCardsJson').value = JSON.stringify(tempCards);
         }
 
-        function openEditModal(e, id, name, desc, isPublic, type) {
-            e.stopPropagation();
-            document.getElementById('modalTitle').innerText = "Редагувати сет";
-            form.action = "@Url.Action("Edit", "MySets")";
-            document.getElementById('setIdField').value = id;
-            document.getElementById('setNameField').value = name;
-            document.getElementById('setDescField').value = desc;
-            document.getElementById('setPublicField').checked = (isPublic === 'true');
-
-            typeSelect.value = type;
-            toggleLanguageSelection();
-
-            modal.style.display = 'flex';
-            closeAllDropdowns();
-        }
-
+        function toggleLanguageSelection() { document.getElementById('languageSelectionRow').style.display = document.getElementById('setTypeField').value === "0" ? 'flex' : 'none'; }
+        function openCreateModal() { document.getElementById('modalTitle').innerText = "Новий сет"; document.getElementById('setForm').reset(); document.getElementById('aiPreviewArea').style.display = 'none'; toggleLanguageSelection(); modal.style.display = 'flex'; }
         function closeModal() { modal.style.display = 'none'; }
-
-        function handleCardClick(e, url) {
-            if (e.target.closest('.card-menu-btn') || e.target.closest('.dropdown')) return;
-            window.location.href = url;
-        }
-
-        function toggleMenu(e) {
-            e.stopPropagation();
-            const dropdown = e.currentTarget.nextElementSibling;
-            const isOpen = dropdown.style.display === 'flex';
-            closeAllDropdowns();
-            if (!isOpen) dropdown.style.display = 'flex';
-        }
-
-        function closeAllDropdowns() {
-            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-        }
-
-        window.onclick = (e) => {
-            if (!e.target.matches('.card-menu-btn')) closeAllDropdowns();
-            if (e.target === modal) closeModal();
-        };
+        function toggleMenu(e) { e.stopPropagation(); const d = e.currentTarget.nextElementSibling; d.style.display = d.style.display === 'flex' ? 'none' : 'flex'; }
+        function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown')) window.location.href = url; }
+        window.onclick = (e) => { if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); if (e.target === modal) closeModal(); };
     </script>
 }
