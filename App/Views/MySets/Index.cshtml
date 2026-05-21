@@ -6,7 +6,6 @@
 }
 
 <style>
-    /* --- 1. ФІКС ПОШУКУ --- */
     .filter-container {
         display: flex;
         gap: 15px;
@@ -46,7 +45,6 @@
         height: 45px;
     }
 
-    /* --- 2. СІТКА КАРТОК --- */
     .sets-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -104,6 +102,7 @@
         font-size: 1.5rem;
         opacity: 0.5;
         z-index: 10;
+        padding: 5px;
     }
 
     .dropdown {
@@ -117,20 +116,22 @@
         flex-direction: column;
         z-index: 100;
         overflow: hidden;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
     }
 
-        .dropdown button, .dropdown a {
+        .dropdown button, .dropdown form button {
             background: none;
             border: none;
             color: white;
             padding: 10px 20px;
-            text-decoration: none;
             font-size: 0.9rem;
             cursor: pointer;
             text-align: left;
+            width: 100%;
+            display: block;
         }
 
-            .dropdown button:hover, .dropdown a:hover {
+            .dropdown button:hover, .dropdown form button:hover {
                 background-color: #6B8789;
             }
 
@@ -150,35 +151,31 @@
     .modal {
         background: #1C2531;
         border: 1px solid var(--accent-color);
-        padding: 30px;
+        padding: 20px;
         border-radius: 15px;
-        width: 480px;
-        box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+        width: 460px;
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
     }
 
-        .modal form {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        .modal label {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-top: 5px;
+            color: white;
         }
 
         .modal input, .modal select, .modal textarea {
             background: #141B25;
             border: 1px solid #818375;
             color: white;
-            padding: 12px;
+            padding: 10px 12px;
             border-radius: 8px;
             outline: none;
-            width: 100%;
             box-sizing: border-box;
             font-family: inherit;
-        }
-
-        .modal label {
-            font-size: 0.8rem;
-            opacity: 0.6;
-            display: block;
-            margin-bottom: 5px;
+            width: 100%;
         }
 
     .stepper {
@@ -199,12 +196,7 @@
             height: 42px;
             cursor: pointer;
             font-size: 1.2rem;
-            transition: 0.2s;
         }
-
-            .stepper button:hover {
-                background: rgba(255,255,255,0.05);
-            }
 
         .stepper input {
             width: 100% !important;
@@ -214,21 +206,23 @@
             background: none !important;
             font-weight: bold;
         }
- 
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
 
-    input[type=number] {
-        -moz-appearance: textfield;
+    .ai-preview-container {
+        background: rgba(0,0,0,0.2);
+        border: 1px solid #444;
+        border-radius: 8px;
+        padding: 8px;
+        max-height: 120px;
+        overflow-y: auto;
+        display: none;
+        margin-top: 5px;
     }
 
     .btn-ai {
         background: #f4a261;
         color: #141B25;
         border: none;
-        padding: 12px 20px;
+        padding: 10px 20px;
         border-radius: 8px;
         font-weight: bold;
         cursor: pointer;
@@ -238,21 +232,20 @@
         gap: 8px;
     }
 
-    .ai-preview-container {
-        background: rgba(0,0,0,0.2);
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 10px;
-        max-height: 140px;
-        overflow-y: auto;
-        display: none;
+    .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #333;
+        padding-top: 15px;
+        margin-top: 10px;
     }
 
     .switch {
         position: relative;
         display: inline-block;
-        width: 44px;
-        height: 22px;
+        width: 40px;
+        height: 20px;
     }
 
         .switch input {
@@ -270,14 +263,14 @@
         bottom: 0;
         background-color: #444;
         transition: .4s;
-        border-radius: 22px;
+        border-radius: 20px;
     }
 
         .slider:before {
             position: absolute;
             content: "";
-            height: 16px;
-            width: 16px;
+            height: 14px;
+            width: 14px;
             left: 3px;
             bottom: 3px;
             background-color: white;
@@ -290,7 +283,7 @@
     }
 
         input:checked + .slider:before {
-            transform: translateX(22px);
+            transform: translateX(20px);
         }
 
     .spinner-mini {
@@ -314,7 +307,7 @@
 
     <div class="filter-container">
         <form asp-controller="MySets" asp-action="Index" method="get" class="filter-form">
-            <input type="text" name="searchText" placeholder="Пошук вашіх сетів..." value="@ViewData["CurrentFilter"]" />
+            <input type="text" name="searchText" placeholder="Пошук..." value="@ViewData["CurrentFilter"]" />
             <select name="categoryId" class="sort-select" onchange="this.form.submit()">
                 <option value="">Усі категорії</option>
                 @if (ViewBag.Categories != null)
@@ -324,10 +317,6 @@
                         <!option value="@cat.Id" @(ViewData["CurrentCategory"]?.ToString() == cat.Id.ToString() ? "selected" : "")>@cat.Name</!option>
                     }
                 }
-            </select>
-            <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
-                <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
-                <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
             </select>
             <button type="submit" class="btn-search">Шукати</button>
         </form>
@@ -343,9 +332,14 @@
         {
             <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
-                <div class="dropdown">
+                <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
-                    <a asp-action="Delete" asp-route-id="@set.Id">Видалити</a>
+
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити цей сет?')">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@set.Id" />
+                        <button type="submit" style="color: #ff8080;">Видалити</button>
+                    </form>
                 </div>
                 <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
@@ -357,7 +351,7 @@
                             <span style="font-size: 0.7rem; color: #f4a261; font-weight: bold;">✨ ШІ</span>
                         }
                     </div>
-                    <div style="font-size: 0.7rem; opacity: 0.4; display: flex; justify-content: space-between; margin-top: 5px;">
+                    <div style="font-size: 0.65rem; opacity: 0.4; display: flex; justify-content: space-between; margin-top: 5px;">
                         <span>@((int)set.Type == 0 ? "Мова" : "Предмет")</span>
                         <span>@set.CreatedAt.ToString("dd.MM.yyyy")</span>
                     </div>
@@ -367,21 +361,23 @@
     </div>
 </div>
 
+@* МОДАЛКА *@
 <div class="modal-overlay" id="setModal">
     <div class="modal">
-        <form id="setForm" method="post" asp-action="Create">
-            <h2 id="modalTitle" style="margin-bottom: 5px;">Новий сет</h2>
+        <form id="setForm" method="post" action="">
+            @Html.AntiForgeryToken()
+            <h2 id="modalTitle" style="margin: 0; font-size: 1.2rem;">Новий сет</h2>
             <input type="hidden" name="Id" id="setIdField">
 
-            <div style="display: flex; gap: 10px;">
-                <div style="flex: 2;">
+            <div style="display: flex; gap: 10px; align-items: flex-end;">
+                <div style="flex: 2; display: flex; flex-direction: column;">
                     <label>Тип навчання</label>
                     <select name="Type" id="setTypeField" onchange="toggleLanguageSelection()">
                         <option value="0">Мова (Language)</option>
                         <option value="1">Предмет (Subject)</option>
                     </select>
                 </div>
-                <div style="flex: 1;">
+                <div style="flex: 1; display: flex; flex-direction: column;">
                     <label>К-сть карток</label>
                     <div class="stepper">
                         <button type="button" onclick="stepCount(-1)">−</button>
@@ -391,28 +387,30 @@
                 </div>
             </div>
 
-            <div id="languageSelectionRow" style="display: none; align-items: center; gap: 10px;">
-                <div style="flex: 1;"><label>Вивчаю</label><select id="learnLangList"></select></div>
-                <div style="margin-top: 25px; color: var(--accent-color);">→</div>
-                <div style="flex: 1;"><label>На яку</label><select id="nativeLangList"></select></div>
+            <div id="languageSelectionRow" style="display: none; align-items: center; gap: 8px;">
+                <div style="flex: 1;"><label>Вивчаю</label><select id="learnLangList" name="LearnLanguage"></select></div>
+                <div style="margin-top: 22px; color: var(--accent-color);">→</div>
+                <div style="flex: 1;"><label>На яку</label><select id="nativeLangList" name="NativeLanguage"></select></div>
             </div>
 
-            <div><label>Назва сету</label><input type="text" name="Name" id="setNameField" placeholder="Введіть назву..." required /></div>
+            <label>Назва сету</label>
+            <input type="text" name="Name" id="setNameField" required />
 
-            <div><label>Опис (Промпт для ШІ)</label><textarea name="Description" id="setDescField" placeholder="Сет про космос..." rows="3" style="resize: none;"></textarea></div>
+            <label>Опис (Промпт для ШІ)</label>
+            <textarea name="Description" id="setDescField" rows="2" style="resize: none;"></textarea>
 
             <div id="aiPreviewArea" class="ai-preview-container"><div id="aiCardsList"></div><input type="hidden" name="GeneratedCardsJson" id="generatedCardsJson" /></div>
 
-            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px;">
-                <span style="font-size: 0.8rem; opacity: 0.7;">Зробити публічним</span>
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 8px 0;">
+                <span style="font-size: 0.75rem; opacity: 0.7;">Зробити публічним</span>
                 <label class="switch"><input type="checkbox" name="IsPublic" id="setPublicField" checked value="true"><span class="slider"></span></label>
             </div>
 
-            <div style="display: flex; justify-content: space-between; align-items: center; border-top: 1px solid #333; padding-top: 15px;">
+            <div class="modal-footer">
                 <button type="button" onclick="closeModal()" style="background: none; border: none; color: #818375; cursor: pointer; font-weight: bold;">Скасувати</button>
-                <div style="display: flex; gap: 10px;">
-                    <button type="button" id="btnAiGen" class="btn-ai" onclick="generateWithAI()">✨ ШІ Генерація</button>
-                    <button type="submit" style="background: #6B8789; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">Зберегти</button>
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" id="btnAiGen" class="btn-ai" onclick="generateWithAI()">✨ ШІ</button>
+                    <button type="submit" style="background: #6B8789; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Зберегти</button>
                 </div>
             </div>
         </form>
@@ -422,7 +420,7 @@
 @section Scripts {
     <script>
         const modal = document.getElementById('setModal');
-        const languages = [ { code: "uk", name: "Українська" }, { code: "en", name: "Англійська" }, { code: "de", name: "Німецька" } ];
+        const setForm = document.getElementById('setForm');
         let tempCards = [];
 
         function stepCount(val) {
@@ -431,48 +429,69 @@
             if (res >= 1 && res <= 30) input.value = res;
         }
 
-        document.addEventListener("DOMContentLoaded", () => {
-            const l1 = document.getElementById('learnLangList');
-            const l2 = document.getElementById('nativeLangList');
-            languages.forEach(l => {
-                l1.add(new Option(l.name, l.code));
-                l2.add(new Option(l.name, l.code));
-            });
-            l1.value = "en"; l2.value = "uk";
-        });
+        function openCreateModal() {
+            document.getElementById('modalTitle').innerText = "Новий сет";
+            setForm.action = "/MySets/Create";
+            setForm.reset();
+            document.getElementById('aiPreviewArea').style.display = 'none';
+            toggleLanguageSelection();
+            modal.style.display = 'flex';
+        }
+
+        function openEditModal(e, id, name, desc, isPublic, type) {
+            e.stopPropagation();
+            document.getElementById('modalTitle').innerText = "Редагувати сет";
+            setForm.action = "/MySets/Edit";
+            document.getElementById('setIdField').value = id;
+            document.getElementById('setNameField').value = name;
+            document.getElementById('setDescField').value = desc;
+            document.getElementById('setPublicField').checked = (isPublic === 'true');
+            document.getElementById('setTypeField').value = type;
+            document.getElementById('aiPreviewArea').style.display = 'none';
+            toggleLanguageSelection();
+            modal.style.display = 'flex';
+            closeAllDropdowns();
+        }
 
         async function generateWithAI() {
             const prompt = document.getElementById('setDescField').value;
             const count = document.getElementById('aiCount').value;
             const btn = document.getElementById('btnAiGen');
             if (!prompt) { alert("Вкажіть опис!"); return; }
-            btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span> Генерую...';
+            btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span>...';
             try {
                 const response = await fetch(`/api/sets/generate?prompt=${encodeURIComponent(prompt)}&count=${count}`);
-                if (!response.ok) throw new Error();
                 tempCards = await response.json();
                 const listDiv = document.getElementById('aiCardsList');
                 listDiv.innerHTML = '';
                 tempCards.forEach((c, i) => {
-                    listDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.8rem; padding:6px; border-bottom:1px solid #333;"><span><b>${c.term}</b> - ${c.definition}</span><span onclick="removeAiCard(${i})" style="color:#ff8080; cursor:pointer;">✕</span></div>`;
+                    listDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.75rem; padding:4px; border-bottom:1px solid #333;"><span><b>${c.term}</b> - ${c.definition}</span><span onclick="removeAiCard(${i})" style="color:#ff8080; cursor:pointer;">✕</span></div>`;
                 });
                 document.getElementById('aiPreviewArea').style.display = 'block';
                 document.getElementById('generatedCardsJson').value = JSON.stringify(tempCards);
             } catch (e) { alert("Помилка ШІ."); }
-            finally { btn.disabled = false; btn.innerHTML = "✨ ШІ Генерація"; }
+            finally { btn.disabled = false; btn.innerHTML = "✨ ШІ"; }
         }
 
         function removeAiCard(i) {
             tempCards.splice(i, 1);
-            document.getElementById('aiCardsList').children[i].style.display = 'none';
             document.getElementById('generatedCardsJson').value = JSON.stringify(tempCards);
+            const listDiv = document.getElementById('aiCardsList');
+            if(listDiv.children[i]) listDiv.children[i].style.display = 'none';
         }
 
         function toggleLanguageSelection() { document.getElementById('languageSelectionRow').style.display = document.getElementById('setTypeField').value === "0" ? 'flex' : 'none'; }
-        function openCreateModal() { document.getElementById('modalTitle').innerText = "Новий сет"; document.getElementById('setForm').reset(); document.getElementById('aiPreviewArea').style.display = 'none'; toggleLanguageSelection(); modal.style.display = 'flex'; }
         function closeModal() { modal.style.display = 'none'; }
-        function toggleMenu(e) { e.stopPropagation(); const d = e.currentTarget.nextElementSibling; d.style.display = d.style.display === 'flex' ? 'none' : 'flex'; }
+        function toggleMenu(e) { e.stopPropagation(); closeAllDropdowns(); const d = e.currentTarget.nextElementSibling; d.style.display = 'flex'; }
+        function closeAllDropdowns() { document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); }
         function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown')) window.location.href = url; }
-        window.onclick = (e) => { if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); if (e.target === modal) closeModal(); };
+        window.onclick = (e) => { if (!e.target.matches('.card-menu-btn')) closeAllDropdowns(); if (e.target === modal) closeModal(); };
+
+        const languages = [ { code: "uk", name: "Українська" }, { code: "en", name: "Англійська" }, { code: "de", name: "Німецька" } ];
+        document.addEventListener("DOMContentLoaded", () => {
+            const l1 = document.getElementById('learnLangList'); const l2 = document.getElementById('nativeLangList');
+            languages.forEach(l => { l1.add(new Option(l.name, l.code)); l2.add(new Option(l.name, l.code)); });
+            l1.value = "en"; l2.value = "uk";
+        });
     </script>
 }
