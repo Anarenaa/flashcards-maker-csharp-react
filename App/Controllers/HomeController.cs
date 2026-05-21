@@ -24,12 +24,14 @@ namespace App.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet]
         public IActionResult ServiceUnavailable()
         {
             return View("/Views/Shareds/ServiceUnavailable.cshtml");
         }
 
         [AllowAnonymous]
+        [HttpGet]
         [Route("Home/NotFoundPage/{id?}")]
         public IActionResult NotFoundPage(int? id)
         {
@@ -37,6 +39,7 @@ namespace App.Controllers
         }
 
         [AllowAnonymous]
+        [HttpGet]
         [Route("access-denied")]
         public IActionResult AccessDenied()
         {

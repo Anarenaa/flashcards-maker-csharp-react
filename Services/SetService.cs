@@ -1,16 +1,19 @@
 ﻿using Core.DTOs;
 using Core.Exceptions;
 using Core.Models;
+using Microsoft.AspNetCore.Identity;
 using Repositories.Interfaces;
 
 namespace Services
 {
     public class SetService
     {
-        public readonly IUnitOfWork _unitOfWork;
-        public SetService(IUnitOfWork unitOfWork)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<User> _userManager;
+        public SetService(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
         public async Task<List<SetDTO>> GetAllSetsAsync(int currentUserId, List<int>? categoryIds, string? searchText = null)
         {
@@ -123,26 +126,32 @@ namespace Services
 
         public async Task AddSetAsync(SetDTO setDto, int userId)
         {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             var set = new Set
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
-                UserId = userId
+                IsGenerated = setDto.IsGenerated,
+                UserId = userId,
+                User = user
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task<Set> AddSetAsyncWithReturn(SetDTO setDto, int userId)
         {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             var set = new Set
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
-                UserId = userId
+                IsGenerated = setDto.IsGenerated,
+                UserId = userId,
+                User = user
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();

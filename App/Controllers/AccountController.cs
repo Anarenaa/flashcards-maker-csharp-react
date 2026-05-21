@@ -418,11 +418,6 @@ namespace App.Controllers
             }
             return View(model);
         }
-        [HttpGet("access-denied")]
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
         [HttpGet]
         public IActionResult EmailSent()
         {

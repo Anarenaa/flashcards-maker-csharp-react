@@ -13,6 +13,7 @@ namespace Core.DTOs
         public string? Description { get; set; }
         public SetType Type { get; set; } = SetType.Language;
         public bool IsPublic { get; set; }
+        public bool IsGenerated { get; set; } = false;
         public string? UserName { get; set; }
         public int FlashcardsCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; }

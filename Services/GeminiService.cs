@@ -22,7 +22,7 @@ namespace Services
             _apiKey = apiKey;
             _logger = logger;
         }
-        public async Task<List<FlashcardDTO>> GenerateCardsAsync(string prompt, byte[]? imageBytes = null, string? mimeType = null)
+        public async Task<List<FlashcardDTO>> GenerateCardsAsync(string prompt, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
         {
             _client.DefaultRequestHeaders.Add("x-goog-api-key", _apiKey);
             var url = $"interactions";
@@ -35,7 +35,7 @@ namespace Services
                     new
                     {
                         type = "text",
-                        text = $"Generate {prompt}. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}]."
+                        text = $"Generate {prompt}. {cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}]."
                     },
                     new
                     {
@@ -47,12 +47,12 @@ namespace Services
             }
             else
             {
-                inputData = $"Generate {prompt}. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
+                inputData = $"Generate {prompt}. {cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
             }
 
             var requestBody = new
             {
-                model = "gemini-3-flash-preview",
+                model = "gemini-2.5-flash",
                 input = inputData
             };
 
