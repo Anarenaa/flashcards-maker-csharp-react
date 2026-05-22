@@ -1,4 +1,5 @@
 ﻿@using Core.DTOs
+@using Core.Models
 @model IEnumerable<SetDTO>
 
 @{
@@ -57,7 +58,7 @@
         border: 1px solid var(--btn-border);
         border-radius: 12px;
         padding: 25px;
-        min-height: 170px;
+        min-height: 190px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -71,13 +72,6 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
-
-    .create-card {
-        border: 2px dashed rgba(240, 255, 255, 0.2);
-        text-align: center;
-        justify-content: center;
-        background: transparent;
-    }
 
     .card-footer {
         margin-top: auto;
@@ -94,6 +88,15 @@
         font-weight: bold;
     }
 
+    .date-info {
+        font-size: 0.65rem;
+        opacity: 0.4;
+        display: flex;
+        justify-content: space-between;
+        margin-top: 8px;
+        color: white;
+    }
+
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -101,7 +104,7 @@
         cursor: pointer;
         font-size: 1.5rem;
         opacity: 0.5;
-        z-index: 10;
+        z-index: 20;
         padding: 5px;
     }
 
@@ -137,10 +140,7 @@
 
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         background: rgba(0,0,0,0.85);
         display: none;
         justify-content: center;
@@ -159,24 +159,31 @@
         gap: 3px;
     }
 
-        .modal label {
+    .field-block {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 2px;
+    }
+
+        .field-block label {
             font-size: 0.75rem;
             opacity: 0.6;
-            margin-top: 5px;
+            margin-bottom: 2px;
             color: white;
         }
 
-        .modal input, .modal select, .modal textarea {
-            background: #141B25;
-            border: 1px solid #818375;
-            color: white;
-            padding: 10px 12px;
-            border-radius: 8px;
-            outline: none;
-            box-sizing: border-box;
-            font-family: inherit;
-            width: 100%;
-        }
+    .modal input, .modal select, .modal textarea {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white !important;
+        padding: 10px;
+        border-radius: 8px;
+        outline: none;
+        box-sizing: border-box;
+        font-family: inherit;
+        width: 100%;
+    }
 
     .stepper {
         display: flex;
@@ -185,7 +192,7 @@
         border: 1px solid #818375;
         border-radius: 8px;
         overflow: hidden;
-        width: 100%;
+        height: 42px;
     }
 
         .stepper button {
@@ -193,19 +200,25 @@
             border: none;
             color: var(--accent-color);
             width: 40px;
-            height: 42px;
+            height: 100%;
             cursor: pointer;
             font-size: 1.2rem;
         }
 
         .stepper input {
-            width: 100% !important;
+            width: 50px !important;
             border: none !important;
             text-align: center !important;
             padding: 0 !important;
             background: none !important;
             font-weight: bold;
+            color: white !important;
         }
+
+    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
+        -webkit-appearance: none;
+        margin: 0;
+    }
 
     .ai-preview-container {
         background: rgba(0,0,0,0.2);
@@ -215,12 +228,21 @@
         max-height: 120px;
         overflow-y: auto;
         display: none;
-        margin-top: 5px;
+        margin-bottom: 5px;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #333;
+        padding-top: 15px;
+        margin-top: 10px;
     }
 
     .btn-ai {
         background: #f4a261;
-        color: #141B25;
+        color: #141B25 !important;
         border: none;
         padding: 10px 20px;
         border-radius: 8px;
@@ -232,13 +254,19 @@
         gap: 8px;
     }
 
-    .modal-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #333;
-        padding-top: 15px;
-        margin-top: 10px;
+    .spinner-mini {
+        width: 14px;
+        height: 14px;
+        border: 2px solid rgba(255,255,255,0.2);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .switch {
@@ -285,21 +313,6 @@
         input:checked + .slider:before {
             transform: translateX(20px);
         }
-
-    .spinner-mini {
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(255,255,255,0.2);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
 </style>
 
 <div class="content-area">
@@ -307,7 +320,7 @@
 
     <div class="filter-container">
         <form asp-controller="MySets" asp-action="Index" method="get" class="filter-form">
-            <input type="text" name="searchText" placeholder="Пошук..." value="@ViewData["CurrentFilter"]" />
+            <input type="text" name="searchText" placeholder="Пошук сетів..." value="@ViewData["CurrentFilter"]" />
             <select name="categoryId" class="sort-select" onchange="this.form.submit()">
                 <option value="">Усі категорії</option>
                 @if (ViewBag.Categories != null)
@@ -334,26 +347,25 @@
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, '@set.Id', '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
-
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити цей сет?')">
+                    <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити?')">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@set.Id" />
                         <button type="submit" style="color: #ff8080;">Видалити</button>
                     </form>
                 </div>
-                <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
-                <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
+                <h3 style="margin: 0; color: var(--accent-color);">@set.Name</h3>
+                <p style="opacity: 0.7; font-size: 0.85rem; margin: 5px 0; flex-grow: 1;">@set.Description</p>
                 <div class="card-footer">
                     <div style="display: flex; justify-content: space-between; align-items: center;">
                         <span class="sets-count-badge">@set.FlashcardsCount карток</span>
-                        @if (set.FlashcardsCount > 5)
+                        @if (set.IsGenerated)
                         {
                             <span style="font-size: 0.7rem; color: #f4a261; font-weight: bold;">✨ ШІ</span>
                         }
                     </div>
-                    <div style="font-size: 0.65rem; opacity: 0.4; display: flex; justify-content: space-between; margin-top: 5px;">
+                    <div class="date-info">
+                        <span>Створено: @set.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
                         <span>@((int)set.Type == 0 ? "Мова" : "Предмет")</span>
-                        <span>@set.CreatedAt.ToString("dd.MM.yyyy")</span>
                     </div>
                 </div>
             </div>
@@ -366,43 +378,48 @@
     <div class="modal">
         <form id="setForm" method="post" action="">
             @Html.AntiForgeryToken()
-            <h2 id="modalTitle" style="margin: 0; font-size: 1.2rem;">Новий сет</h2>
+            <h2 id="modalTitle" style="margin: 0 0 5px 0; font-size: 1.2rem;">Новий сет</h2>
             <input type="hidden" name="Id" id="setIdField">
+            <input type="hidden" name="GeneratedCardsJson" id="generatedCardsJson">
 
-            <div style="display: flex; gap: 10px; align-items: flex-end;">
-                <div style="flex: 2; display: flex; flex-direction: column;">
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <div class="field-block" style="flex: 2;">
                     <label>Тип навчання</label>
                     <select name="Type" id="setTypeField" onchange="toggleLanguageSelection()">
                         <option value="0">Мова (Language)</option>
                         <option value="1">Предмет (Subject)</option>
                     </select>
                 </div>
-                <div style="flex: 1; display: flex; flex-direction: column;">
-                    <label>К-сть карток</label>
+                <div class="field-block" style="flex: 1;">
+                    <label>Кількість</label>
                     <div class="stepper">
                         <button type="button" onclick="stepCount(-1)">−</button>
-                        <input type="number" id="aiCount" value="10" min="1" max="30" readonly>
+                        <input type="number" id="aiCount" value="5" min="1" max="30" readonly>
                         <button type="button" onclick="stepCount(1)">+</button>
                     </div>
                 </div>
             </div>
 
-            <div id="languageSelectionRow" style="display: none; align-items: center; gap: 8px;">
-                <div style="flex: 1;"><label>Вивчаю</label><select id="learnLangList" name="LearnLanguage"></select></div>
-                <div style="margin-top: 22px; color: var(--accent-color);">→</div>
-                <div style="flex: 1;"><label>На яку</label><select id="nativeLangList" name="NativeLanguage"></select></div>
+            <div id="languageSelectionRow" style="display: none; align-items: center; gap: 10px; margin-bottom: 5px;">
+                <div class="field-block" style="flex: 1;"><label>Вивчаю</label><select id="learnLangList" name="LearnLanguage"></select></div>
+                <div style="margin-top: 15px; color: var(--accent-color);">→</div>
+                <div class="field-block" style="flex: 1;"><label>На яку</label><select id="nativeLangList" name="NativeLanguage"></select></div>
             </div>
 
-            <label>Назва сету</label>
-            <input type="text" name="Name" id="setNameField" required />
+            <div class="field-block">
+                <label>Назва сету</label>
+                <input type="text" name="Name" id="setNameField" required placeholder="Назва..." />
+            </div>
 
-            <label>Опис (Промпт для ШІ)</label>
-            <textarea name="Description" id="setDescField" rows="2" style="resize: none;"></textarea>
+            <div class="field-block">
+                <label>Опис (Промпт для ШІ)</label>
+                <textarea name="Description" id="setDescField" rows="2" style="resize: none;" placeholder="Тема для ШІ..."></textarea>
+            </div>
 
-            <div id="aiPreviewArea" class="ai-preview-container"><div id="aiCardsList"></div><input type="hidden" name="GeneratedCardsJson" id="generatedCardsJson" /></div>
+            <div id="aiPreviewArea" class="ai-preview-container"><div id="aiCardsList"></div></div>
 
-            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 8px 0;">
-                <span style="font-size: 0.75rem; opacity: 0.7;">Зробити публічним</span>
+            <div style="display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin: 5px 0;">
+                <span style="font-size: 0.8rem; opacity: 0.7;">Зробити публічним</span>
                 <label class="switch"><input type="checkbox" name="IsPublic" id="setPublicField" checked value="true"><span class="slider"></span></label>
             </div>
 
@@ -410,7 +427,7 @@
                 <button type="button" onclick="closeModal()" style="background: none; border: none; color: #818375; cursor: pointer; font-weight: bold;">Скасувати</button>
                 <div style="display: flex; gap: 8px;">
                     <button type="button" id="btnAiGen" class="btn-ai" onclick="generateWithAI()">✨ ШІ</button>
-                    <button type="submit" style="background: #6B8789; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: bold; cursor: pointer;">Зберегти</button>
+                    <button type="submit" style="background: #6B8789; color: white; border: none; padding: 10px 25px; border-radius: 8px; font-weight: bold; cursor: pointer;">Зберегти</button>
                 </div>
             </div>
         </form>
@@ -430,18 +447,19 @@
         }
 
         function openCreateModal() {
-            document.getElementById('modalTitle').innerText = "Новий сет";
-            setForm.action = "/MySets/Create";
             setForm.reset();
+            setForm.action = "/MySets/Create";
+            document.getElementById('modalTitle').innerText = "Новий сет";
             document.getElementById('aiPreviewArea').style.display = 'none';
+            tempCards = [];
             toggleLanguageSelection();
             modal.style.display = 'flex';
         }
 
         function openEditModal(e, id, name, desc, isPublic, type) {
             e.stopPropagation();
-            document.getElementById('modalTitle').innerText = "Редагувати сет";
             setForm.action = "/MySets/Edit";
+            document.getElementById('modalTitle').innerText = "Редагувати сет";
             document.getElementById('setIdField').value = id;
             document.getElementById('setNameField').value = name;
             document.getElementById('setDescField').value = desc;
@@ -454,37 +472,35 @@
         }
 
         async function generateWithAI() {
-            const prompt = document.getElementById('setDescField').value;
+            const promptInput = document.getElementById('setDescField').value;
             const count = document.getElementById('aiCount').value;
             const btn = document.getElementById('btnAiGen');
-            if (!prompt) { alert("Вкажіть опис!"); return; }
+            if (!promptInput) return alert("Вкажіть тему!");
+
             btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span>...';
+            const formData = new FormData();
+            formData.append("Prompt", promptInput);
+            formData.append("Count", count);
+
             try {
-                const response = await fetch(`/api/sets/generate?prompt=${encodeURIComponent(prompt)}&count=${count}`);
+                const response = await fetch('/api/generate-cards', { method: 'POST', body: formData });
+                if (!response.ok) throw new Error();
                 tempCards = await response.json();
-                const listDiv = document.getElementById('aiCardsList');
-                listDiv.innerHTML = '';
+                const listDiv = document.getElementById('aiCardsList'); listDiv.innerHTML = '';
                 tempCards.forEach((c, i) => {
-                    listDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.75rem; padding:4px; border-bottom:1px solid #333;"><span><b>${c.term}</b> - ${c.definition}</span><span onclick="removeAiCard(${i})" style="color:#ff8080; cursor:pointer;">✕</span></div>`;
+                    listDiv.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.75rem; padding:4px; border-bottom:1px solid rgba(255,255,255,0.1);"><span><b>${c.term}</b> - ${c.definition}</span><span onclick="tempCards.splice(${i},1); generateWithAI.call();" style="color:#ff8080; cursor:pointer;">✕</span></div>`;
                 });
                 document.getElementById('aiPreviewArea').style.display = 'block';
                 document.getElementById('generatedCardsJson').value = JSON.stringify(tempCards);
-            } catch (e) { alert("Помилка ШІ."); }
+            } catch (e) { alert("Помилка ШІ. Перевірте ключ Gemini."); }
             finally { btn.disabled = false; btn.innerHTML = "✨ ШІ"; }
-        }
-
-        function removeAiCard(i) {
-            tempCards.splice(i, 1);
-            document.getElementById('generatedCardsJson').value = JSON.stringify(tempCards);
-            const listDiv = document.getElementById('aiCardsList');
-            if(listDiv.children[i]) listDiv.children[i].style.display = 'none';
         }
 
         function toggleLanguageSelection() { document.getElementById('languageSelectionRow').style.display = document.getElementById('setTypeField').value === "0" ? 'flex' : 'none'; }
         function closeModal() { modal.style.display = 'none'; }
-        function toggleMenu(e) { e.stopPropagation(); closeAllDropdowns(); const d = e.currentTarget.nextElementSibling; d.style.display = 'flex'; }
+        function toggleMenu(e) { e.stopPropagation(); closeAllDropdowns(); e.currentTarget.nextElementSibling.style.display = 'flex'; }
         function closeAllDropdowns() { document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); }
-        function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown')) window.location.href = url; }
+        function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown') && !e.target.closest('form')) window.location.href = url; }
         window.onclick = (e) => { if (!e.target.matches('.card-menu-btn')) closeAllDropdowns(); if (e.target === modal) closeModal(); };
 
         const languages = [ { code: "uk", name: "Українська" }, { code: "en", name: "Англійська" }, { code: "de", name: "Німецька" } ];

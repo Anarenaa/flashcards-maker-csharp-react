@@ -1,10 +1,12 @@
 ﻿using Core.DTOs;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 using Services.Interfaces;
 
 namespace App.Controllers.api
 {
+    [Microsoft.AspNetCore.Authorization.AllowAnonymous]
     [Route("api/")]
     [ApiController]
     public class GeminiApiController : ControllerBase
