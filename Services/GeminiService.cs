@@ -22,12 +22,16 @@ namespace Services
             _apiKey = apiKey;
             _logger = logger;
         }
-        public async Task<List<FlashcardDTO>> GenerateCardsAsync(string prompt, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
+        public async Task<List<FlashcardDTO>> GenerateCardsAsync(SetDTO setDto, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
         {
             _client.DefaultRequestHeaders.Add("x-goog-api-key", _apiKey);
             var url = $"interactions";
 
             object inputData;
+            string text = $"Generate {setDto.Description}. Title \"{setDto.Name}\". " +
+                        $"Type \"{setDto.Type.ToString()}\". If Type is Language generate cards from {setDto.FromLang} to {setDto.ToLang}. " +
+                        $"{cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
+            
             if (imageBytes != null && !string.IsNullOrEmpty(mimeType))
             {
                 inputData = new object[]
@@ -35,7 +39,7 @@ namespace Services
                     new
                     {
                         type = "text",
-                        text = $"Generate {prompt}. {cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}]."
+                        text = text
                     },
                     new
                     {
@@ -47,7 +51,7 @@ namespace Services
             }
             else
             {
-                inputData = $"Generate {prompt}. {cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
+                inputData = text;
             }
 
             var requestBody = new

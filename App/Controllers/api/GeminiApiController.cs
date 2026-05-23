@@ -1,4 +1,5 @@
 ﻿using Core.DTOs;
+using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
@@ -41,10 +42,17 @@ namespace App.Controllers.api
                 imageBytes = memoryStream.ToArray();
                 mimeType = request.ImageFile.ContentType;
             }
-
+            var setDto = new SetDTO
+            {
+                Name = request.Name,
+                Description = request.Description,
+                Type = request.Type,
+                FromLang = request.FromLang,
+                ToLang = request.ToLang
+            };
             try
             {
-                cards = await _geminiService.GenerateCardsAsync(request.Prompt, request.Count, imageBytes, mimeType);
+                cards = await _geminiService.GenerateCardsAsync(setDto, request.Count, imageBytes, mimeType);
 
                 if (cards == null || !cards.Any())
                 {
@@ -114,7 +122,13 @@ namespace App.Controllers.api
     }
     public class CardGenerationRequest
     {
-        public string Prompt { get; set; }
+        // Поля для SetDTO
+        public string Name { get; set; }
+        public string Description { get; set; }
+        public SetType Type { get; set; }
+        public string? FromLang { get; set; }
+        public string? ToLang { get; set; }
+
         public int Count { get; set; }
         public IFormFile? ImageFile { get; set; }
     }
