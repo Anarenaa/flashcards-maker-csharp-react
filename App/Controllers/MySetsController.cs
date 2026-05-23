@@ -11,11 +11,12 @@ public class MySetsController(
     SetService setService,
     CollectionService collectionService,
     CategoryService categoryService,
-    FlashcardService flashcardService) : BaseController 
+    FlashcardService flashcardService) : BaseController
 {
     public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
     {
         List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
+
         var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
 
         sets = sortOrder switch
@@ -47,8 +48,12 @@ public class MySetsController(
             {
                 try
                 {
-                    var cards = JsonSerializer.Deserialize<List<FlashcardDTO>>(GeneratedCardsJson,
-                        new JsonSerializerOptions { PropertyNameCaseInsensitive = true });
+                    var cards = JsonSerializer.Deserialize<List<FlashcardDTO>>(
+                        GeneratedCardsJson,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
 
                     if (cards != null && cards.Any())
                     {
@@ -60,7 +65,7 @@ public class MySetsController(
                 }
             }
 
-            return RedirectToAction(nameof(Index));
+            return RedirectToAction("Index", "Details", new { id = createdSet.Id });
         }
 
         return await Index(null, null, "newest");
@@ -95,6 +100,7 @@ public class MySetsController(
         }
 
         await setService.DeleteSetAsync(id);
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -106,6 +112,7 @@ public class MySetsController(
         {
             await setService.AddSetToCollectionAsync(setId, collectionId);
         }
+
         return RedirectToAction(nameof(Index));
     }
 }
