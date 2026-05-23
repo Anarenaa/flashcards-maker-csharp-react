@@ -37,6 +37,7 @@ namespace Services
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
+                IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt
             }).ToList();
