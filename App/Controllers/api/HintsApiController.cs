@@ -15,13 +15,28 @@ namespace App.Controllers.api
         }
         [HttpGet("get-hint")]
         [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
-        public async Task<IActionResult> GetHint([FromQuery] string term, [FromQuery] SetType setType, [FromQuery] string fromLang, [FromQuery] string toLang = "uk")
+        public async Task<IActionResult> GetHint(
+            [FromQuery] string term, 
+            [FromQuery] SetType setType, 
+            [FromQuery] string? fromLang = "en", 
+            [FromQuery] string? toLang = "uk", 
+            [FromQuery] string? uiLang = "uk"
+        )
         {
             if (string.IsNullOrWhiteSpace(term) || string.IsNullOrWhiteSpace(setType.ToString()) || string.IsNullOrWhiteSpace(fromLang))
             {
                 return BadRequest("Усі параметри є обов'язковими.");
             }
-            var hint = await _hintService.GetHintAsync(term, setType, fromLang, toLang);
+            string hint;
+            try
+            {
+                hint = await _hintService.GetHintAsync(term, setType, fromLang, toLang, uiLang);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, $"Помилка при отриманні підказки: {ex.Message}");
+            }
+
             return Ok(hint);
         }
     }

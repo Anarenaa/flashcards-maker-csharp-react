@@ -27,9 +27,9 @@ namespace Services
             _logger = logger;
         }
 
-        public async Task<string> GetHintAsync(string term, SetType type, string fromLang, string toLang)
+        public async Task<string> GetHintAsync(string term, SetType type, string? fromLang, string? toLang, string? uiLang)
         {
-            string cacheKey = $"hint_{type}_{fromLang}_{toLang}_{term.ToLower().Trim()}";
+            string cacheKey = $"hint_{type}_{fromLang ?? ""}_{toLang ?? ""}_{uiLang ?? ""}_{term.ToLower().Trim()}";
 
             if (_cache.TryGetValue(cacheKey, out string? cachedHint))
             {
@@ -46,14 +46,14 @@ namespace Services
             }
             else if (type == SetType.Subject)
             {
-                result = await _wikiService.GetDescriptionAsync(term, fromLang);
+                result = await _wikiService.GetDescriptionAsync(term, uiLang);
             }
 
             if (string.IsNullOrWhiteSpace(result))
             {
                 _logger.LogWarning("External API failed or returned empty result for '{Term}'. Falling back to Gemini...", term);
 
-                string targetLang = type == SetType.Language ? toLang : fromLang;
+                string targetLang = type == SetType.Language ? toLang : uiLang;
                 result = await _geminiService.GenerateSimpleHintAsync(term, targetLang, type);
             }
 
