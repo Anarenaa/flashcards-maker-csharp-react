@@ -307,7 +307,8 @@ namespace App.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
-                return RedirectToAction("MyProfile");
+                Console.WriteLine($"Error deleting user {UserId}: {ex.Message}");
+                return RedirectToRoute("/MyProfile");
             }
         }
         [Authorize]

@@ -42,7 +42,7 @@ namespace App.Controllers.api
                 imageBytes = memoryStream.ToArray();
                 mimeType = request.ImageFile.ContentType;
             }
-            var setDto = new SetDTO
+            var setDto = new SetCreateDTO
             {
                 Name = request.Name,
                 Description = request.Description,
@@ -84,8 +84,8 @@ namespace App.Controllers.api
 
             try
             {
-                request.SetDto.IsGenerated = true;
                 var createdSet = await _setService.AddSetAsyncWithReturn(request.SetDto, userId);
+                await _geminiService.MarkSetIsGenerated(createdSet.Id);
 
                 if (request.Cards != null && request.Cards.Any())
                 {
@@ -134,7 +134,7 @@ namespace App.Controllers.api
     }
     public class SaveSetWithCardsRequest
     {
-        public SetDTO SetDto { get; set; }
+        public SetCreateDTO SetDto { get; set; }
         public List<FlashcardDTO> Cards { get; set; }
     }
 }

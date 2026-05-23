@@ -92,7 +92,7 @@ httpClientBuilder.AddResilienceHandler("gemini-pipeline", pipelineBuilder =>
 });
 
 httpClientBuilder.AddTypedClient<IGeminiService>((httpClient, sp) =>
-    new GeminiService(httpClient, geminiApiKey, sp.GetRequiredService<ILogger<GeminiService>>()));
+    new GeminiService(httpClient, geminiApiKey, sp.GetRequiredService<ILogger<GeminiService>>(), sp.GetRequiredService<IUnitOfWork>()));
 
 // --- НАЛАШТУВАННЯ WIKIPEDIA ---
 var wikiConfig = builder.Configuration.GetSection("Wikipedia");

@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Core.Exceptions;
 
-namespace App.Controllers
+namespace App.Controllers.api
 {
     [ApiController]
     [Route("api/sets")]
@@ -50,14 +50,27 @@ namespace App.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(SetDTO), StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Create([FromBody] SetDTO setDto)
+        public async Task<IActionResult> Create([FromBody] SetCreateDTO setDto)
         {
             if (setDto == null) return BadRequest();
 
             // Оскільки авторизації немає, використовуємо заглушку для userId (наприклад, 1)
             var createdSet = await _setService.AddSetAsyncWithReturn(setDto, 1);
 
-            return CreatedAtAction(nameof(GetById), new { id = createdSet.Id }, createdSet);
+            return CreatedAtAction(nameof(GetById), new { id = createdSet.Id }, 
+                new SetDTO
+                {
+                    Id = createdSet.Id,
+                    Name = createdSet.Name,
+                    Description = createdSet.Description,
+                    Type = createdSet.Type,
+                    IsPublic = createdSet.IsPublic,
+                    IsGenerated = createdSet.IsGenerated,
+                    UserName = createdSet.User.UserName ?? null,
+                    FlashcardsCount = createdSet.Flashcards.Count(),
+                    CreatedAt = createdSet.CreatedAt,
+                    LastUpdatedAt = createdSet.UpdatedAt
+                });
         }
 
         // PUT: api/sets/{id}
@@ -65,13 +78,11 @@ namespace App.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Update(int id, [FromBody] SetDTO setDto)
+        public async Task<IActionResult> Update(int id, [FromBody] SetCreateDTO setDto)
         {
-            if (setDto == null || id != setDto.Id) return BadRequest();
-
             try
             {
-                await _setService.UpdateSetAsync(setDto);
+                await _setService.UpdateSetAsync(id, setDto);
                 return NoContent();
             }
             catch (NotFoundException)

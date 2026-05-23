@@ -140,7 +140,7 @@ namespace Services
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task<Set> AddSetAsyncWithReturn(SetDTO setDto, int userId)
+        public async Task<Set> AddSetAsyncWithReturn(SetCreateDTO setDto, int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             var set = new Set
@@ -149,7 +149,6 @@ namespace Services
                 Description = setDto.Description,
                 Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
-                IsGenerated = setDto.IsGenerated,
                 UserId = userId,
                 User = user
             };
@@ -157,9 +156,9 @@ namespace Services
             await _unitOfWork.SaveChangesAsync();
             return set;
         }
-        public async Task UpdateSetAsync(SetDTO setDto)
+        public async Task UpdateSetAsync(int setId, SetCreateDTO setDto)
         {
-            var set = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
             if (set is null)
             {
                 throw new NotFoundException("Сет не знайдено");

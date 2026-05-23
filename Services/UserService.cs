@@ -298,8 +298,7 @@ namespace Services
                 await DeleteOldAvatarAsync(user.AvatarUrl);
             }
 
-            await _unitOfWork.Sets.DeleteUnusedUserSetsAsync(user.Id);
-            await _unitOfWork.Sets.UnableSetsWithoutUserInCollections();
+            await _unitOfWork.Sets.DeleteUserSets(user.Id);
             await _unitOfWork.Reports.DeleteUserReports(user.Id);
 
             var result = await _userManager.DeleteAsync(user);

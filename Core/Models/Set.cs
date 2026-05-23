@@ -17,7 +17,6 @@ namespace Core.Models
         [StringLength(500)]
         public string? Description { get; set; }
         public bool IsPublic { get; set; } = true;
-        public bool IsAccessible { get; set; } = true;
         public bool IsGenerated { get; set; } = false;
 
         public int UserId { get; set; }

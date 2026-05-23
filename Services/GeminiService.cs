@@ -6,6 +6,7 @@ using Core.DTOs;
 using Core.Models;
 using Microsoft.EntityFrameworkCore.Metadata;
 using Microsoft.Extensions.Logging;
+using Repositories.Interfaces;
 using Services.Interfaces;
 
 namespace Services
@@ -15,14 +16,16 @@ namespace Services
         private readonly HttpClient _client;
         private readonly string _apiKey;
         private readonly ILogger<GeminiService> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger)
+        public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger, IUnitOfWork unitOfWork)
         {
             _client = client;
             _apiKey = apiKey;
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
-        public async Task<List<FlashcardDTO>> GenerateCardsAsync(SetDTO setDto, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
+        public async Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
         {
             _client.DefaultRequestHeaders.Add("x-goog-api-key", _apiKey);
             var url = $"interactions";
@@ -115,6 +118,15 @@ namespace Services
             {
                 _logger.LogError(ex, "Error occurred while generating Gemini hint for term: '{Term}'", term);
                 return null;
+            }
+        }
+        public async Task MarkSetIsGenerated(int setId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set != null)
+            {
+                set.IsGenerated = true;
+                await _unitOfWork.SaveChangesAsync();
             }
         }
     }

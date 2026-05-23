@@ -37,13 +37,10 @@ public class MySetsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(SetDTO setDto, string? GeneratedCardsJson)
+    public async Task<IActionResult> Create(SetCreateDTO setDto, string? GeneratedCardsJson)
     {
         if (ModelState.IsValid)
         {
-            setDto.CreatedAt = DateTime.UtcNow;
-            setDto.LastUpdatedAt = DateTime.UtcNow;
-
             var createdSet = await setService.AddSetAsyncWithReturn(setDto, UserId);
 
             if (!string.IsNullOrEmpty(GeneratedCardsJson))
@@ -71,20 +68,19 @@ public class MySetsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(SetDTO setDto)
+    public async Task<IActionResult> Edit(int id, SetCreateDTO setDto)
     {
-        if (!ModelState.IsValid || !setDto.Id.HasValue)
+        if (!ModelState.IsValid || id == 0)
         {
             return RedirectToAction(nameof(Index));
         }
 
-        if (!await setService.IsSetMine(setDto.Id.Value, UserId))
+        if (!await setService.IsSetMine(id, UserId))
         {
             return Forbid();
         }
 
-        setDto.LastUpdatedAt = DateTime.UtcNow;
-        await setService.UpdateSetAsync(setDto);
+        await setService.UpdateSetAsync(id, setDto);
 
         return RedirectToAction(nameof(Index));
     }
