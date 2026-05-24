@@ -1,102 +1,344 @@
-﻿<!-- Поле Питання -->
-<div class="input-group">
-    <label style="font-size: 0.8rem; opacity: 0.6; color: var(--accent-color); display: block; margin-bottom: 5px;">Питання (Термін)</label>
-    <input type="text" id="newCardTerm" placeholder="Наприклад: сніговик" oninput="toggleHintActive()"
-           style="background: #141B25; border: 1px solid #818375; color: white; padding: 12px; border-radius: 8px; width: 100%; box-sizing: border-box; outline: none;" />
-</div>
+﻿@using Core.DTOs
+@model IEnumerable<CollectionDTO>
 
-<!-- Поле Відповідь з вбудованою кнопкою-лампочкою -->
-<div class="input-group" style="margin-top: 15px;">
-    <label style="font-size: 0.8rem; opacity: 0.6; color: var(--accent-color); display: block; margin-bottom: 5px;">Відповідь (Значення)</label>
-    <div style="position: relative; width: 100%;">
-        <textarea id="newCardDef" rows="4" placeholder="Ваша відповідь..."
-                  style="padding: 12px; padding-right: 45px; width: 100%; border-radius: 8px; background: #141B25; color: white; border: 1px solid #818375; box-sizing: border-box; outline: none; resize: none; font-family: inherit;"></textarea>
+@{
+    ViewData["Title"] = "Мої колекції";
+}
 
-        <!-- Кнопка лампочки (Підказка) -->
-        <button type="button" id="hintBtn" onclick="getHintFromAI()" disabled
-                style="position: absolute; right: 10px; bottom: 10px; width: 32px; height: 32px; border-radius: 50%; border: none; background: #f4a261; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: 0.3s; padding: 0; z-index: 5;">
-            <span id="hintIcon">💡</span>
-            <div id="hintLoader" class="spinner-mini" style="display: none;"></div>
-        </button>
-    </div>
-    <!-- Повідомлення про помилку -->
-    <div id="hintError" style="display: none; color: #ff8080; font-size: 0.7rem; margin-top: 5px;">
-        ⚠️ Не вдалося отримати підказку. Перевірте з'єднання.
-    </div>
-</div>
-
-<!-- Стилі для спіннера та стану кнопки -->
 <style>
-    #hintBtn:disabled {
-        background: #2c3440 !important;
-        opacity: 0.4;
-        cursor: not-allowed;
+    /* --- 1. ПАНЕЛЬ ПОШУКУ (ВЕЛИКИЙ ПОШУК, РЕШТА ЯК КНОПКА) --- */
+    .filter-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        align-items: center;
     }
 
-    .spinner-mini {
-        width: 16px;
-        height: 16px;
-        border: 2px solid rgba(0, 0, 0, 0.1);
-        border-top: 2px solid #000;
-        border-radius: 50%;
-        animation: spin-hint 0.8s linear infinite;
+    .filter-form {
+        display: flex;
+        flex-grow: 1;
+        gap: 12px;
+        align-items: center;
     }
 
-  
-        transform: rotate(360deg);
+        .filter-form input[type="text"] {
+            flex: 3;
+            background: #141B25 !important;
+            border: 1px solid #818375 !important;
+            color: white !important;
+            padding: 10px 15px !important;
+            border-radius: 8px !important;
+            outline: none;
+            height: 45px;
+        }
+
+    .sort-select, .btn-search {
+        flex: 1;
+        min-width: 160px;
+        max-width: 180px;
+        height: 45px;
+        background: #141B25 !important;
+        border: 1px solid #818375 !important;
+        color: white !important;
+        padding: 0 15px !important;
+        border-radius: 8px !important;
+        outline: none;
+        cursor: pointer;
+        font-family: inherit;
     }
 
+    .btn-search {
+        background: #f4a261 !important;
+        color: #141B25 !important;
+        border: none !important;
+        font-weight: bold;
+        display: flex;
+        align-items: center;
+        justify-content: center;
     }
+
+    .folder-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 25px;
+        margin-top: 20px;
+    }
+
+    .folder-card {
+        background-color: var(--btn-bg);
+        border: 1px solid var(--btn-border);
+        border-radius: 15px;
+        padding: 25px;
+        position: relative;
+        cursor: pointer;
+        transition: 0.3s ease;
+        display: flex;
+        flex-direction: column;
+        min-height: 220px;
+    }
+
+        .folder-card:hover {
+            border-color: var(--accent-color);
+            background-color: var(--btn-hover);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+    .folder-icon {
+        color: var(--accent-color);
+        margin-bottom: 10px;
+        opacity: 0.8;
+    }
+
+    .folder-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .sets-count-badge {
+        background: rgba(240, 255, 255, 0.1);
+        color: var(--accent-color);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        width: fit-content;
+    }
+
+    .date-info {
+        font-size: 0.65rem;
+        opacity: 0.5;
+        display: flex;
+        justify-content: space-between;
+        color: var(--text-color);
+    }
+
+    .dots {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        font-size: 1.5rem;
+        opacity: 0.5;
+        cursor: pointer;
+        z-index: 10;
+        padding: 5px;
+    }
+
+    .dropdown {
+        position: absolute;
+        top: 45px;
+        right: 15px;
+        background: #2C3440;
+        border: 1px solid #818375;
+        border-radius: 8px;
+        display: none;
+        flex-direction: column;
+        z-index: 100;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+        overflow: hidden;
+    }
+
+        .dropdown button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.9rem;
+        }
+
+            .dropdown button:hover {
+                background-color: #6B8789;
+            }
+
+    .modal-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.85);
+        display: none;
+        justify-content: center;
+        align-items: center;
+        z-index: 2000;
+    }
+
+    .modal {
+        background: #1C2531;
+        border: 1px solid var(--accent-color);
+        padding: 30px;
+        border-radius: 15px;
+        width: 420px;
+        max-width: 90%;
+        display: flex;
+        flex-direction: column;
+        gap: 15px;
+    }
+
+        .modal input {
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px;
+            border-radius: 8px;
+            outline: none;
+            width: 100%;
+        }
 </style>
 
-<script>
-    // 1. Кнопка активна тільки якщо поле Питання не порожнє
-    function toggleHintActive() {
-        const termInput = document.getElementById('newCardTerm');
-        const btn = document.getElementById('hintBtn');
-        const term = termInput.value.trim();
+<div class="content-area">
+    <h2 style="color: var(--accent-color); margin-bottom: 20px;">Мої колекції</h2>
 
-        btn.disabled = (term.length === 0);
-    }
+    <div class="filter-container">
+        <form asp-action="Index" method="get" class="filter-form">
+            <input type="text" name="searchText" placeholder="Пошук ваших колекцій..." value="@ViewData["CurrentFilter"]" />
 
-    // 2. Логіка отримання підказки через ШІ (HintService)
-    async function getHintFromAI() {
-        const term = document.getElementById('newCardTerm').value.trim();
-        const btn = document.getElementById('hintBtn');
-        const loader = document.getElementById('hintLoader');
-        const icon = document.getElementById('hintIcon');
-        const error = document.getElementById('hintError');
-        const defArea = document.getElementById('newCardDef');
+            <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
+                <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
+                <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
+            </select>
 
-        if (!term) return;
+            <button type="submit" class="btn-search">Шукати</button>
+        </form>
+    </div>
 
-        // СТАН ПРОГРУЗКИ (Loading)
-        btn.disabled = true;
-        icon.style.display = 'none';
-        loader.style.display = 'block';
-        error.style.display = 'none';
+    <div class="folder-grid">
+        @* Картка створення *@
+        <div class="folder-card" style="border-style: dashed; justify-content: center; text-align: center;" onclick="openCreateModal()">
+            <div style="font-size: 3rem; color: var(--accent-color); line-height: 1;">+</div>
+            <div style="margin-top: 10px; font-weight: bold;">Нова колекція</div>
+        </div>
 
-        try {
-            // Виклик API (передаємоsetId, щоб сервіс знав тип сету та мови)
-            const response = await fetch(`/api/SetsApi/GetHint?term=${encodeURIComponent(term)}&setId=@Model.Id`);
+        @if (Model != null)
+        {
+            @foreach (var item in Model)
+            {
+                <div class="folder-card" onclick="handleFolderClick(event, '@Url.Action("Details", "Collections", new { id = item.Id })')">
 
-            if (!response.ok) throw new Error("Hint service unavailable");
+                    <div class="dots" onclick="toggleMenu(event)">⋮</div>
+                    <div class="dropdown">
+                        <button type="button" onclick="openRenameModal(event, '@item.Id', '@item.Name', '@item.Description')">Редагувати</button>
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити?')">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" style="color: #ff8080;">Видалити</button>
+                        </form>
+                    </div>
 
-            const hint = await response.text();
+                    <div class="folder-icon">
+                        <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                        </svg>
+                    </div>
 
-            // Вставляємо результат у поле Відповідь
-            defArea.value = hint;
+                    <h3 style="margin: 0; color: var(--accent-color);">@item.Name</h3>
+                    <p style="opacity: 0.6; font-size: 0.85rem; flex-grow: 1; margin: 5px 0 0 0;">@item.Description</p>
 
-        } catch (e) {
-            // СТАН ПОМИЛКИ
-            error.style.display = 'block';
-            console.error("Hint error:", e);
-        } finally {
-            // ПОВЕРНЕННЯ В НОРМУ
-            btn.disabled = false;
-            icon.style.display = 'block';
-            loader.style.display = 'none';
-            toggleHintActive();
+                    <div class="folder-footer">
+                        <span class="sets-count-badge">@item.SetsCount @GetSetWord(item.SetsCount)</span>
+
+                        <div class="date-info">
+                            <span>Створено:</span>
+                            <span>@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                        </div>
+
+                        <div class="date-info">
+                            <span>Оновлено:</span>
+                            <span style="color: var(--accent-color); opacity: 0.9;">
+                                @item.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")
+                            </span>
+                        </div>
+                    </div>
+                </div>
+            }
         }
+    </div>
+</div>
+
+@* МОДАЛКИ *@
+<div class="modal-overlay" id="createModal">
+    <div class="modal">
+        <h2 style="margin: 0; color: var(--accent-color);">Нова колекція</h2>
+        <form asp-controller="Collections" asp-action="Create" method="post">
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <input type="text" name="Name" placeholder="Назва папки" required />
+                <input type="text" name="Description" placeholder="Опис" />
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" onclick="closeModalById('createModal')" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                    <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Зберегти</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="modal-overlay" id="renameModal">
+    <div class="modal">
+        <h2 style="margin: 0; color: var(--accent-color);">Редагувати колекцію</h2>
+        <form asp-controller="Collections" asp-action="Update" method="post">
+            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
+                <input type="hidden" name="Id" id="renameId" />
+                <input type="text" name="Name" id="renameName" required />
+                <input type="text" name="Description" id="renameDesc" />
+                <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
+                    <button type="button" onclick="closeModalById('renameModal')" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                    <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Оновити</button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+@functions {
+    public string GetSetWord(int count)
+    {
+        int lastDigit = count % 10;
+        int lastTwoDigits = count % 100;
+        if (lastTwoDigits >= 11 && lastTwoDigits <= 14) return "сетів";
+        if (lastDigit == 1) return "сет";
+        if (lastDigit >= 2 && lastDigit <= 4) return "сети";
+        return "сетів";
     }
-</script>
+}
+
+@section Scripts {
+    <script>
+        function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
+        function openRenameModal(event, id, name, desc) {
+            event.stopPropagation();
+            document.getElementById('renameId').value = id;
+            document.getElementById('renameName').value = name;
+            document.getElementById('renameDesc').value = desc;
+            document.getElementById('renameModal').style.display = 'flex';
+            closeAllDropdowns();
+        }
+        function closeModalById(id) { document.getElementById(id).style.display = 'none'; }
+        function handleFolderClick(event, url) {
+            if (event.target.closest('.dots') || event.target.closest('.dropdown')) return;
+            window.location.href = url;
+        }
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const dropdown = e.currentTarget.nextElementSibling;
+            closeAllDropdowns(dropdown);
+            dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
+        }
+        function closeAllDropdowns(except = null) {
+            document.querySelectorAll('.dropdown').forEach(d => { if (d !== except) d.style.display = 'none'; });
+        }
+        window.onclick = (e) => {
+            if (!e.target.matches('.dots')) closeAllDropdowns();
+            if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
+        }
+    </script>
+}

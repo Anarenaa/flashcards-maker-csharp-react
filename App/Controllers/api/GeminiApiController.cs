@@ -15,7 +15,7 @@ namespace App.Controllers.api
         private readonly IGeminiService _geminiService;
         private readonly FlashcardService _flashcardService;
         private readonly SetService _setService;
-        private readonly IConfiguration _config; \
+        private readonly IConfiguration _config; 
 
 
         public GeminiApiController(
