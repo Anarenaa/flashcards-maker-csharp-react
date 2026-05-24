@@ -33,38 +33,6 @@
         gap: 20px;
     }
 
-    .categories-list {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 8px;
-        margin-top: 12px;
-        padding: 0;
-        list-style: none;
-    }
-
-    .category-badge {
-        display: inline-flex;
-        align-items: center;
-        background: rgba(119, 158, 203, 0.15);
-        border: 1px solid rgba(119, 158, 203, 0.4);
-        color: #DEE4C7;
-        padding: 6px 12px;
-        border-radius: 12px;
-        font-size: 0.85rem;
-        gap: 8px;
-    }
-
-    .remove-cat-btn {
-        background: none;
-        border: none;
-        color: #ff8080;
-        cursor: pointer;
-        font-weight: bold;
-        font-size: 1.1rem;
-        padding: 0;
-        line-height: 1;
-    }
-
     .cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -215,7 +183,6 @@
         transition: 0.3s;
         box-shadow: 0 0 10px rgba(244, 162, 97, 0.2);
         z-index: 10;
-        padding: 0;
     }
 
         .hint-btn:hover:not(:disabled) {
@@ -297,7 +264,7 @@
 
             <div class="field-block">
                 <label>Питання (Термін)</label>
-                <input type="text" name="cardDto.Term" id="modalTerm" required>
+                <input type="text" name="cardDto.Term" id="modalTerm" required oninput="validateHintBtn()">
             </div>
 
             <div class="field-block">
@@ -305,7 +272,7 @@
                 <div style="position: relative; width: 100%;">
                     <textarea name="cardDto.Definition" id="modalDefinition" rows="5" required style="padding-right: 50px; resize: none;"></textarea>
 
-                    <button type="button" id="hintBtn" class="hint-btn" onclick="askWikipedia()" title="Підказка з Вікіпедії">
+                    <button type="button" id="hintBtn" class="hint-btn" onclick="askAI()" disabled title="ШІ підказка">
                         <span id="hintIcon" style="font-size: 1.2rem;">💡</span>
                         <div id="hintLoader" class="spinner-hint" style="display: none;"></div>
                     </button>
@@ -331,7 +298,12 @@
         const hLoader = document.getElementById('hintLoader');
         const hError = document.getElementById('hintError');
 
-        async function askWikipedia() {
+        function validateHintBtn() {
+            hintBtn.disabled = termInput.value.trim().length === 0;
+            if (hintBtn.disabled) hError.style.display = 'none';
+        }
+
+        async function askAI() {
             const term = termInput.value.trim();
             if (!term) return;
 
@@ -339,57 +311,48 @@
             hIcon.style.display = 'none';
             hLoader.style.display = 'block';
             hError.style.display = 'none';
-            defInput.value = "Шукаю опис...";
+            defInput.value = "ШІ думає...";
 
             try {
-                const url = `https://uk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
+                const t = new Date().getTime();
+                const url = `/api/get-hint?term=${encodeURIComponent(term)}&setType=@((int)Model.Type)&fromLang=en&toLang=uk&uiLang=uk&_t=${t}`;
 
                 const response = await fetch(url);
-                if (!response.ok) throw new Error("Не знайдено");
+                if (!response.ok) throw new Error();
 
-                const data = await response.json();
+                const hintText = await response.text();
 
-                if (data.extract) {
-                    defInput.value = data.extract;
+                const isBad = hintText.toLowerCase().trim() === term.toLowerCase().trim() || hintText.includes("недоступна");
+
+                if (isBad) {
+                    console.log("ШІ не зміг, йду у Вікіпедію...");
+                    const wikiUrl = `https://uk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
+                    const wikiRes = await fetch(wikiUrl);
+                    if (!wikiRes.ok) throw new Error();
+                    const wikiData = await wikiRes.json();
+
+       
+                    let text = wikiData.extract || "";
+                    defInput.value = text.split('. ')[0] + "."; 
                 } else {
-                    throw new Error("Порожньо");
+                    defInput.value = hintText;
                 }
 
             } catch (e) {
                 defInput.value = "";
                 hError.style.display = 'block';
-                hError.innerText = "⚠️ Вікіпедія не дала нормального опису. Спробуйте уточнити слово.";
+                hError.innerText = "⚠️ Не вдалося знайти короткий опис.";
             } finally {
                 hLoader.style.display = 'none';
                 hIcon.style.display = 'block';
-                hintBtn.disabled = false;
+                validateHintBtn();
             }
         }
 
-        function openCreateCardModal() {
-            document.getElementById('modalTitle').innerText = "Нова картка";
-            document.getElementById('modalCardId').value = "0";
-            termInput.value = ""; defInput.value = "";
-            hError.style.display = 'none';
-            cardModal.style.display = 'flex';
-        }
-
-        function openEditCardModal(id, term, def) {
-            document.getElementById('modalTitle').innerText = "Редагувати картку";
-            document.getElementById('modalCardId').value = id;
-            termInput.value = term; defInput.value = def;
-            hError.style.display = 'none';
-            cardModal.style.display = 'flex';
-        }
-
+        function openCreateCardModal() { document.getElementById('modalTitle').innerText = "Нова картка"; document.getElementById('modalCardId').value = "0"; termInput.value = ""; defInput.value = ""; hError.style.display = 'none'; validateHintBtn(); cardModal.style.display = 'flex'; }
+        function openEditCardModal(id, term, def) { document.getElementById('modalTitle').innerText = "Редагувати картка"; document.getElementById('modalCardId').value = id; termInput.value = term; defInput.value = def; hError.style.display = 'none'; validateHintBtn(); cardModal.style.display = 'flex'; }
         function closeCardModal() { cardModal.style.display = 'none'; }
-
-        function toggleMenu(e) {
-            e.stopPropagation();
-            const d = e.currentTarget.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; });
-            d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
-        }
+        function toggleMenu(e) { e.stopPropagation(); const d = e.currentTarget.nextElementSibling; document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; }); d.style.display = d.style.display === 'flex' ? 'none' : 'flex'; }
 
         window.onclick = (e) => {
             if (e.target === cardModal) closeCardModal();
