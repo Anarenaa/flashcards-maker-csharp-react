@@ -266,28 +266,47 @@
             opacity: 0.9;
         }
 
-    @@media (max-width: 950px) {
-        .practice-sticky-container {
-            top: auto;
-            bottom: 30px;
-            right: 20px;
-        }
-
-        .btn-practice-float {
-            padding: 12px 20px;
-            font-size: 0.8rem;
-        }
+    .practice-container {
+        display: flex;
+        justify-content: flex-end;
+        margin-bottom: 20px;
     }
+    @@media (max-width: 950px) {
+        .practice-container
+
+    {
+        justify-content: flex-end;
+    }
+
+    
+    .btn-practice {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        background: #f4a261;
+        color: #141B25;
+        padding: 10px 20px;
+        border-radius: 10px;
+        font-weight: bold;
+        text-decoration: none; /* 🔥 прибирає синє підкреслення */
+        cursor: pointer;
+        transition: 0.3s;
+        border: 1px solid transparent;
+    }
+
+        .btn-practice:hover {
+            transform: translateY(-2px);
+            opacity: 0.9;
+        }
 </style>
 
 <!-- ПЛАВАЮЧА КНОПКА (Додана на початок) -->
 <div class="practice-sticky-container">
-    <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice-float">
-        <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="3" viewBox="0 0 24 24">
-            <path d="M13 10V3L4 14h7v7l9-11h-7z"></path>
-        </svg>
-        ПРАКТИКА
-    </a>
+    <div class="practice-container">
+        <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
+            ⚡ Практика
+        </a>
+    </div>
 </div>
 
 <div class="content-area">

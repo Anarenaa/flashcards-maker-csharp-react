@@ -2,58 +2,46 @@
 @model PracticeSessionDTO
 
 <style>
+    :root {
+        --success-color: #28a745;
+        --error-color: #dc3545;
+        --practice-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+        --accent-color: #6e8efb;
+    }
+
     .practice-page {
-        max-width: 800px;
+        max-width: 900px;
         margin: 40px auto;
         text-align: center;
         perspective: 1000px;
         position: relative;
     }
 
-    .timer-container {
+    /* ВЕРХНЯ ПАНЕЛЬ */
+    .progress-container {
         width: 100%;
-        height: 4px;
-        background: rgba(255,255,255,0.1);
-        margin-bottom: 15px;
-        border-radius: 2px;
+        height: 12px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        margin-bottom: 25px;
         overflow: hidden;
-        visibility: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
     }
 
-    .timer-bar {
+    .p-bar-fill {
         height: 100%;
-        background: var(--accent-color);
-        width: 100%;
+        background: var(--practice-gradient);
+        width: 0%;
+        transition: 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67);
     }
 
-    .exit-container {
-        position: absolute;
-        top: -45px;
-        left: 0;
-        z-index: 100;
+    #card-counter {
+        opacity: 0.5;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
     }
 
-    .btn-exit {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        background: none;
-        border: none;
-        color: var(--text-color);
-        opacity: 0.6;
-        cursor: pointer;
-        font-size: 0.95rem;
-        font-weight: 600;
-        transition: 0.3s;
-    }
-
-        .btn-exit:hover {
-            opacity: 1;
-            color: var(--accent-color);
-            transform: translateX(-3px);
-        }
-
-    /* КАРТКИ */
+    /* КАРТКИ (FLASHCARDS / QUIZ) */
     .flashcard {
         width: 100%;
         height: 420px;
@@ -79,10 +67,10 @@
         align-items: center;
         padding: 40px;
         border-radius: 30px;
-        border: 2px solid var(--btn-border);
-        background: var(--btn-bg);
+        border: 2px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
         backdrop-filter: blur(20px);
-        box-shadow: 0 25px 50px rgba(0,0,0,0.4);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
     }
 
     .card-back {
@@ -94,275 +82,169 @@
         font-size: 2.8rem;
         font-weight: 800;
         color: var(--accent-color);
-        word-break: break-word;
         margin-bottom: 20px;
     }
 
     .def-text {
         font-size: 1.8rem;
         color: #fff;
-        word-break: break-word;
     }
 
-    /* ВВОД СЛОВА (ПИСЬМО) */
-    .input-mode-container {
-        background: var(--btn-bg);
-        padding: 50px 40px;
-        border-radius: 30px;
-        border: 2px solid var(--btn-border);
-        box-shadow: 0 20px 50px rgba(0,0,0,0.3);
-        margin-bottom: 30px;
-    }
-
-    .mode-input {
-        width: 100%;
-        background: rgba(255,255,255,0.05);
-        border: 2px solid var(--btn-border);
-        border-radius: 15px;
-        padding: 18px;
-        color: white;
-        font-size: 1.4rem;
-        text-align: center;
-        margin-top: 25px;
-        transition: 0.3s;
-        outline: none;
-    }
-
-        .mode-input.correct {
-            border-color: #28a745 !important;
-            background: rgba(40, 167, 69, 0.15) !important;
-            color: #28a745 !important;
-        }
-
-        .mode-input.wrong {
-            border-color: #dc3545 !important;
-            background: rgba(220, 53, 69, 0.15) !important;
-            color: #dc3545 !important;
-        }
-
-    .quiz-container {
+    /* MATCHING (З'ЄДНАННЯ) */
+    .matching-wrapper {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        width: 100%;
-        max-width: 600px;
-        margin: 20px auto 0 auto;
+        gap: 30px;
+        margin-top: 40px; /* Трохи більше відступу, бо зверху немає панелі */
     }
 
-    .quiz-option-btn {
-        background: rgba(255, 255, 255, 0.07);
-        border: 2px solid var(--btn-border);
-        color: #fff;
-        padding: 20px;
-        border-radius: 18px;
-        cursor: pointer;
-        font-size: 1.1rem;
-        font-weight: 600;
-        min-height: 80px;
+    .matching-column {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.3s;
-    }
-
-        .quiz-option-btn.option-correct {
-            background: #28a745 !important;
-            border-color: #28a745 !important;
-            color: white !important;
-        }
-
-        .quiz-option-btn.option-wrong {
-            background: #dc3545 !important;
-            border-color: #dc3545 !important;
-            color: white !important;
-        }
-
-    .matching-container {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 15px;
-        margin-top: 20px;
+        flex-direction: column;
+        gap: 12px;
     }
 
     .matching-item {
         background: rgba(255, 255, 255, 0.05);
-        border: 1px solid var(--btn-border);
-        color: var(--text-color);
-        padding: 20px;
+        border: 2px solid rgba(255,255,255,0.1);
+        color: #fff;
+        padding: 18px;
         border-radius: 15px;
         cursor: pointer;
+        min-height: 75px;
         display: flex;
         align-items: center;
         justify-content: center;
-        min-height: 70px;
         font-weight: 600;
+        transition: all 0.3s ease;
+        user-select: none;
     }
 
-        .matching-item.selected {
-            background: var(--accent-color);
-            color: var(--bg-color);
+        .matching-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            transform: translateY(-2px);
         }
 
-        .matching-item.matched {
+        .matching-item.selected {
+            border-color: var(--accent-color);
+            background: rgba(110, 142, 251, 0.2);
+        }
+
+        .matching-item.correct-flash {
+            background: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+            color: white !important;
+        }
+
+        .matching-item.wrong-flash {
+            background: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            animation: shake 0.4s ease;
+        }
+
+        .matching-item.matched-hidden {
             opacity: 0;
+            transform: scale(0.9);
             pointer-events: none;
         }
 
-        .matching-item.wrong {
-            background: #dc3545 !important;
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
         }
 
-    .summary-card {
-        background: rgba(255, 255, 255, 0.05);
-        backdrop-filter: blur(15px);
-        padding: 60px 40px;
-        border-radius: 40px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
-        box-shadow: 0 40px 100px rgba(0,0,0,0.5);
-        max-width: 500px;
-        margin: 20px auto;
-        display: none;
-        animation: summaryReveal 0.6s cubic-bezier(0.16, 1, 0.3, 1);
-    }
-
-    @@keyframes summaryReveal {
-        from {
-            opacity: 0;
-            transform: translateY(30px) scale(0.9);
+        25% {
+            transform: translateX(-5px);
         }
 
-        to {
-            opacity: 1;
-            transform: translateY(0) scale(1);
+        75% {
+            transform: translateX(5px);
         }
     }
 
-    .success-icon {
-        width: 80px;
-        height: 80px;
-        background: var(--accent-color);
-        color: var(--bg-color);
-        border-radius: 50%;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        margin: 0 auto 25px;
-        font-size: 40px;
-        font-weight: bold;
-    }
-
-    .btn-summary-primary {
-        background: var(--accent-color);
-        color: var(--bg-color);
+    /* КНОПКИ */
+    .btn-practice-main {
+        background: var(--practice-gradient);
+        color: white;
         border: none;
-        padding: 18px;
+        padding: 18px 35px;
         border-radius: 20px;
         font-weight: 800;
         cursor: pointer;
         transition: 0.3s;
-        width: 100%;
-        margin-bottom: 10px;
+        text-transform: uppercase;
     }
 
-    .btn-summary-outline {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid rgba(255,255,255,0.1);
-        color: #fff;
-        padding: 16px;
-        border-radius: 20px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: 0.3s;
-        width: 100%;
-    }
-
-    .navigation-zone {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        max-width: 450px;
-        margin: 20px auto;
-    }
-
-    .btn-circle {
-        width: 60px;
-        height: 60px;
-        border-radius: 50%;
-        background: var(--btn-bg);
-        border: 1px solid var(--btn-border);
-        color: white;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: 0.3s;
-    }
-
-        .btn-circle:disabled {
-            opacity: 0.1;
+        .btn-practice-main:hover {
+            transform: translateY(-3px);
+            filter: brightness(1.1);
         }
 
-    .progress-container {
-        width: 100%;
-        height: 8px;
-        background: rgba(255,255,255,0.1);
-        border-radius: 4px;
-        margin-bottom: 20px;
-        overflow: hidden;
+    .btn-practice-outline {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.1);
+        color: white;
+        padding: 16px 30px;
+        border-radius: 20px;
+        cursor: pointer;
     }
 
-    .p-bar-fill {
-        height: 100%;
-        background: var(--accent-color);
-        width: 0%;
-        transition: 0.5s;
+    .summary-card {
+        background: rgba(255,255,255,0.05);
+        padding: 60px 40px;
+        border-radius: 40px;
+        display: none;
+        backdrop-filter: blur(20px);
     }
 </style>
 
 <div class="practice-page">
-    <div class="exit-container">
-        <button onclick="exitToMap()" class="btn-exit"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg> До мапи</button>
+    <div class="exit-container" style="position: absolute; top: -45px; left: 0;">
+        <button onclick="exitToMap()" class="btn-exit" style="background:none; border:none; color:white; opacity:0.6; cursor:pointer; display:flex; align-items:center; gap:5px;">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+            До мапи
+        </button>
     </div>
 
-    <div class="progress-container"><div id="p-bar" class="p-bar-fill"></div></div>
-    <div id="card-counter" style="opacity: 0.5; margin-bottom: 10px; font-weight: 600;">Завантаження...</div>
+    <!-- Верхня панель (ховається в Matching) -->
+    <div id="topPanel">
+        <div class="progress-container"><div id="p-bar" class="p-bar-fill"></div></div>
+        <div id="card-counter">Завантаження...</div>
+    </div>
 
+    <!-- Режими -->
     <div id="standardZone" style="display:none">
         <div class="flashcard" id="mainCard">
             <div class="card-face card-front">
                 <div id="frontText" class="term-text"></div>
-                <div id="quizOptions" class="quiz-container" style="display: none;"></div>
-                <div id="hintLabel" style="opacity: 0.4; font-size: 0.8rem; margin-top: 15px; text-transform: uppercase;">Натисніть перевернути</div>
+                <div id="quizOptions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; width: 100%;"></div>
             </div>
             <div class="card-face card-back"><div id="backText" class="def-text"></div></div>
         </div>
     </div>
 
-    <div id="matchingZone" class="matching-container" style="display: none;"></div>
+    <div id="matchingZone" class="matching-wrapper" style="display: none;"></div>
 
-    <div id="inputZone" class="input-mode-container" style="display: none;">
-        <div id="writingBox">
-            <div id="writingPrompt" class="term-text" style="font-size: 2.2rem;"></div>
-            <input type="text" id="simpleInput" class="mode-input" placeholder="Ваша відповідь..." autocomplete="off">
-        </div>
-        <div id="inputHintText" style="margin-top: 15px; opacity: 0.5; font-style: italic;"></div>
-        <div id="inputFeedback" style="display:none; margin-top:15px; color:#28a745; font-weight:bold;">Правильно: <span id="correctVal" style="color:white; border-bottom: 2px solid #28a745;"></span></div>
+    <div id="inputZone" style="display: none; background: rgba(255,255,255,0.03); padding: 50px; border-radius: 30px;">
+        <div id="writingPrompt" class="term-text"></div>
+        <input type="text" id="simpleInput" style="width: 100%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 18px; color: white; font-size: 1.4rem; text-align: center;" placeholder="Введіть переклад...">
+        <div id="inputFeedback" style="display:none; margin-top:15px; color:var(--success-color);">Правильно: <span id="correctVal" style="color:white;"></span></div>
     </div>
 
     <div id="summaryZone" class="summary-card">
-        <div class="success-icon" id="summaryIcon">✓</div>
-        <div class="summary-title" id="summaryTitle">Готово!</div>
-        <div id="summaryStat" class="summary-stat"></div>
-        <div style="display: flex; flex-direction: column; gap: 12px; max-width: 280px; margin: 0 auto;">
-            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-summary-outline" style="border-color: #dc3545; color: #dc3545; display: none;">Вивчити помилки</button>
-            <button onclick="retryAll()" class="btn-summary-primary">Пройти ще раз</button>
-            <button onclick="location.href='/Test/Map/@Model.SetId'" class="btn-summary-outline">До мапи</button>
+        <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+        <h2 id="summaryTitle">Завершено!</h2>
+        <p id="summaryStat" style="opacity: 0.7; margin-bottom: 35px;"></p>
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin: 0 auto;">
+            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-practice-outline" style="color: #ff4d4d; display: none;">Повторити помилки</button>
+            <button onclick="retryAll()" class="btn-practice-main">Пройти ще раз</button>
+            <button onclick="location.href='/Test/Map/@Model.SetId'" class="btn-practice-outline">До мапи</button>
         </div>
     </div>
 
-    <div class="navigation-zone" id="navZone">
-        <button class="btn-circle" id="prevBtn" onclick="prevCard()"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"></path></svg></button>
-        <button class="btn-circle" id="nextBtn" onclick="nextManual()"><svg width="24" height="24" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M9 18l6-6-6-6"></path></svg></button>
+    <div class="navigation-zone" id="navZone" style="display: flex; justify-content: center; gap: 40px; margin-top: 30px;">
+        <button class="btn-circle" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.1); color:white; border:none; cursor:pointer;" onclick="prevCard()">←</button>
+        <button class="btn-circle" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.1); color:white; border:none; cursor:pointer;" onclick="nextManual()">→</button>
     </div>
 </div>
 
@@ -376,35 +258,27 @@
         let currentIndex = 0, cardViews = {}, practiceResults = { results: [] }, wrongFlashcardIds = new Set();
         let matchingBatchIndex = 0, MATCHING_LIMIT = 5;
 
-        function shuffle(arr) {
-            for (let i = arr.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [arr[i], arr[j]] = [arr[j], arr[i]];
-            }
-            return arr;
-        }
-
-        if (globalMode >= 2) {
-            shuffle(flashcards);
-        }
+        function shuffle(arr) { return arr.sort(() => Math.random() - 0.5); }
+        if (globalMode >= 2) shuffle(flashcards);
 
         flashcards.forEach(c => c.assignedMode = (globalMode === 6) ? (Math.floor(Math.random() * 3) + 2) : globalMode);
-
-        function getActiveMode(prog) {
-            if(prog < PracticeActivityType.ReviewLimit) return 1;
-            if(prog < PracticeActivityType.QuizLimit) return 2;
-            if(prog < PracticeActivityType.MatchingLimit) return 3;
-            if(prog < PracticeActivityType.WritingLimit) return 4;
-            return 6;
-        }
 
         function render() {
             const card = flashcards[currentIndex];
             const currentCardMode = card ? card.assignedMode : globalMode;
-            if (currentIndex >= flashcards.length && currentCardMode !== 3) { showSummary(); return; }
 
-            document.getElementById('card-counter').innerText = `Картка ${currentIndex+1} з ${flashcards.length}`;
-            document.getElementById('p-bar').style.width = ((currentIndex+1)/flashcards.length*100)+'%';
+            if (currentCardMode !== 3 && currentIndex >= flashcards.length) { showSummary(); return; }
+
+            // Логіка приховування верхньої панелі
+            const topPanel = document.getElementById('topPanel');
+            if (currentCardMode === 3) {
+                topPanel.style.display = 'none';
+            } else {
+                topPanel.style.display = 'block';
+                document.getElementById('card-counter').innerText = `Картка ${currentIndex+1} з ${flashcards.length}`;
+                document.getElementById('p-bar').style.width = ((currentIndex+1)/flashcards.length*100)+'%';
+            }
+
             document.getElementById('standardZone').style.display = 'none';
             document.getElementById('matchingZone').style.display = 'none';
             document.getElementById('inputZone').style.display = 'none';
@@ -412,143 +286,149 @@
             document.getElementById('navZone').style.display = (currentCardMode === 1) ? 'flex' : 'none';
 
             if (currentCardMode === 3) {
-                document.getElementById('matchingZone').style.display = 'grid'; renderMatching();
+                renderMatching();
             } else if (currentCardMode === 4) {
-                document.getElementById('inputZone').style.display = 'block'; renderInputMode();
+                renderWriting();
             } else {
-                document.getElementById('standardZone').style.display = 'block'; renderStandard(currentCardMode);
+                renderStandard(currentCardMode);
             }
         }
 
-        function renderInputMode() {
-            const card = flashcards[currentIndex];
-            const input = document.getElementById('simpleInput');
-            document.getElementById('inputFeedback').style.display = 'none';
-            document.getElementById('writingPrompt').innerText = card.definition || card.Definition;
-            input.value = ''; input.className = 'mode-input'; input.disabled = false;
-            document.getElementById('inputHintText').innerText = "Впишіть відповідний термін";
-            input.focus();
-            input.onkeypress = (e) => { if(e.key === 'Enter') handleInputCheck(); };
+        // --- MATCHING ---
+        let sT = null, sD = null, mCount = 0;
+        function renderMatching() {
+            const zone = document.getElementById('matchingZone');
+            zone.innerHTML = ''; zone.style.display = 'grid';
+            mCount = 0; sT = null; sD = null;
+
+            let start = matchingBatchIndex * MATCHING_LIMIT;
+            let batch = flashcards.slice(start, start + MATCHING_LIMIT);
+            if (!batch.length) { showSummary(); return; }
+
+            const leftCol = document.createElement('div'); leftCol.className = 'matching-column';
+            const rightCol = document.createElement('div'); rightCol.className = 'matching-column';
+
+            let terms = shuffle(batch.map(f => ({ id: f.id || f.Id, text: f.term || f.Term, type: 't' })));
+            let defs = shuffle(batch.map(f => ({ id: f.id || f.Id, text: f.definition || f.Definition, type: 'd' })));
+
+            terms.forEach(item => leftCol.appendChild(createMatchBtn(item)));
+            defs.forEach(item => rightCol.appendChild(createMatchBtn(item)));
+
+            zone.appendChild(leftCol);
+            zone.appendChild(rightCol);
         }
 
-        function handleInputCheck() {
-            const input = document.getElementById('simpleInput');
-            if (input.disabled) return;
-            const card = flashcards[currentIndex];
-            const rawCorrect = (card.term || card.Term).trim();
-            const cleanCorrect = rawCorrect.toLowerCase().replace(/[?!.,]/g, "").trim();
-            const cleanUser = input.value.trim().toLowerCase().replace(/[?!.,]/g, "").trim();
-            input.disabled = true;
-
-            if (cleanUser === cleanCorrect) {
-                input.classList.add('correct'); saveResult(card.id || card.Id, true);
-                setTimeout(nextManual, 1000);
-            } else {
-                input.classList.add('wrong'); wrongFlashcardIds.add(card.id || card.Id);
-                saveResult(card.id || card.Id, false);
-                document.getElementById('correctVal').innerText = rawCorrect;
-                document.getElementById('inputFeedback').style.display = 'block';
-                setTimeout(nextManual, 3000);
-            }
+        function createMatchBtn(item) {
+            const div = document.createElement('div');
+            div.className = 'matching-item';
+            div.innerText = item.text;
+            div.dataset.id = item.id;
+            div.onclick = () => {
+                if (div.classList.contains('matched-hidden') || div.classList.contains('correct-flash')) return;
+                if (item.type === 't') { if (sT) sT.classList.remove('selected'); sT = div; }
+                else { if (sD) sD.classList.remove('selected'); sD = div; }
+                div.classList.add('selected');
+                if (sT && sD) {
+                    const first = sT, second = sD;
+                    if (first.dataset.id === second.dataset.id) {
+                        first.classList.add('correct-flash'); second.classList.add('correct-flash');
+                        saveResult(parseInt(first.dataset.id), true);
+                        mCount++; sT = null; sD = null;
+                        setTimeout(() => {
+                            first.classList.add('matched-hidden'); second.classList.add('matched-hidden');
+                            if (mCount === Math.min(MATCHING_LIMIT, flashcards.length - (matchingBatchIndex * MATCHING_LIMIT))) {
+                                matchingBatchIndex++; setTimeout(render, 400);
+                            }
+                        }, 600);
+                    } else {
+                        first.classList.add('wrong-flash'); second.classList.add('wrong-flash');
+                        saveResult(parseInt(first.dataset.id), false);
+                        wrongFlashcardIds.add(parseInt(first.dataset.id));
+                        sT = null; sD = null;
+                        setTimeout(() => { first.classList.remove('wrong-flash', 'selected'); second.classList.remove('wrong-flash', 'selected'); }, 600);
+                    }
+                }
+            };
+            return div;
         }
 
+        // --- QUIZ & FLASH ---
         function renderStandard(cMode) {
+            document.getElementById('standardZone').style.display = 'block';
             const card = flashcards[currentIndex];
             const cardEl = document.getElementById('mainCard');
             const optsBox = document.getElementById('quizOptions');
             cardEl.classList.remove('is-flipped');
             document.getElementById('frontText').innerText = card.term || card.Term;
             if (cMode === 2) {
-                optsBox.style.display = 'grid'; document.getElementById('hintLabel').style.display = 'none';
-                cardEl.onclick = null; optsBox.innerHTML = '';
+                optsBox.innerHTML = ''; optsBox.style.display = 'grid';
                 const correct = (card.definition || card.Definition).trim();
                 let distractors = [...new Set(originalCards.map(f => (f.definition || f.Definition).trim()).filter(d => d !== correct))];
                 let opts = shuffle([correct, ...shuffle(distractors).slice(0, 3)]);
                 opts.forEach(o => {
-                    const b = document.createElement('button'); b.className = 'quiz-option-btn'; b.innerText = o;
+                    const b = document.createElement('button');
+                    b.className = 'btn-practice-outline'; b.innerText = o;
                     b.onclick = () => {
-                        document.querySelectorAll('.quiz-option-btn').forEach(btn => btn.disabled = true);
-                        if (o === correct) { b.classList.add('option-correct'); saveResult(card.id || card.Id, true); }
-                        else { b.classList.add('option-wrong'); wrongFlashcardIds.add(card.id || card.Id); saveResult(card.id || card.Id, false); document.querySelectorAll('.quiz-option-btn').forEach(btn => { if(btn.innerText === correct) btn.classList.add('option-correct'); }); }
-                        setTimeout(nextManual, 1200);
-                    }; optsBox.appendChild(b);
+                        if (o === correct) { b.style.background = 'var(--success-color)'; saveResult(card.id || card.Id, true); }
+                        else { b.style.background = 'var(--error-color)'; saveResult(card.id || card.Id, false); wrongFlashcardIds.add(card.id || card.Id); }
+                        setTimeout(nextManual, 800);
+                    };
+                    optsBox.appendChild(b);
                 });
             } else {
-                optsBox.style.display = 'none'; document.getElementById('hintLabel').style.display = 'block';
-                document.getElementById('backText').innerText = card.definition || card.Definition;
+                optsBox.style.display = 'none'; document.getElementById('backText').innerText = card.definition || card.Definition;
                 cardEl.onclick = () => { cardEl.classList.toggle('is-flipped'); cardViews[card.id || card.Id] = 1; };
             }
         }
 
-        function renderMatching() {
-            const zone = document.getElementById('matchingZone'); zone.innerHTML = '';
-            let start = matchingBatchIndex * MATCHING_LIMIT;
-            let batch = flashcards.slice(start, start + MATCHING_LIMIT);
-            if (!batch.length) { showSummary(); return; }
-            let terms = shuffle(batch.map(f => ({ id: f.id || f.Id, text: f.term || f.Term, type: 't' })));
-            let defs = shuffle(batch.map(f => ({ id: f.id || f.Id, text: f.definition || f.Definition, type: 'd' })));
-            for (let i = 0; i < terms.length; i++) { zone.appendChild(createMatchBtn(terms[i])); zone.appendChild(createMatchBtn(defs[i])); }
-        }
-        let sT = null, sD = null, mCount = 0;
-        function createMatchBtn(item) {
-            const div = document.createElement('div'); div.className = 'matching-item'; div.innerText = item.text;
-            div.dataset.id = item.id; div.onclick = () => {
-                if (div.classList.contains('matched')) return;
-                if (item.type === 't') { if (sT) sT.classList.remove('selected'); sT = div; }
-                else { if (sD) sD.classList.remove('selected'); sD = div; }
-                div.classList.add('selected');
-                if (sT && sD) {
-                    if (sT.dataset.id === sD.dataset.id) {
-                        sT.classList.add('matched'); sD.classList.add('matched');
-                        saveResult(parseInt(sT.dataset.id), true); mCount++; sT = null; sD = null;
-                        if (mCount === Math.min(MATCHING_LIMIT, flashcards.length - (matchingBatchIndex * MATCHING_LIMIT))) { matchingBatchIndex++; setTimeout(render, 600); }
-                    } else {
-                        const a = sT, b = sD; a.classList.add('wrong'); b.classList.add('wrong');
-                        wrongFlashcardIds.add(parseInt(a.dataset.id)); saveResult(parseInt(a.dataset.id), false);
-                        sT = null; sD = null; setTimeout(() => { a.classList.remove('wrong', 'selected'); b.classList.remove('wrong', 'selected'); }, 400);
-                    }
+        // --- WRITING ---
+        function renderWriting() {
+            document.getElementById('inputZone').style.display = 'block';
+            const card = flashcards[currentIndex];
+            const input = document.getElementById('simpleInput');
+            document.getElementById('inputFeedback').style.display = 'none';
+            document.getElementById('writingPrompt').innerText = card.definition || card.Definition;
+            input.value = ''; input.disabled = false; input.focus();
+            input.onkeypress = (e) => { if(e.key === 'Enter') {
+                const correct = (card.term || card.Term).trim();
+                input.disabled = true;
+                if (input.value.trim().toLowerCase() === correct.toLowerCase()) {
+                    input.style.borderColor = 'var(--success-color)'; saveResult(card.id || card.Id, true);
+                    setTimeout(nextManual, 1000);
+                } else {
+                    input.style.borderColor = 'var(--error-color)'; saveResult(card.id || card.Id, false);
+                    wrongFlashcardIds.add(card.id || card.Id); document.getElementById('correctVal').innerText = correct;
+                    document.getElementById('inputFeedback').style.display = 'block'; setTimeout(nextManual, 2000);
                 }
-            }; return div;
+            }};
         }
 
         function showSummary() {
             finishSession(false);
-            document.getElementById('standardZone').style.display='none'; document.getElementById('matchingZone').style.display='none';
-            document.getElementById('inputZone').style.display='none'; document.getElementById('navZone').style.display='none';
-            document.getElementById('card-counter').style.display='none'; document.getElementById('p-bar').style.width = '100%';
-            const summaryZone = document.getElementById('summaryZone');
-            const summaryIcon = document.getElementById('summaryIcon');
-            summaryZone.style.display = 'block';
+            document.getElementById('topPanel').style.display = 'none';
+            ['standardZone', 'matchingZone', 'inputZone', 'navZone'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById('summaryZone').style.display = 'block';
             const wCount = wrongFlashcardIds.size;
-            if (wCount > 0) {
-                document.getElementById('summaryTitle').innerText = "Майже ідеально!";
-                document.getElementById('summaryStat').innerText = `Ви пройшли ${flashcards.length} карток. Помилок: ${wCount}.`;
-                document.getElementById('retryWrongBtn').style.display = 'block';
-                summaryIcon.innerText = "!"; summaryIcon.style.background = "#dc3545";
-            } else {
-                document.getElementById('summaryTitle').innerText = "Неймовірно!";
-                document.getElementById('summaryStat').innerText = "Жодної помилки. Ви ідеально знаєте цей набір!";
-                document.getElementById('retryWrongBtn').style.display = 'none';
-                summaryIcon.innerText = "✓"; summaryIcon.style.background = "var(--accent-color)";
-            }
+            document.getElementById('summaryStat').innerText = wCount > 0 ? `Помилок: ${wCount}.` : "Ви ідеально знаєте цей набір!";
+            if (wCount > 0) document.getElementById('retryWrongBtn').style.display = 'block';
         }
 
         function saveResult(id, correct) {
             const existing = practiceResults.results.find(r => r.FlashcardId === id);
-            if (existing) { existing.IsCorrect = correct; }
-            else { practiceResults.results.push({ FlashcardId: id, IsCorrect: correct, ResponseTimeMs: 0, ReviewType: globalMode }); }
+            if (existing) existing.IsCorrect = correct;
+            else practiceResults.results.push({ FlashcardId: id, IsCorrect: correct, ReviewType: globalMode });
         }
 
-        function nextManual() { if (currentIndex < flashcards.length - 1) { currentIndex++; render(); } else showSummary(); }
+        function nextManual() { currentIndex++; render(); }
         function prevCard() { if (currentIndex > 0) { currentIndex--; render(); } }
-        function retryAll() { flashcards = [...originalCards]; if (globalMode >= 2) shuffle(flashcards); resetSession(); }
-        function retryIncorrect() { flashcards = originalCards.filter(c => wrongFlashcardIds.has(c.id || c.Id)); shuffle(flashcards); resetSession(); }
-        function resetSession() { currentIndex = 0; matchingBatchIndex = 0; wrongFlashcardIds.clear(); practiceResults.results = []; document.getElementById('card-counter').style.display = 'block'; render(); }
+        function retryAll() { flashcards = [...originalCards]; shuffle(flashcards); resetSession(); }
+        function retryIncorrect() { flashcards = originalCards.filter(c => wrongFlashcardIds.has(c.id || c.Id)); resetSession(); }
+        function resetSession() { currentIndex = 0; matchingBatchIndex = 0; wrongFlashcardIds.clear(); practiceResults.results = []; render(); }
 
         async function finishSession(redirect = true) {
             if (globalMode === 1) flashcards.forEach(c => { if(cardViews[c.id || c.Id]) saveResult(c.id || c.Id, true); });
-            if (!practiceResults.results.length) { if(redirect) window.location.href = `/Test/Map/${setId}`; return; }
-            await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Results: practiceResults.results, IsTrainingMode: false }) });
+            if (!practiceResults.results.length && redirect) { window.location.href = `/Test/Map/${setId}`; return; }
+            await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Results: practiceResults.results }) });
             if(redirect) window.location.href = `/Test/Map/${setId}`;
         }
         async function exitToMap() { if (confirm("Зберегти прогрес і вийти?")) await finishSession(true); }
