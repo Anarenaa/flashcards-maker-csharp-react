@@ -23,7 +23,7 @@ namespace App.Controllers.api
             [FromQuery] string? uiLang = "uk"
         )
         {
-            if (string.IsNullOrWhiteSpace(term) || string.IsNullOrWhiteSpace(setType.ToString()) || string.IsNullOrWhiteSpace(fromLang))
+            if (string.IsNullOrWhiteSpace(term) || !Enum.IsDefined(typeof(SetType), setType) || string.IsNullOrWhiteSpace(fromLang))
             {
                 return BadRequest("Усі параметри є обов'язковими.");
             }
@@ -37,7 +37,7 @@ namespace App.Controllers.api
                 return StatusCode(StatusCodes.Status500InternalServerError, $"Помилка при отриманні підказки: {ex.Message}");
             }
 
-            return Ok(hint);
+            return Ok(new { text = hint });
         }
     }
 }
