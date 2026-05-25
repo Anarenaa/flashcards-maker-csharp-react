@@ -375,7 +375,7 @@
             <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown" onclick="event.stopPropagation()">
-                    <button type="button" onclick="openEditModal(event, @set.Id, '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
+                    <button type="button" onclick="openEditModal(event, @set.Id, '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)', '@set.FromLang', '@set.ToLang')">Редагувати</button>
                     <form asp-action="Delete" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@set.Id" />
@@ -512,13 +512,15 @@
             tempGeneratedCards = []; toggleLangs(); modal.style.display = 'flex';
         }
 
-        function openEditModal(e, id, name, desc, isPublic, type) {
+        function openEditModal(e, id, name, desc, isPublic, type, fromLang, toLang) {
             e.stopPropagation(); document.getElementById('modalTitle').innerText = "Редагувати сет";
             document.getElementById('setIdField').value = id;
             document.getElementById('setNameField').value = name;
             document.getElementById('setDescField').value = desc;
             document.getElementById('setPublicField').checked = (isPublic === 'true');
             document.getElementById('setTypeField').value = type;
+            document.getElementById('learnLangList').value = fromLang || 'en';
+            document.getElementById('nativeLangList').value = toLang || 'uk';
             document.getElementById('aiPreview').style.display = 'none';
             toggleLangs(); modal.style.display = 'flex';
         }

@@ -11,7 +11,7 @@ namespace Core.DTOs
         public required string Name { get; set; }
         [StringLength(500, ErrorMessage = "Опис занадто довгий")]
         public string? Description { get; set; }
-        public SetType Type { get; set; } = SetType.Language;
+        public SetType Type { get; set; }
         public string? FromLang { get; set; }
         public string? ToLang { get; set; }
         public bool IsPublic { get; set; }

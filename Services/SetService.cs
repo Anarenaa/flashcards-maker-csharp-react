@@ -61,6 +61,8 @@ namespace Services
                 Name = s.Name,
                 Description = s.Description,
                 Type = s.Type,
+                FromLang = s.FromLang,
+                ToLang = s.ToLang,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 IsPublic = s.IsPublic,
                 CreatedAt = s.CreatedAt,
@@ -83,6 +85,8 @@ namespace Services
                 Name = s.Name,
                 Description = s.Description,
                 Type = s.Type,
+                FromLang = s.FromLang,
+                ToLang = s.ToLang,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
@@ -103,6 +107,8 @@ namespace Services
                 Name = set.Name,
                 Description = set.Description,
                 Type = set.Type,
+                FromLang = set.FromLang,
+                ToLang = set.ToLang,
                 FlashcardsCount = set.Flashcards.Count(),
                 IsPublic = set.IsPublic,
                 CreatedAt = set.CreatedAt,
@@ -133,6 +139,8 @@ namespace Services
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
+                FromLang = setDto.FromLang,
+                ToLang = setDto.ToLang,
                 IsPublic = setDto.IsPublic,
                 IsGenerated = setDto.IsGenerated,
                 UserId = userId,
@@ -149,6 +157,8 @@ namespace Services
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
+                FromLang = setDto.FromLang,
+                ToLang = setDto.ToLang,
                 IsPublic = setDto.IsPublic,
                 UserId = userId,
                 User = user
@@ -168,6 +178,8 @@ namespace Services
             set.Name = setDto.Name;
             set.Description = setDto.Description;
             set.Type = setDto.Type;
+            set.FromLang = setDto.FromLang;
+            set.ToLang = setDto.ToLang;
             set.IsPublic = setDto.IsPublic;
             set.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
@@ -262,6 +274,9 @@ namespace Services
                 Name = set.Name + " (Копія)",
                 Description = set.Description,
                 IsPublic = false,
+                Type = set.Type,
+                FromLang = set.FromLang,
+                ToLang = set.ToLang,
                 UserId = userId,
                 Categories = set.Categories.ToList()
             };
