@@ -7,46 +7,54 @@
 }
 
 <style>
-    .filter-container {
+    .search-container {
         display: flex;
         gap: 15px;
         margin-bottom: 30px;
         background: rgba(255, 255, 255, 0.03);
         padding: 15px;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--btn-border);
         align-items: center;
     }
 
-    .filter-form {
+    .search-bar-form {
         display: flex;
         flex-grow: 1;
-        gap: 12px;
-        align-items: center;
+        gap: 10px;
     }
 
-        .filter-form input[type="text"] {
-            flex: 3;
-            background: #141B25 !important;
-            border: 1px solid #818375 !important;
-            color: white !important;
-            padding: 10px 15px !important;
-            border-radius: 8px !important;
+        .search-bar-form input {
+            flex-grow: 1;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
             outline: none;
-            height: 45px;
+            font-family: inherit;
         }
 
-    .sort-select, .btn-search {
-        flex: 1;
-        min-width: 160px;
-        max-width: 180px;
-        height: 45px;
-        background: #141B25 !important;
-        border: 1px solid #818375 !important;
-        color: white !important;
-        border-radius: 8px !important;
+    .sort-select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 0 15px;
+        border-radius: 8px;
         outline: none;
         cursor: pointer;
+        min-width: 170px;
+    }
+
+    .btn-search {
+        background: var(--accent-color);
+        color: #141B25;
+        border: none;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
     }
 
     .btn-search {
@@ -83,6 +91,11 @@
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
+    .create-card {
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+    }
     .card-footer {
         margin-top: auto;
         padding-top: 10px;
@@ -325,13 +338,11 @@
             transform: translateX(20px);
         }
 </style>
-
 <div class="content-area">
-    <h2>Ваші навчальні сети</h2>
-
-    <div class="filter-container">
-        <form asp-controller="MySets" asp-action="Index" method="get" class="filter-form">
-            <input type="text" name="searchText" placeholder="Пошук ваших сетів..." value="@ViewData["CurrentFilter"]" />
+    <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
+    <div class="search-container">
+        <form asp-controller="MySets" asp-action="Index" method="get" class="search-bar-form">
+            <input type="text" name="searchText" placeholder="Шукати сети..." value="@ViewData["CurrentFilter"]" />
 
             <select name="categoryId" class="sort-select" onchange="this.form.submit()">
                 <option value="">Усі категорії</option>
@@ -348,10 +359,10 @@
                 <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
                 <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
             </select>
-
             <button type="submit" class="btn-search">Шукати</button>
         </form>
     </div>
+
 
     <div class="sets-grid">
         <div class="set-card create-card" onclick="openCreateModal()">
