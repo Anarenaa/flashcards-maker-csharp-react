@@ -7,7 +7,7 @@
 }
 
 <style>
-    
+
     .back-link {
         color: var(--accent-color);
         cursor: pointer;
@@ -394,47 +394,85 @@
             if (hintBtn.disabled) hError.style.display = 'none';
         }
 
-        async function askAI() {
+               async function askAI() {
+
             const term = termInput.value.trim();
-            if (!term) return;
+
+            if (!term)
+                return;
 
             hintBtn.disabled = true;
             hIcon.style.display = 'none';
             hLoader.style.display = 'block';
             hError.style.display = 'none';
+
             defInput.value = "Шукає визначення...";
 
             try {
-                const t = new Date().getTime();
-                const url = `/api/get-hint?term=${encodeURIComponent(term)}&setType=@((int)Model.Type)&fromLang=en&toLang=uk&uiLang=uk&_t=${t}`;
+
+                const url = `/api/get-hint?term=${encodeURIComponent(term)}&setType=@((int)Model.Type)&fromLang=en&toLang=uk&uiLang=uk`;
 
                 const response = await fetch(url);
-                if (!response.ok) throw new Error();
 
-                const hintText = await response.text();
-                const isBad = hintText.toLowerCase().trim() === term.toLowerCase().trim() || hintText.includes("недоступна");
+                if (!response.ok)
+                    throw new Error();
+
+                const data = await response.json();
+
+                const hintText = data.text;
+
+                const isBad =
+                    !hintText ||
+                    hintText.toLowerCase().trim() === term.toLowerCase().trim() ||
+                    hintText.includes("недоступна");
 
                 if (isBad) {
+
                     console.log("Fallback to Wikipedia...");
-                    const wikiUrl = `https://uk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
+
+                    const wikiUrl =
+                        `https://uk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
+
                     const wikiRes = await fetch(wikiUrl);
-                    if (!wikiRes.ok) throw new Error();
+
+                    if (!wikiRes.ok)
+                        throw new Error();
+
                     const wikiData = await wikiRes.json();
-                    defInput.value = (wikiData.extract || "").split('. ')[0] + ".";
-                } else {
-                    defInput.value = hintText;
+
+                    defInput.value =
+                        (wikiData.extract || "").split('. ')[0] + ".";
+
                 }
-            } catch (e) {
+                else {
+
+                    defInput.value = hintText;
+
+                }
+
+            }
+            catch (e) {
+
+                console.log(e);
+
                 defInput.value = "";
+
                 hError.style.display = 'block';
-                hError.innerText = "⚠️ Не вдалося знайти короткий опис.";
-            } finally {
+
+                hError.innerText =
+                    "⚠️ Не вдалося знайти короткий опис.";
+
+            }
+            finally {
+
                 hLoader.style.display = 'none';
+
                 hIcon.style.display = 'block';
+
                 validateHintBtn();
+
             }
         }
-
         function openCreateCardModal() {
             document.getElementById('modalTitle').innerText = "Нова картка";
             document.getElementById('modalCardId').value = "0";

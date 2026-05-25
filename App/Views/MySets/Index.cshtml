@@ -47,21 +47,15 @@
     }
 
     .btn-search {
-        background: var(--accent-color);
-        color: #141B25;
-        border: none;
-        padding: 0 25px;
-        border-radius: 8px;
-        cursor: pointer;
-        font-weight: bold;
-        transition: 0.3s;
-    }
-
-    .btn-search {
         background: #f4a261 !important;
         color: #141B25 !important;
         border: none !important;
         font-weight: bold;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        transition: 0.3s;
+        height: 45px;
     }
 
     .sets-grid {
@@ -92,10 +86,13 @@
         }
 
     .create-card {
-        justify-content: center;
-        align-items: center;
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
         text-align: center;
     }
+
     .card-footer {
         margin-top: auto;
         padding-top: 10px;
@@ -239,11 +236,6 @@
             color: white !important;
         }
 
-    input::-webkit-outer-spin-button, input::-webkit-inner-spin-button {
-        -webkit-appearance: none;
-        margin: 0;
-    }
-
     .ai-preview-container {
         background: rgba(0,0,0,0.2);
         border: 1px solid #444;
@@ -255,6 +247,14 @@
         margin-bottom: 5px;
     }
 
+    .date-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.65rem;
+        opacity: 0.6;
+        color: white;
+    }
     .modal-footer {
         display: flex;
         justify-content: space-between;
@@ -338,6 +338,7 @@
             transform: translateX(20px);
         }
 </style>
+
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
     <div class="search-container">
@@ -363,7 +364,6 @@
         </form>
     </div>
 
-
     <div class="sets-grid">
         <div class="set-card create-card" onclick="openCreateModal()">
             <div style="font-size: 3rem; color: var(--accent-color);">+</div>
@@ -376,25 +376,41 @@
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, @set.Id, '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити цей сет?')">
+                    <form asp-action="Delete" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@set.Id" />
-                        <button type="submit" style="color: #ff8080;">Видалити</button>
+                        <button type="submit" style="color: #ff8080;" onclick="return confirm('Видалити цей сет?')">Видалити</button>
                     </form>
                 </div>
+
                 <h3 style="margin: 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.85rem; margin: 5px 0; flex-grow: 1;">@set.Description</p>
+
                 <div class="card-footer">
-                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                  
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <span class="sets-count-badge">@set.FlashcardsCount карток</span>
-                        @if (set.IsGenerated)
-                        {
-                            <span style="font-size: 0.7rem; color: #f4a261; font-weight: bold;">✨ ШІ</span>
-                        }
+                        <span style="
+            font-size:0.65rem;
+            opacity:0.6;
+            padding:2px 6px;
+            border-radius:6px;
+            border:1px solid rgba(255,255,255,0.1);
+                color:@(set.IsPublic ? "#9C9F57" : "#ff8080");
+            white-space:nowrap;">
+                            @(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")
+                        </span>
                     </div>
-                    <div class="date-info">
-                        <span>Створено: @set.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
-                        <span>@((int)set.Type == 0 ? "Мова" : "Предмет")</span>
+
+                  
+                    <div style="display: flex; justify-content: space-between; align-items: flex-end;">
+                        <div class="date-stack">
+                            <span>Оновлено: @set.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                            <span>Створено: @set.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                        </div>
+                        <span style="font-size: 0.65rem; opacity: 0.4; color: white;">
+                            @((int)set.Type == 0 ? "Мова" : "Предмет")
+                        </span>
                     </div>
                 </div>
             </div>
@@ -428,9 +444,30 @@
             </div>
 
             <div id="languageRow" style="display: none; gap: 10px; margin-bottom: 5px;">
-                <div class="field-block" style="flex: 1;"><label>Вивчаю</label><select id="learnLangList"><option value="uk">uk</option><option value="en">en</option></select></div>
+                <div class="field-block" style="flex: 1;">
+                    <label>Вивчаю</label>
+                    <select id="learnLangList">
+                        <option value="en">Англійська</option>
+                        <option value="uk">Українська</option>
+                        <option value="de">Німецька</option>
+                        <option value="fr">Французька</option>
+                        <option value="es">Іспанська</option>
+                        <option value="it">Італійська</option>
+                        <option value="pl">Польська</option>
+                    </select>
+                </div>
                 <div style="margin-top: 15px; color: var(--accent-color);">→</div>
-                <div class="field-block" style="flex: 1;"><label>На яку</label><select id="nativeLangList"><option value="en">en</option><option value="uk">uk</option></select></div>
+                <div class="field-block" style="flex: 1;">
+                    <label>На яку</label>
+                    <select id="nativeLangList">
+                        <option value="uk">Українська</option>
+                        <option value="en">Англійська</option>
+                        <option value="de">Німецька</option>
+                        <option value="fr">Французька</option>
+                        <option value="es">Іспанська</option>
+                        <option value="pl">Польська</option>
+                    </select>
+                </div>
             </div>
 
             <div class="field-block"><label>Назва сету</label><input type="text" id="setNameField" required placeholder="Назва..." /></div>
@@ -529,55 +566,41 @@
             document.getElementById('aiPreview').style.display = 'block';
         }
 
-              async function saveSet() {
-
+                     async function saveSet() {
+            const id = document.getElementById('setIdField').value;
             const name = document.getElementById('setNameField').value;
 
-            if (!name)
-                return alert("Введіть назву сету!");
+            if (!name) return alert("Введіть назву сету!");
 
-            const token = document.querySelector(
-                'input[name="__RequestVerificationToken"]'
-            )?.value;
+            const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
 
             const formData = new FormData();
 
             formData.append("Name", name);
+            formData.append("Description", document.getElementById('setDescField').value);
+            formData.append("Type", document.getElementById('setTypeField').value);
+            formData.append("IsPublic", document.getElementById('setPublicField').checked);
+            formData.append("FromLang", document.getElementById('learnLangList').value);
+            formData.append("ToLang", document.getElementById('nativeLangList').value);
+            formData.append("GeneratedCardsJson", JSON.stringify(tempGeneratedCards));
 
-            formData.append(
-                "Description",
-                document.getElementById('setDescField').value
-            );
+            let url = "/MySets/Create"; 
 
-            formData.append(
-                "Type",
-                document.getElementById('setTypeField').value
-            );
-
-            formData.append(
-                "IsPublic",
-                document.getElementById('setPublicField').checked
-            );
-
-            formData.append(
-                "GeneratedCardsJson",
-                JSON.stringify(tempGeneratedCards)
-            );
+            if (id && id !== "") {
+                url = "/MySets/Edit";
+                formData.append("id", id); 
+            }
 
             try {
-
-                const response = await fetch('/MySets/Create', {
+                const response = await fetch(url, {
                     method: 'POST',
-                    headers: {
-                        'RequestVerificationToken': token
-                    },
+                    headers: { 'RequestVerificationToken': token },
                     body: formData
                 });
 
                 if (response.redirected) {
                     window.location.href = response.url;
-                }
-                else {
+                } else {
                     const err = await response.text();
                     alert("Помилка: " + err);
                 }
