@@ -10,6 +10,8 @@ namespace Core.Models
     public class Set : BaseModel
     {
         public SetType Type { get; set; } = SetType.Language;
+        public string? FromLang { get; set; }
+        public string? ToLang { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 2)]

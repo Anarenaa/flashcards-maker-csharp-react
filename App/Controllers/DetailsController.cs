@@ -49,7 +49,10 @@ namespace App.Controllers
                 {
                     Name = setDetail.Name,
                     Description = setDetail.Description,
-                    IsPublic = setDetail.IsPublic
+                    IsPublic = setDetail.IsPublic,
+                    Type = setDetail.Type,
+                    FromLang = setDetail.FromLang,
+                    ToLang = setDetail.ToLang
                 };
                 await _setService.UpdateSetAsync(setId, setUpdate);
             }
@@ -71,6 +74,9 @@ namespace App.Controllers
                     Name = setDetail.Name,
                     Description = setDetail.Description,
                     IsPublic = setDetail.IsPublic,
+                    Type = setDetail.Type,
+                    FromLang = setDetail.FromLang,
+                    ToLang = setDetail.ToLang
                 };
                 await _setService.UpdateSetAsync(setId, setUpdate);
             }
