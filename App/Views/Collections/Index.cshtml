@@ -6,60 +6,59 @@
 }
 
 <style>
-    /* --- 1. ПАНЕЛЬ ПОШУКУ (ВЕЛИКИЙ ПОШУК, РЕШТА ЯК КНОПКА) --- */
-    .filter-container {
+    .search-container {
         display: flex;
         gap: 15px;
         margin-bottom: 30px;
         background: rgba(255, 255, 255, 0.03);
         padding: 15px;
         border-radius: 12px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--btn-border);
         align-items: center;
     }
 
-    .filter-form {
+    .search-bar-form {
         display: flex;
         flex-grow: 1;
-        gap: 12px;
-        align-items: center;
+        gap: 10px;
     }
 
-        .filter-form input[type="text"] {
-            flex: 3;
-            background: #141B25 !important;
-            border: 1px solid #818375 !important;
-            color: white !important;
-            padding: 10px 15px !important;
-            border-radius: 8px !important;
+        .search-bar-form input {
+            flex-grow: 1;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
             outline: none;
-            height: 45px;
+            font-family: inherit;
         }
 
-    .sort-select, .btn-search {
-        flex: 1;
-        min-width: 160px;
-        max-width: 180px;
-        height: 45px;
-        background: #141B25 !important;
-        border: 1px solid #818375 !important;
-        color: white !important;
-        padding: 0 15px !important;
-        border-radius: 8px !important;
+    .sort-select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 0 15px;
+        border-radius: 8px;
         outline: none;
         cursor: pointer;
-        font-family: inherit;
+        min-width: 170px;
     }
 
     .btn-search {
-        background: #f4a261 !important;
-        color: #141B25 !important;
-        border: none !important;
+        background: var(--accent-color);
+        color: #141B25;
+        border: none;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
         font-weight: bold;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        transition: 0.3s;
     }
+
+        .btn-search:hover {
+            background: #ffb37a !important;
+        }
 
     .folder-grid {
         display: grid;
@@ -83,9 +82,30 @@
 
         .folder-card:hover {
             border-color: var(--accent-color);
-            background-color: var(--btn-hover);
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+    .create-card {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center;
+        border-style: dashed !important;
+    }
+
+        .create-card .plus-icon {
+            font-size: 3.5rem;
+            color: var(--accent-color);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .create-card .create-text {
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: white;
         }
 
     .folder-icon {
@@ -118,7 +138,7 @@
         opacity: 0.5;
         display: flex;
         justify-content: space-between;
-        color: var(--text-color);
+        color: white;
     }
 
     .dots {
@@ -163,10 +183,7 @@
 
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         background: rgba(0, 0, 0, 0.85);
         display: none;
         justify-content: center;
@@ -180,7 +197,6 @@
         padding: 30px;
         border-radius: 15px;
         width: 420px;
-        max-width: 90%;
         display: flex;
         flex-direction: column;
         gap: 15px;
@@ -198,26 +214,25 @@
 </style>
 
 <div class="content-area">
-    <h2 style="color: var(--accent-color); margin-bottom: 20px;">Мої колекції</h2>
+    <h2 style="color: var(--accent-color); margin-bottom: 25px; font-weight: 700;">Мої колекції</h2>
 
-    <div class="filter-container">
-        <form asp-action="Index" method="get" class="filter-form">
-            <input type="text" name="searchText" placeholder="Пошук ваших колекцій..." value="@ViewData["CurrentFilter"]" />
+    <div class="search-container">
+        <form asp-action="Index" method="get" class="search-bar-form">
+            <input type="text" name="searchText" placeholder="Шукати колекції..." value="@ViewData["CurrentFilter"]" />
 
             <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
                 <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
                 <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
             </select>
-
             <button type="submit" class="btn-search">Шукати</button>
+        
         </form>
     </div>
 
     <div class="folder-grid">
-        @* Картка створення *@
-        <div class="folder-card" style="border-style: dashed; justify-content: center; text-align: center;" onclick="openCreateModal()">
-            <div style="font-size: 3rem; color: var(--accent-color); line-height: 1;">+</div>
-            <div style="margin-top: 10px; font-weight: bold;">Нова колекція</div>
+        <div class="folder-card create-card" onclick="openCreateModal()">
+            <div class="plus-icon">+</div>
+            <div class="create-text">Нова колекція</div>
         </div>
 
         @if (Model != null)
@@ -227,7 +242,7 @@
                 <div class="folder-card" onclick="handleFolderClick(event, '@Url.Action("Details", "Collections", new { id = item.Id })')">
 
                     <div class="dots" onclick="toggleMenu(event)">⋮</div>
-                    <div class="dropdown">
+                    <div class="dropdown" onclick="event.stopPropagation()">
                         <button type="button" onclick="openRenameModal(event, '@item.Id', '@item.Name', '@item.Description')">Редагувати</button>
                         <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити?')">
                             <input type="hidden" name="id" value="@item.Id" />
@@ -265,7 +280,6 @@
     </div>
 </div>
 
-@* МОДАЛКИ *@
 <div class="modal-overlay" id="createModal">
     <div class="modal">
         <h2 style="margin: 0; color: var(--accent-color);">Нова колекція</h2>

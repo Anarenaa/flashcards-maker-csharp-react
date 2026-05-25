@@ -7,6 +7,7 @@
 }
 
 <style>
+    
     .back-link {
         color: var(--accent-color);
         cursor: pointer;
@@ -32,6 +33,43 @@
         margin-bottom: 30px;
         gap: 20px;
     }
+
+    .categories-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(119, 158, 203, 0.15);
+        border: 1px solid rgba(119, 158, 203, 0.4);
+        color: #DEE4C7;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        gap: 8px;
+    }
+
+    .remove-cat-btn {
+        background: none;
+        border: none;
+        color: #ff8080;
+        cursor: pointer;
+        font-weight: bold;
+        font-size: 1.1rem;
+        padding: 0;
+        line-height: 1;
+        transition: 0.2s;
+    }
+
+        .remove-cat-btn:hover {
+            transform: scale(1.2);
+        }
 
     .cards-grid {
         display: grid;
@@ -88,6 +126,7 @@
         font-size: 1.5rem;
         opacity: 0.5;
         z-index: 10;
+        padding: 5px;
     }
 
     .dropdown {
@@ -135,7 +174,7 @@
         border: 1px solid var(--accent-color);
         padding: 30px;
         border-radius: 20px;
-        width: 440px;
+        width: 420px;
         display: flex;
         flex-direction: column;
         gap: 5px;
@@ -155,7 +194,7 @@
             color: white;
         }
 
-    .modal input, .modal textarea {
+    .modal input, .modal textarea, .modal select {
         background: #141B25;
         border: 1px solid #818375;
         color: white !important;
@@ -183,6 +222,7 @@
         transition: 0.3s;
         box-shadow: 0 0 10px rgba(244, 162, 97, 0.2);
         z-index: 10;
+        padding: 0;
     }
 
         .hint-btn:hover:not(:disabled) {
@@ -221,6 +261,10 @@
         font-weight: bold;
         transition: 0.3s;
     }
+
+        .btn-main:hover {
+            opacity: 0.9;
+        }
 </style>
 
 <div class="content-area">
@@ -230,8 +274,25 @@
         <div>
             <h2 style="color: var(--accent-color); margin: 0; font-size: 1.8rem;">@Model.Name</h2>
             <p style="opacity: 0.6; margin: 5px 0 0 0;">@Model.Description</p>
+
+            <ul class="categories-list">
+                @foreach (var cat in Model.Categories)
+                {
+                    <li class="category-badge">
+                        @cat.Name
+                        <form asp-action="RemoveCategory" method="post" style="display:inline;">
+                            <input type="hidden" name="setId" value="@Model.Id" />
+                            <input type="hidden" name="categoryId" value="@cat.Id" />
+                            <button type="submit" class="remove-cat-btn" title="Видалити категорію">×</button>
+                        </form>
+                    </li>
+                }
+            </ul>
         </div>
-        <button class="btn-main" onclick="openCreateCardModal()">+ Картка</button>
+        <div style="display: flex; gap: 10px;">
+            <button class="btn-main" onclick="openCreateCardModal()">+ Картка</button>
+            <button class="btn-main" onclick="openCategoryModal()">+ Категорія</button>
+        </div>
     </div>
 
     <div class="cards-grid">
@@ -288,9 +349,39 @@
     </div>
 </div>
 
+<div class="modal-overlay" id="categoryModal">
+    <div class="modal">
+        <form asp-action="SaveCategory" method="post">
+            <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Додати категорію</h2>
+            <input type="hidden" name="setId" value="@Model.Id" />
+
+            <div class="field-block">
+                <label>Оберіть категорію зі списку</label>
+                <select name="selectedCategoryId" required>
+                    <option value="">-- Оберіть --</option>
+                    @if (ViewBag.AllCategories != null)
+                    {
+                        @foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
+                        {
+                            <option value="@cat.Id">@cat.Name</option>
+                        }
+                    }
+                </select>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
+                <button type="button" onclick="closeCategoryModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                <button type="submit" class="btn-main">Додати</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 @section Scripts {
     <script>
         const cardModal = document.getElementById('cardModal');
+        const catModal = document.getElementById('categoryModal');
+
         const termInput = document.getElementById('modalTerm');
         const defInput = document.getElementById('modalDefinition');
         const hintBtn = document.getElementById('hintBtn');
@@ -311,7 +402,7 @@
             hIcon.style.display = 'none';
             hLoader.style.display = 'block';
             hError.style.display = 'none';
-            defInput.value = "ШІ думає...";
+            defInput.value = "Шукає визначення...";
 
             try {
                 const t = new Date().getTime();
@@ -321,23 +412,18 @@
                 if (!response.ok) throw new Error();
 
                 const hintText = await response.text();
-
                 const isBad = hintText.toLowerCase().trim() === term.toLowerCase().trim() || hintText.includes("недоступна");
 
                 if (isBad) {
-                    console.log("ШІ не зміг, йду у Вікіпедію...");
+                    console.log("Fallback to Wikipedia...");
                     const wikiUrl = `https://uk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
                     const wikiRes = await fetch(wikiUrl);
                     if (!wikiRes.ok) throw new Error();
                     const wikiData = await wikiRes.json();
-
-       
-                    let text = wikiData.extract || "";
-                    defInput.value = text.split('. ')[0] + "."; 
+                    defInput.value = (wikiData.extract || "").split('. ')[0] + ".";
                 } else {
                     defInput.value = hintText;
                 }
-
             } catch (e) {
                 defInput.value = "";
                 hError.style.display = 'block';
@@ -349,14 +435,45 @@
             }
         }
 
-        function openCreateCardModal() { document.getElementById('modalTitle').innerText = "Нова картка"; document.getElementById('modalCardId').value = "0"; termInput.value = ""; defInput.value = ""; hError.style.display = 'none'; validateHintBtn(); cardModal.style.display = 'flex'; }
-        function openEditCardModal(id, term, def) { document.getElementById('modalTitle').innerText = "Редагувати картка"; document.getElementById('modalCardId').value = id; termInput.value = term; defInput.value = def; hError.style.display = 'none'; validateHintBtn(); cardModal.style.display = 'flex'; }
+        function openCreateCardModal() {
+            document.getElementById('modalTitle').innerText = "Нова картка";
+            document.getElementById('modalCardId').value = "0";
+            termInput.value = "";
+            defInput.value = "";
+            hError.style.display = 'none';
+            validateHintBtn();
+            cardModal.style.display = 'flex';
+        }
+
+        function openEditCardModal(id, term, def) {
+            document.getElementById('modalTitle').innerText = "Редагувати картку";
+            document.getElementById('modalCardId').value = id;
+            termInput.value = term;
+            defInput.value = def;
+            hError.style.display = 'none';
+            validateHintBtn();
+            cardModal.style.display = 'flex';
+        }
+
         function closeCardModal() { cardModal.style.display = 'none'; }
-        function toggleMenu(e) { e.stopPropagation(); const d = e.currentTarget.nextElementSibling; document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; }); d.style.display = d.style.display === 'flex' ? 'none' : 'flex'; }
+        function openCategoryModal() { catModal.style.display = 'flex'; }
+        function closeCategoryModal() { catModal.style.display = 'none'; }
+
+        function toggleMenu(e) {
+            e.stopPropagation();
+            const d = e.currentTarget.nextElementSibling;
+            document.querySelectorAll('.dropdown').forEach(x => {
+                if (x !== d) x.style.display = 'none';
+            });
+            d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
+        }
 
         window.onclick = (e) => {
             if (e.target === cardModal) closeCardModal();
-            if (!e.target.matches('.dots')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            if (e.target === catModal) closeCategoryModal();
+            if (!e.target.matches('.dots')) {
+                document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            }
         };
     </script>
 }
