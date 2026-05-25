@@ -8,30 +8,14 @@ namespace Repositories
     public class SetRepository : Repository<Set>, ISetRepository
     {
         public SetRepository(DataContext context) : base(context) { }
-        public async Task DeleteUnusedUserSetsAsync(int userId)
-        {
-            var setsWithoutCollection = await _dbSet
-                .Where(s => s.UserId == userId && !s.Collections.Any())
-                .ToListAsync();
-
-            if (setsWithoutCollection.Any())
-            {
-                _dbSet.RemoveRange(setsWithoutCollection);
-            }
-        }
-        public async Task UnableSetsWithoutUserInCollections()
-        {
-            var setsWithoutUser = await _dbSet
-                .Where(s => s.UserId == null && s.Collections.Any())
-                .ToListAsync();
-            foreach (var set in setsWithoutUser)
-            {
-                set.IsAccessible = false;
-            }
-        }
         public async Task<int> GetUserSetsCount(int userId)
         {
             return await _dbSet.CountAsync(s => s.UserId == userId);
+        }
+        public async Task DeleteUserSets(int userId)
+        {
+            var userSets = await _dbSet.Where(s => s.UserId == userId).ToListAsync();
+            _dbSet.RemoveRange(userSets);
         }
     }
 }

@@ -218,6 +218,10 @@ namespace App.Controllers
             }
             catch (Exception ex)
             {
+                if (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
+                {
+                    return RedirectToAction("ServiceUnavailable", "Home");
+                }
                 TempData["ErrorMessage"] = "Помилка: " + ex.Message;
                 return RedirectToAction("Login");
             }
@@ -303,7 +307,8 @@ namespace App.Controllers
             catch (Exception ex)
             {
                 TempData["ErrorMessage"] = "Помилка при видаленні профілю: " + ex.Message;
-                return RedirectToAction("MyProfile");
+                Console.WriteLine($"Error deleting user {UserId}: {ex.Message}");
+                return RedirectToRoute("/MyProfile");
             }
         }
         [Authorize]
@@ -413,11 +418,6 @@ namespace App.Controllers
                 return RedirectToAction("Login", "Account");
             }
             return View(model);
-        }
-        [HttpGet("access-denied")]
-        public IActionResult AccessDenied()
-        {
-            return View();
         }
         [HttpGet]
         public IActionResult EmailSent()

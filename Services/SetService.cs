@@ -1,16 +1,19 @@
 ﻿using Core.DTOs;
 using Core.Exceptions;
 using Core.Models;
+using Microsoft.AspNetCore.Identity;
 using Repositories.Interfaces;
 
 namespace Services
 {
     public class SetService
     {
-        public readonly IUnitOfWork _unitOfWork;
-        public SetService(IUnitOfWork unitOfWork)
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly UserManager<User> _userManager;
+        public SetService(IUnitOfWork unitOfWork, UserManager<User> userManager)
         {
             _unitOfWork = unitOfWork;
+            _userManager = userManager;
         }
         public async Task<List<SetDTO>> GetAllSetsAsync(int currentUserId, List<int>? categoryIds, string? searchText = null)
         {
@@ -34,6 +37,7 @@ namespace Services
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
+                IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt
             }).ToList();
@@ -123,34 +127,39 @@ namespace Services
 
         public async Task AddSetAsync(SetDTO setDto, int userId)
         {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             var set = new Set
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
-                UserId = userId
+                IsGenerated = setDto.IsGenerated,
+                UserId = userId,
+                User = user
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task<Set> AddSetAsyncWithReturn(SetDTO setDto, int userId)
+        public async Task<Set> AddSetAsyncWithReturn(SetCreateDTO setDto, int userId)
         {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
             var set = new Set
             {
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
                 IsPublic = setDto.IsPublic,
-                UserId = userId
+                UserId = userId,
+                User = user
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
             return set;
         }
-        public async Task UpdateSetAsync(SetDTO setDto)
+        public async Task UpdateSetAsync(int setId, SetCreateDTO setDto)
         {
-            var set = await _unitOfWork.Sets.GetByIdAsync(setDto.Id.Value);
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
             if (set is null)
             {
                 throw new NotFoundException("Сет не знайдено");

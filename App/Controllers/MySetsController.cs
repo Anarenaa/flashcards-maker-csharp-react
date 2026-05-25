@@ -2,19 +2,19 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Text.Json;
 
 namespace App.Controllers;
 
 [Authorize(Roles = "User")]
-
 public class MySetsController(
     SetService setService,
     CollectionService collectionService,
-    CategoryService categoryService) : BaseController
+    CategoryService categoryService,
+    FlashcardService flashcardService) : BaseController
 {
     public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
     {
-
         List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
 
         var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
@@ -38,37 +38,54 @@ public class MySetsController(
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Create(SetDTO setDto)
+    public async Task<IActionResult> Create(SetCreateDTO setDto, string? GeneratedCardsJson)
     {
         if (ModelState.IsValid)
         {
-            setDto.CreatedAt = DateTime.UtcNow;
-            setDto.LastUpdatedAt = DateTime.UtcNow;
+            var createdSet = await setService.AddSetAsyncWithReturn(setDto, UserId);
 
-            await setService.AddSetAsync(setDto, UserId);
-            return RedirectToAction(nameof(Index));
+            if (!string.IsNullOrEmpty(GeneratedCardsJson))
+            {
+                try
+                {
+                    var cards = JsonSerializer.Deserialize<List<FlashcardDTO>>(
+                        GeneratedCardsJson,
+                        new JsonSerializerOptions
+                        {
+                            PropertyNameCaseInsensitive = true
+                        });
+
+                    if (cards != null && cards.Any())
+                    {
+                        await flashcardService.CreateFlashcardsRangeAsync(createdSet.Id, cards);
+                    }
+                }
+                catch
+                {
+                }
+            }
+
+            return RedirectToAction("Index", "Details", new { id = createdSet.Id });
         }
-       
+
         return await Index(null, null, "newest");
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Edit(SetDTO setDto)
+    public async Task<IActionResult> Edit(int id, SetCreateDTO setDto)
     {
-  
-        if (!ModelState.IsValid || !setDto.Id.HasValue)
+        if (!ModelState.IsValid || id == 0)
         {
             return RedirectToAction(nameof(Index));
         }
 
-        if (!await setService.IsSetMine(setDto.Id.Value, UserId))
+        if (!await setService.IsSetMine(id, UserId))
         {
             return Forbid();
         }
 
-        setDto.LastUpdatedAt = DateTime.UtcNow;
-        await setService.UpdateSetAsync(setDto);
+        await setService.UpdateSetAsync(id, setDto);
 
         return RedirectToAction(nameof(Index));
     }
@@ -83,6 +100,7 @@ public class MySetsController(
         }
 
         await setService.DeleteSetAsync(id);
+
         return RedirectToAction(nameof(Index));
     }
 
@@ -94,6 +112,7 @@ public class MySetsController(
         {
             await setService.AddSetToCollectionAsync(setId, collectionId);
         }
+
         return RedirectToAction(nameof(Index));
     }
 }

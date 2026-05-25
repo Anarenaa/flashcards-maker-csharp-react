@@ -5,6 +5,7 @@ using Core.DTOs;
 using Core.DTOs.Practice;
 using Core.Models;
 using Microsoft.Extensions.Logging;
+using Repositories.Interfaces;
 using Services.Interfaces;
 
 namespace Services
@@ -14,19 +15,25 @@ namespace Services
         private readonly HttpClient _client;
         private readonly string _apiKey;
         private readonly ILogger<GeminiService> _logger;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger)
+        public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger, IUnitOfWork unitOfWork)
         {
             _client = client;
             _apiKey = apiKey;
             _logger = logger;
+            _unitOfWork = unitOfWork;
         }
-        public async Task<List<FlashcardDTO>> GenerateCardsAsync(string prompt, byte[]? imageBytes = null, string? mimeType = null)
+        public async Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
         {
             _client.DefaultRequestHeaders.Add("x-goog-api-key", _apiKey);
             var url = $"interactions";
 
             object inputData;
+            string text = $"Generate {setDto.Description}. Title \"{setDto.Name}\". " +
+                        $"Type \"{setDto.Type.ToString()}\". If Type is Language generate cards from {setDto.FromLang} to {setDto.ToLang}. " +
+                        $"{cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
+            
             if (imageBytes != null && !string.IsNullOrEmpty(mimeType))
             {
                 inputData = new object[]
@@ -34,7 +41,7 @@ namespace Services
                     new
                     {
                         type = "text",
-                        text = $"Generate {prompt}. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}]."
+                        text = text
                     },
                     new
                     {
@@ -46,12 +53,12 @@ namespace Services
             }
             else
             {
-                inputData = $"Generate {prompt}. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
+                inputData = text;
             }
 
             var requestBody = new
             {
-                model = "gemini-3-flash-preview",
+                model = "gemini-2.5-flash",
                 input = inputData
             };
 
@@ -154,6 +161,15 @@ namespace Services
             {
                 _logger.LogError(ex, "Error occurred while generating Gemini context sentence for term: '{Term}'", term);
                 return new ContextGameDto { Sentence = null, CorrectAnswer = shorterTerm };
+            }
+        }
+        public async Task MarkSetIsGenerated(int setId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set != null)
+            {
+                set.IsGenerated = true;
+                await _unitOfWork.SaveChangesAsync();
             }
         }
     }

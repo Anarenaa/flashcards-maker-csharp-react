@@ -4,6 +4,7 @@ using Core.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -11,9 +12,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Core.Migrations
 {
     [DbContext(typeof(DataContext))]
-    partial class DataContextModelSnapshot : ModelSnapshot
+    [Migration("20260521183444_AddIsGeneratedToSet")]
+    partial class AddIsGeneratedToSet
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -391,6 +394,9 @@ namespace Core.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("nvarchar(500)");
 
+                    b.Property<bool>("IsAccessible")
+                        .HasColumnType("bit");
+
                     b.Property<bool>("IsGenerated")
                         .HasColumnType("bit");
 
@@ -425,6 +431,7 @@ namespace Core.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
                             Description = "English vocabulary",
+                            IsAccessible = true,
                             IsGenerated = false,
                             IsPublic = true,
                             Name = "Fruits",
@@ -437,6 +444,7 @@ namespace Core.Migrations
                             Id = 2,
                             CreatedAt = new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified),
                             Description = "Math test preparation set",
+                            IsAccessible = true,
                             IsGenerated = false,
                             IsPublic = false,
                             Name = "Math",
@@ -449,6 +457,7 @@ namespace Core.Migrations
                             Id = 3,
                             CreatedAt = new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified),
                             Description = "Всесвітня історія: революції різних років",
+                            IsAccessible = true,
                             IsGenerated = false,
                             IsPublic = true,
                             Name = "Роки революцій",
@@ -873,7 +882,7 @@ namespace Core.Migrations
                     b.HasOne("Core.Models.User", "User")
                         .WithMany("Sets")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.NoAction)
+                        .OnDelete(DeleteBehavior.SetNull)
                         .IsRequired();
 
                     b.Navigation("User");

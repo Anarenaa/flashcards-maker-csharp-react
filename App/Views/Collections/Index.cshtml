@@ -6,7 +6,60 @@
 }
 
 <style>
-    /* --- СІТКА ТА КАРТКИ --- */
+    .search-container {
+        display: flex;
+        gap: 15px;
+        margin-bottom: 30px;
+        background: rgba(255, 255, 255, 0.03);
+        padding: 15px;
+        border-radius: 12px;
+        border: 1px solid var(--btn-border);
+        align-items: center;
+    }
+
+    .search-bar-form {
+        display: flex;
+        flex-grow: 1;
+        gap: 10px;
+    }
+
+        .search-bar-form input {
+            flex-grow: 1;
+            background: #141B25;
+            border: 1px solid #818375;
+            color: white;
+            padding: 12px 15px;
+            border-radius: 8px;
+            outline: none;
+            font-family: inherit;
+        }
+
+    .sort-select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white;
+        padding: 0 15px;
+        border-radius: 8px;
+        outline: none;
+        cursor: pointer;
+        min-width: 170px;
+    }
+
+    .btn-search {
+        background: var(--accent-color);
+        color: #141B25;
+        border: none;
+        padding: 0 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-search:hover {
+            background: #ffb37a !important;
+        }
+
     .folder-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -29,17 +82,65 @@
 
         .folder-card:hover {
             border-color: var(--accent-color);
-            background-color: var(--btn-hover);
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.3);
+        }
+
+    .create-card {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center;
+        border-style: dashed !important;
+    }
+
+        .create-card .plus-icon {
+            font-size: 3.5rem;
+            color: var(--accent-color);
+            line-height: 1;
+            margin-bottom: 10px;
+        }
+
+        .create-card .create-text {
+            font-weight: 500;
+            font-size: 1.1rem;
+            color: white;
         }
 
     .folder-icon {
         color: var(--accent-color);
         margin-bottom: 10px;
+        opacity: 0.8;
     }
 
-    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
+    .folder-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+    }
+
+    .sets-count-badge {
+        background: rgba(240, 255, 255, 0.1);
+        color: var(--accent-color);
+        padding: 4px 10px;
+        border-radius: 8px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        width: fit-content;
+    }
+
+    .date-info {
+        font-size: 0.65rem;
+        opacity: 0.5;
+        display: flex;
+        justify-content: space-between;
+        color: white;
+    }
+
     .dots {
         position: absolute;
         top: 15px;
@@ -47,15 +148,9 @@
         font-size: 1.5rem;
         opacity: 0.5;
         cursor: pointer;
-        padding: 5px;
         z-index: 10;
-        line-height: 1;
+        padding: 5px;
     }
-
-        .dots:hover {
-            opacity: 1;
-            color: var(--accent-color);
-        }
 
     .dropdown {
         position: absolute;
@@ -86,13 +181,9 @@
                 background-color: #6B8789;
             }
 
-    /* --- МОДАЛЬНЕ ВІКНО --- */
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         background: rgba(0, 0, 0, 0.85);
         display: none;
         justify-content: center;
@@ -106,11 +197,9 @@
         padding: 30px;
         border-radius: 15px;
         width: 420px;
-        max-width: 90%;
         display: flex;
         flex-direction: column;
         gap: 15px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     }
 
         .modal input {
@@ -120,150 +209,104 @@
             padding: 12px;
             border-radius: 8px;
             outline: none;
-            font-family: inherit;
             width: 100%;
-            box-sizing: border-box;
-            margin-top: 5px;
         }
-
-            .modal input:focus {
-                border-color: var(--accent-color);
-            }
-
-    /* --- ФУТЕР КАРТКИ --- */
-    .folder-footer {
-        margin-top: auto;
-        padding-top: 15px;
-        border-top: 1px solid rgba(240, 255, 255, 0.05);
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .date-info {
-        font-size: 0.7rem;
-        opacity: 0.4;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .sets-count-badge {
-        background: rgba(240, 255, 255, 0.1);
-        color: var(--accent-color);
-        padding: 4px 10px;
-        border-radius: 8px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        width: fit-content;
-        margin-bottom: 4px;
-    }
 </style>
 
 <div class="content-area">
-    <h2 style="color: var(--accent-color); margin-bottom: 20px;">Мої колекції</h2>
+    <h2 style="color: var(--accent-color); margin-bottom: 25px; font-weight: 700;">Мої колекції</h2>
+
+    <div class="search-container">
+        <form asp-action="Index" method="get" class="search-bar-form">
+            <input type="text" name="searchText" placeholder="Шукати колекції..." value="@ViewData["CurrentFilter"]" />
+
+            <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
+                <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
+                <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
+            </select>
+            <button type="submit" class="btn-search">Шукати</button>
+        
+        </form>
+    </div>
 
     <div class="folder-grid">
-        @* Картка створення *@
-        <div class="folder-card" style="border-style: dashed; text-align: center; justify-content: center;" onclick="openCreateModal()">
-            <div style="font-size: 3rem; color: var(--accent-color); line-height: 1;">+</div>
-            <div style="margin-top: 10px; font-weight: bold;">Нова колекція</div>
+        <div class="folder-card create-card" onclick="openCreateModal()">
+            <div class="plus-icon">+</div>
+            <div class="create-text">Нова колекція</div>
         </div>
 
-        @foreach (var item in Model)
+        @if (Model != null)
         {
-            <div class="folder-card" onclick="handleFolderClick(event, '@Url.Action("Details", "Collections", new { id = item.Id })')">
+            @foreach (var item in Model)
+            {
+                <div class="folder-card" onclick="handleFolderClick(event, '@Url.Action("Details", "Collections", new { id = item.Id })')">
 
-                @* Меню ⋮ *@
-                <div class="dots" onclick="toggleMenu(event)">⋮</div>
-                <div class="dropdown">
-                    @* КНОПКА РЕДАГУВАННЯ *@
-                    <button type="button" onclick="openRenameModal(event, '@item.Id', '@item.Name', '@item.Description')">Редагувати</button>
-
-                    <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити цю колекцію?')">
-                        <input type="hidden" name="id" value="@item.Id" />
-                        <button type="submit" style="color: #ff8080;">Видалити</button>
-                    </form>
-                </div>
-
-                <div class="folder-icon">
-                    <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
-                        <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
-                    </svg>
-                </div>
-
-                <h3 style="margin: 0; color: var(--accent-color);">@item.Name</h3>
-                <p style="opacity: 0.6; font-size: 0.85rem; flex-grow: 1; margin: 5px 0 0 0;">@item.Description</p>
-
-                @* ФУТЕР *@
-                <div class="folder-footer">
-                    <span class="sets-count-badge">@item.SetsCount @GetSetWord(item.SetsCount)</span>
-
-                    @{
-                        // ФІКС ДЛЯ ДАТ: якщо в базі 01.01.0001, показуємо "зараз"
-                        var displayUpdate = item.LastUpdatedAt == DateTime.MinValue ? DateTime.Now : item.LastUpdatedAt.ToLocalTime();
-                        var displayCreate = item.CreatedAt == DateTime.MinValue ? DateTime.Now : item.CreatedAt.ToLocalTime();
-                    }
-
-                    <div class="date-info">
-                        <span>Створено:</span>
-                        <span>@displayCreate.ToString("dd.MM.yyyy")</span>
+                    <div class="dots" onclick="toggleMenu(event)">⋮</div>
+                    <div class="dropdown" onclick="event.stopPropagation()">
+                        <button type="button" onclick="openRenameModal(event, '@item.Id', '@item.Name', '@item.Description')">Редагувати</button>
+                        <form asp-action="Delete" method="post" onsubmit="return confirm('Видалити?')">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" style="color: #ff8080;">Видалити</button>
+                        </form>
                     </div>
 
-                    <div class="date-info">
-                        <span>Оновлено:</span>
-                        <span style="color: var(--accent-color); opacity: 0.9;">
-                            @if (displayUpdate.Date == DateTime.Today)
-                            {
-                                @displayUpdate.ToString("HH:mm")
-                            }
-                            else
-                            {
-                                @displayUpdate.ToString("dd.MM.yyyy")
-                            }
-                        </span>
+                    <div class="folder-icon">
+                        <svg width="36" height="36" fill="currentColor" viewBox="0 0 24 24">
+                            <path d="M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z" />
+                        </svg>
+                    </div>
+
+                    <h3 style="margin: 0; color: var(--accent-color);">@item.Name</h3>
+                    <p style="opacity: 0.6; font-size: 0.85rem; flex-grow: 1; margin: 5px 0 0 0;">@item.Description</p>
+
+                    <div class="folder-footer">
+                        <span class="sets-count-badge">@item.SetsCount @GetSetWord(item.SetsCount)</span>
+
+                        <div class="date-info">
+                            <span>Створено:</span>
+                            <span>@item.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                        </div>
+
+                        <div class="date-info">
+                            <span>Оновлено:</span>
+                            <span style="color: var(--accent-color); opacity: 0.9;">
+                                @item.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")
+                            </span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
         }
     </div>
 </div>
 
-@* МОДАЛКА СТВОРЕННЯ *@
 <div class="modal-overlay" id="createModal">
     <div class="modal">
         <h2 style="margin: 0; color: var(--accent-color);">Нова колекція</h2>
         <form asp-controller="Collections" asp-action="Create" method="post">
             <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
                 <input type="text" name="Name" placeholder="Назва папки" required />
-                <input type="text" name="Description" placeholder="Опис (необов'язково)" />
-
+                <input type="text" name="Description" placeholder="Опис" />
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
                     <button type="button" onclick="closeModalById('createModal')" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                    <button type="submit" class="btn-main" style="background:#6B8789; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Зберегти</button>
+                    <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Зберегти</button>
                 </div>
             </div>
         </form>
     </div>
 </div>
 
-@* МОДАЛКА РЕДАГУВАННЯ *@
 <div class="modal-overlay" id="renameModal">
     <div class="modal">
         <h2 style="margin: 0; color: var(--accent-color);">Редагувати колекцію</h2>
         <form asp-controller="Collections" asp-action="Update" method="post">
             <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
                 <input type="hidden" name="Id" id="renameId" />
-                <div>
-                    <label style="font-size: 0.8rem; opacity: 0.6;">Назва</label>
-                    <input type="text" name="Name" id="renameName" required />
-                </div>
-                <div>
-                    <label style="font-size: 0.8rem; opacity: 0.6;">Опис</label>
-                    <input type="text" name="Description" id="renameDesc" />
-                </div>
+                <input type="text" name="Name" id="renameName" required />
+                <input type="text" name="Description" id="renameDesc" />
                 <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 10px;">
                     <button type="button" onclick="closeModalById('renameModal')" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                    <button type="submit" class="btn-main" style="background:#6B8789; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Оновити</button>
+                    <button type="submit" style="background:#6B8789; color:white; border:none; padding:10px 20px; border-radius:8px; font-weight:bold; cursor:pointer;">Оновити</button>
                 </div>
             </div>
         </form>
@@ -284,47 +327,32 @@
 
 @section Scripts {
     <script>
-        function openCreateModal() {
-            document.getElementById('createModal').style.display = 'flex';
-        }
-
+        function openCreateModal() { document.getElementById('createModal').style.display = 'flex'; }
         function openRenameModal(event, id, name, desc) {
             event.stopPropagation();
             document.getElementById('renameId').value = id;
             document.getElementById('renameName').value = name;
             document.getElementById('renameDesc').value = desc;
             document.getElementById('renameModal').style.display = 'flex';
-            document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
+            closeAllDropdowns();
         }
-
-        function closeModalById(id) {
-            document.getElementById(id).style.display = 'none';
-        }
-
+        function closeModalById(id) { document.getElementById(id).style.display = 'none'; }
         function handleFolderClick(event, url) {
-            if (event.target.closest('.dots') || event.target.closest('.dropdown')) {
-                return;
-            }
+            if (event.target.closest('.dots') || event.target.closest('.dropdown')) return;
             window.location.href = url;
         }
-
         function toggleMenu(e) {
             e.stopPropagation();
-            const btn = e.currentTarget;
-            const dropdown = btn.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(d => {
-                if (d !== dropdown) d.style.display = 'none';
-            });
+            const dropdown = e.currentTarget.nextElementSibling;
+            closeAllDropdowns(dropdown);
             dropdown.style.display = (dropdown.style.display === 'flex') ? 'none' : 'flex';
         }
-
+        function closeAllDropdowns(except = null) {
+            document.querySelectorAll('.dropdown').forEach(d => { if (d !== except) d.style.display = 'none'; });
+        }
         window.onclick = (e) => {
-            if (!e.target.matches('.dots')) {
-                document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-            }
-            if (e.target.classList.contains('modal-overlay')) {
-                e.target.style.display = 'none';
-            }
+            if (!e.target.matches('.dots')) closeAllDropdowns();
+            if (e.target.classList.contains('modal-overlay')) e.target.style.display = 'none';
         }
     </script>
 }

@@ -25,20 +25,12 @@ namespace App.Controllers
         [HttpGet("{id}")]
         public async Task<IActionResult> Index(int id)
         {
-            try
-            {
-                if (await _setService.IsSetMine(id, UserId) == false)
-                    throw new Exception("Цей сет не належить вам");
+            if (await _setService.IsSetMine(id, UserId) == false)
+                return Forbid();
 
-                var setDetail = await _setService.GetSetByIdAsync(id);
-                ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
-                return View(setDetail);
-            }
-            catch
-            {
-            
-                return RedirectToAction("Index", "MySets");
-            }
+            var setDetail = await _setService.GetSetByIdAsync(id);
+            ViewBag.AllCategories = await _categoryService.GetAllCategoriesAsync();
+            return View(setDetail);
         }
         
         // --- РОБОТА З КАРТКАМИ ---
@@ -53,14 +45,13 @@ namespace App.Controllers
             var setDetail = await _setService.GetSetByIdAsync(setId);
             if (setDetail != null)
             {
-                var setUpdate = new SetDTO
+                var setUpdate = new SetCreateDTO
                 {
-                    Id = setDetail.Id,
                     Name = setDetail.Name,
                     Description = setDetail.Description,
                     IsPublic = setDetail.IsPublic
                 };
-                await _setService.UpdateSetAsync(setUpdate);
+                await _setService.UpdateSetAsync(setId, setUpdate);
             }
 
             return RedirectToAction("Index", new { id = setId });
@@ -75,14 +66,13 @@ namespace App.Controllers
             var setDetail = await _setService.GetSetByIdAsync(setId);
             if (setDetail != null)
             {
-                var setUpdate = new SetDTO
+                var setUpdate = new SetCreateDTO
                 {
-                    Id = setDetail.Id,
                     Name = setDetail.Name,
                     Description = setDetail.Description,
                     IsPublic = setDetail.IsPublic,
                 };
-                await _setService.UpdateSetAsync(setUpdate);
+                await _setService.UpdateSetAsync(setId, setUpdate);
             }
 
             // 3. Повертаємось назад у цей же сет
