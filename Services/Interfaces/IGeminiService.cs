@@ -8,6 +8,7 @@ namespace Services.Interfaces
     {
         Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int count, byte[]? imageBytes = null, string? mimeType = null);
         Task<string?> GenerateSimpleHintAsync(string term, string targetLang, SetType type);
+        Task<ContextGameDto> GenerateContextSentenceAsync(string term, string definition);
         Task MarkSetIsGenerated(int setId);
     }
 }

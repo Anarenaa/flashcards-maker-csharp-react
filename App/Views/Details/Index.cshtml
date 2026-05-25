@@ -436,42 +436,11 @@
                 const url = `/api/get-hint?term=${term}&setType=@((int)Model.Type)&fromLang=en&toLang=uk&uiLang=uk`;
 
                 const response = await fetch(url);
+                if (!response.ok) throw new Error();
 
-                if (!response.ok)
-                    throw new Error();
-
-                const data = await response.json();
-
-                const hintText = data.text;
-
-                const isBad =
-                    !hintText ||
-                    hintText.toLowerCase().trim() === term.toLowerCase().trim() ||
-                    hintText.includes("недоступна");
-
-                if (isBad) {
-
-                    console.log("Fallback to Wikipedia...");
-
-                    const wikiUrl =
-                        `https://uk.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(term)}`;
-
-                    const wikiRes = await fetch(wikiUrl);
-
-                    if (!wikiRes.ok)
-                        throw new Error();
-
-                    const wikiData = await wikiRes.json();
-
-                    defInput.value =
-                        (wikiData.extract || "").split('. ')[0] + ".";
-
-                }
-                else {
-
-                    defInput.value = hintText;
-
-                }
+                const data = await response.json();    
+                const hintText = await data.text;
+                defInput.value = hintText;
 
             }
             catch (e) {
