@@ -52,6 +52,7 @@ namespace Services
                     Id = s.Id,
                     Name = s.Name,
                     Description = s.Description,
+                    AvatarUrl = s.User.AvatarUrl ?? null,
                     UserName = s.User?.UserName ?? null,
                     IsPublic = s.IsPublic,
                     FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),

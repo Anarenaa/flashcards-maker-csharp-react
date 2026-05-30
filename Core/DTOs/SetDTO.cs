@@ -16,6 +16,7 @@ namespace Core.DTOs
         public string? ToLang { get; set; }
         public bool IsPublic { get; set; }
         public bool IsGenerated { get; set; } = false;
+        public string? AvatarUrl { get; set; }
         public string? UserName { get; set; }
         public int FlashcardsCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; }

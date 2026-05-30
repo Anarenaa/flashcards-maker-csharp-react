@@ -18,23 +18,7 @@ namespace App.Controllers
 
         public async Task<IActionResult> Index()
         {
-            int currentUserId = 1;
-
-            try
-            {
-                var userDto = await _userService.GetMyPrivateProfileAsync(currentUserId);
-                return View(userDto);
-            }
-            catch
-            {
-                var fallbackModel = new PrivateUserDTO
-                {
-                    UserName = "Користувач",
-                    Email = "email@example.com",
-                    AvatarUrl = ""
-				};
-                return View(fallbackModel);
-            }
+            return View();
         }
 
         public IActionResult Settings()

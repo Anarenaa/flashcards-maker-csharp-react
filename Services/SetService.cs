@@ -35,6 +35,7 @@ namespace Services
                 Description = s.Description,
                 Type = s.Type,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                AvatarUrl = s.User?.AvatarUrl ?? null,
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
                 IsGenerated = s.IsGenerated,
@@ -88,6 +89,7 @@ namespace Services
                 FromLang = s.FromLang,
                 ToLang = s.ToLang,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                AvatarUrl = s.User?.AvatarUrl ?? null,
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
                 CreatedAt = s.CreatedAt,
@@ -131,25 +133,7 @@ namespace Services
             };
         }
 
-        public async Task AddSetAsync(SetDTO setDto, int userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            var set = new Set
-            {
-                Name = setDto.Name,
-                Description = setDto.Description,
-                Type = setDto.Type,
-                FromLang = setDto.FromLang,
-                ToLang = setDto.ToLang,
-                IsPublic = setDto.IsPublic,
-                IsGenerated = setDto.IsGenerated,
-                UserId = userId,
-                User = user
-            };
-            await _unitOfWork.Sets.AddAsync(set);
-            await _unitOfWork.SaveChangesAsync();
-        }
-        public async Task<Set> AddSetAsyncWithReturn(SetCreateDTO setDto, int userId)
+        public async Task<SetDTO> AddSetAsync(SetCreateDTO setDto, int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             var set = new Set
@@ -165,7 +149,21 @@ namespace Services
             };
             await _unitOfWork.Sets.AddAsync(set);
             await _unitOfWork.SaveChangesAsync();
-            return set;
+
+            return new SetDTO
+            {
+                Id = set.Id,
+                Name = set.Name,
+                Description = set.Description,
+                Type = set.Type,
+                FromLang = set.FromLang,
+                ToLang = set.ToLang,
+                AvatarUrl = user?.AvatarUrl ?? null,
+                UserName = user?.UserName ?? null,
+                IsPublic = set.IsPublic,
+                CreatedAt = set.CreatedAt,
+                LastUpdatedAt = set.UpdatedAt
+            };
         }
         public async Task UpdateSetAsync(int setId, SetCreateDTO setDto)
         {
@@ -262,34 +260,6 @@ namespace Services
 
             collection.Sets.Remove(set);
 
-            await _unitOfWork.SaveChangesAsync();
-        }
-
-        public async Task CopySetToUser(int setId, int userId)
-        {
-            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards, Categories");
-            if (set == null) throw new NotFoundException("Сет не знайдено");
-            var newSet = new Set
-            {
-                Name = set.Name + " (Копія)",
-                Description = set.Description,
-                IsPublic = false,
-                Type = set.Type,
-                FromLang = set.FromLang,
-                ToLang = set.ToLang,
-                UserId = userId,
-                Categories = set.Categories.ToList()
-            };
-            foreach (var flashcard in set.Flashcards)
-            {
-                var newFlashcard = new Flashcard
-                {
-                    Term = flashcard.Term,
-                    Definition = flashcard.Definition
-                };
-                newSet.Flashcards.Add(newFlashcard);
-            }
-            await _unitOfWork.Sets.AddAsync(newSet);
             await _unitOfWork.SaveChangesAsync();
         }
 

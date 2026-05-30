@@ -17,14 +17,14 @@ namespace App.Controllers
         private readonly UserManager<User> _userManager;
         private readonly SignInManager<User> _signInManager;
         private readonly UserService _userService;
-        private readonly EmailService _emailService;
+        private readonly IEmailService _emailService;
 
         public AccountController(
             IAuthService authService,
             UserManager<User> userManager,
             UserService userService,
             SignInManager<User> signInManager,
-            EmailService emailService
+            IEmailService emailService
         )
         {
             _authService = authService;
@@ -252,45 +252,7 @@ namespace App.Controllers
 
             return RedirectToAction("Login");
         }
-        [Authorize]
-        [HttpPost("update-general-profile")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateGeneralProfile(string? userName, IFormFile? avatarFile)
-        {
-            try
-            {
 
-                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
-
-                TempData["SuccessMessage"] = "Профіль успішно оновлено!";
-            }
-            catch (Exception ex)
-            {
-
-                TempData["ErrorMessage"] = ex.Message;
-            }
-
-            return RedirectToAction("Index", "Settings");
-        }
-        [Authorize]
-        [HttpPost("update-profile")]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> UpdateProfile(string? userName, IFormFile? avatarFile)
-        {
-            try
-            {
-
-                await _userService.UpdateUserProfileAsync(UserId, userName, null, avatarFile);
-
-                TempData["SuccessMessage"] = "Профіль успішно оновлено!";
-            }
-            catch (Exception ex)
-            {
-                TempData["ErrorMessage"] = ex.Message;
-            }
-
-            return RedirectToAction("Settings");
-        }
         [Authorize]
         [HttpPost("delete-profile")]
         [ValidateAntiForgeryToken]

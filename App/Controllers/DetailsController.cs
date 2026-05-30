@@ -42,46 +42,13 @@ namespace App.Controllers
             else
                 await _flashcardService.UpdateFlashcardAsync(cardDto);
 
-            var setDetail = await _setService.GetSetByIdAsync(setId);
-            if (setDetail != null)
-            {
-                var setUpdate = new SetCreateDTO
-                {
-                    Name = setDetail.Name,
-                    Description = setDetail.Description,
-                    IsPublic = setDetail.IsPublic,
-                    Type = setDetail.Type,
-                    FromLang = setDetail.FromLang,
-                    ToLang = setDetail.ToLang
-                };
-                await _setService.UpdateSetAsync(setId, setUpdate);
-            }
-
             return RedirectToAction("Index", new { id = setId });
         }
         [HttpPost("DeleteCard")]
         public async Task<IActionResult> DeleteCard(int cardId, int setId)
         {
-            // 1. Видаляємо саму картку через сервіс
             await _flashcardService.DeleteFlashcardAsync(cardId);
 
-            // 2. СИНХРОНІЗАЦІЯ ЧАСУ: Оновлюємо дату останньої зміни сету
-            var setDetail = await _setService.GetSetByIdAsync(setId);
-            if (setDetail != null)
-            {
-                var setUpdate = new SetCreateDTO
-                {
-                    Name = setDetail.Name,
-                    Description = setDetail.Description,
-                    IsPublic = setDetail.IsPublic,
-                    Type = setDetail.Type,
-                    FromLang = setDetail.FromLang,
-                    ToLang = setDetail.ToLang
-                };
-                await _setService.UpdateSetAsync(setId, setUpdate);
-            }
-
-            // 3. Повертаємось назад у цей же сет
             return RedirectToAction("Index", new { id = setId });
         }
         // --- РОБОТА З КАТЕГОРІЯМИ ---
@@ -98,10 +65,8 @@ namespace App.Controllers
                 if (existing == null)
                 {
                     var newCat = new CategoryDTO { Name = newCategoryName.Trim() };
-                    await _categoryService.CreateCategoryAsync(newCat);
-                    
-                    var updated = await _categoryService.GetAllCategoriesAsync();
-                    categoryId = updated.First(c => c.Name.Equals(newCategoryName.Trim())).Id.Value;
+                    var createdCategory = await _categoryService.CreateCategoryAsync(newCat);
+                    categoryId = createdCategory.Id.Value;
                 }
                 else { categoryId = existing.Id.Value; }
             }

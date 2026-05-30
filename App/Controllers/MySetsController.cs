@@ -42,28 +42,7 @@ public class MySetsController(
     {
         if (ModelState.IsValid)
         {
-            var createdSet = await setService.AddSetAsyncWithReturn(setDto, UserId);
-
-            if (!string.IsNullOrEmpty(GeneratedCardsJson))
-            {
-                try
-                {
-                    var cards = JsonSerializer.Deserialize<List<FlashcardDTO>>(
-                        GeneratedCardsJson,
-                        new JsonSerializerOptions
-                        {
-                            PropertyNameCaseInsensitive = true
-                        });
-
-                    if (cards != null && cards.Any())
-                    {
-                        await flashcardService.CreateFlashcardsRangeAsync(createdSet.Id, cards);
-                    }
-                }
-                catch
-                {
-                }
-            }
+            var createdSet = await setService.AddSetAsync(setDto, UserId);
 
             return RedirectToAction("Index", "Details", new { id = createdSet.Id });
         }

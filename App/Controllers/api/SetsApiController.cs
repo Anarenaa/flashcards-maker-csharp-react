@@ -1,10 +1,7 @@
 ﻿using Core.DTOs;
-using Microsoft.AspNetCore.Http;
+using Core.Exceptions;
 using Microsoft.AspNetCore.Mvc;
 using Services;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Core.Exceptions;
 
 namespace App.Controllers.api
 {
@@ -55,22 +52,9 @@ namespace App.Controllers.api
             if (setDto == null) return BadRequest();
 
             // Оскільки авторизації немає, використовуємо заглушку для userId (наприклад, 1)
-            var createdSet = await _setService.AddSetAsyncWithReturn(setDto, 1);
+            var createdSet = await _setService.AddSetAsync(setDto, 1);
 
-            return CreatedAtAction(nameof(GetById), new { id = createdSet.Id }, 
-                new SetDTO
-                {
-                    Id = createdSet.Id,
-                    Name = createdSet.Name,
-                    Description = createdSet.Description,
-                    Type = createdSet.Type,
-                    IsPublic = createdSet.IsPublic,
-                    IsGenerated = createdSet.IsGenerated,
-                    UserName = createdSet.User.UserName ?? null,
-                    FlashcardsCount = createdSet.Flashcards.Count(),
-                    CreatedAt = createdSet.CreatedAt,
-                    LastUpdatedAt = createdSet.UpdatedAt
-                });
+            return CreatedAtAction(nameof(GetById), createdSet);
         }
 
         // PUT: api/sets/{id}

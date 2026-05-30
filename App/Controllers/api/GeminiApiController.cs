@@ -15,8 +15,6 @@ namespace App.Controllers.api
         private readonly IGeminiService _geminiService;
         private readonly FlashcardService _flashcardService;
         private readonly SetService _setService;
-        private readonly IConfiguration _config; 
-
 
         public GeminiApiController(
             IGeminiService geminiService,
@@ -86,12 +84,12 @@ namespace App.Controllers.api
 
             try
             {
-                var createdSet = await _setService.AddSetAsyncWithReturn(request.SetDto, userId);
-                await _geminiService.MarkSetIsGenerated(createdSet.Id);
+                var createdSet = await _setService.AddSetAsync(request.SetDto, userId);
+                await _geminiService.MarkSetIsGenerated(createdSet.Id.Value);
 
                 if (request.Cards != null && request.Cards.Any())
                 {
-                    await _flashcardService.CreateFlashcardsRangeAsync(createdSet.Id, request.Cards);
+                    await _flashcardService.CreateFlashcardsRangeAsync(createdSet.Id.Value, request.Cards);
                 }
 
                 var resultDto = new SetDetailDTO
@@ -101,17 +99,13 @@ namespace App.Controllers.api
                     Description = createdSet.Description,
                     Type = createdSet.Type,
                     IsPublic = createdSet.IsPublic,
-                    IsGenerated = createdSet.IsGenerated,
-                    UserName = createdSet.User?.UserName ?? "Користувач",
+                    IsGenerated = true,
+                    AvatarUrl = createdSet.AvatarUrl,
+                    UserName = User.Identity?.Name ?? "Користувач",
                     FlashcardsCount = request.Cards?.Count ?? 0,
-                    Flashcards = createdSet.Flashcards.Select(f => new FlashcardDTO
-                    {
-                        Id = f.Id,
-                        Term = f.Term,
-                        Definition = f.Definition
-                    }).ToList(),
+                    Flashcards = request.Cards ?? new List<FlashcardDTO>(),
                     CreatedAt = createdSet.CreatedAt,
-                    LastUpdatedAt = createdSet.UpdatedAt
+                    LastUpdatedAt = createdSet.LastUpdatedAt
                 };
 
                 return Ok(resultDto);
