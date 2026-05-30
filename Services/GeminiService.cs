@@ -17,6 +17,11 @@ namespace Services
         private readonly ILogger<GeminiService> _logger;
         private readonly IUnitOfWork _unitOfWork;
 
+        private readonly JsonSerializerOptions _jsonOptions = new() 
+        { 
+            PropertyNameCaseInsensitive = true 
+        };
+
         public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger, IUnitOfWork unitOfWork)
         {
             _client = client;
@@ -24,31 +29,22 @@ namespace Services
             _logger = logger;
             _unitOfWork = unitOfWork;
         }
+
         public async Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
         {
-            _client.DefaultRequestHeaders.Add("x-goog-api-key", _apiKey);
-            var url = $"interactions";
+            var url = "interactions";
 
             object inputData;
             string text = $"Generate {setDto.Description}. Title \"{setDto.Name}\". " +
-                        $"Type \"{setDto.Type.ToString()}\". If Type is Language generate cards from {setDto.FromLang} to {setDto.ToLang}. " +
-                        $"{cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
+                          $"Type \"{setDto.Type.ToString()}\". If Type is Language generate cards from {setDto.FromLang} to {setDto.ToLang}. " +
+                          $"{cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
             
             if (imageBytes != null && !string.IsNullOrEmpty(mimeType))
             {
                 inputData = new object[]
                 {
-                    new
-                    {
-                        type = "text",
-                        text = text
-                    },
-                    new
-                    {
-                        type = "image",
-                        data = Convert.ToBase64String(imageBytes),
-                        mime_type = mimeType
-                    }
+                    new { type = "text", text = text },
+                    new { type = "image", data = Convert.ToBase64String(imageBytes), mime_type = mimeType }
                 };
             }
             else
@@ -62,13 +58,22 @@ namespace Services
                 input = inputData
             };
 
-            var response = await _client.PostAsJsonAsync(url, requestBody);
+            var request = new HttpRequestMessage(HttpMethod.Post, url)
+            {
+                Content = JsonContent.Create(requestBody)
+            };
+            request.Headers.Add("x-goog-api-key", _apiKey);
+
+            var response = await _client.SendAsync(request);
             response.EnsureSuccessStatusCode();
 
-            var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
+            var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
+            Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
 
-            // В Interactions API текст лежить в Outputs, а не в Candidates
-            var rawJson = result?.Outputs?.LastOrDefault()?.Text;
+            var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
+
+            var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+            var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
 
             if (string.IsNullOrEmpty(rawJson)) return new List<FlashcardDTO>();
 
@@ -77,12 +82,12 @@ namespace Services
                 rawJson = rawJson.Replace("```json", "").Replace("```", "").Trim();
             }
 
-            return JsonSerializer.Deserialize<List<FlashcardDTO>>(rawJson,
-                new JsonSerializerOptions { PropertyNameCaseInsensitive = true }) ?? new List<FlashcardDTO>();
+            return JsonSerializer.Deserialize<List<FlashcardDTO>>(rawJson, _jsonOptions) ?? new List<FlashcardDTO>();
         }
+
         public async Task<string?> GenerateSimpleHintAsync(string term, string lang, SetType type)
         {
-            var url = $"interactions?key={_apiKey}";
+            var url = "interactions";
 
             string prompt = type == SetType.Language
                 ? $"Translate the word '{term}' to language with ISO code '{lang}'. Return ONLY the translated word/phrase, no extra text, no explanations, no quotes."
@@ -90,13 +95,19 @@ namespace Services
 
             var requestBody = new
             {
-                model = "gemini-3-flash-preview",
+                model = "gemini-2.5-flash",
                 input = prompt
             };
 
             try
             {
-                var response = await _client.PostAsJsonAsync(url, requestBody);
+                var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = JsonContent.Create(requestBody)
+                };
+                request.Headers.Add("x-goog-api-key", _apiKey);
+
+                var response = await _client.SendAsync(request);
 
                 if (!response.IsSuccessStatusCode)
                 {
@@ -104,12 +115,17 @@ namespace Services
                     return null;
                 }
 
-                var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
-                var rawText = result?.Outputs?.LastOrDefault()?.Text;
+                var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
 
-                if (string.IsNullOrWhiteSpace(rawText)) return null;
+                var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
+                
+                var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+                var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
 
-                var cleanText = rawText.Trim().Trim('"', '\'', '`', '\n', '\r');
+                if (string.IsNullOrWhiteSpace(rawJson)) return null;
+
+                var cleanText = rawJson.Trim().Trim('"', '\'', '`', '\n', '\r');
 
                 return string.IsNullOrWhiteSpace(cleanText) ? null : cleanText;
             }
@@ -119,35 +135,51 @@ namespace Services
                 return null;
             }
         }
+
         public async Task<ContextGameDto> GenerateContextSentenceAsync(string term, string definition)
         {
             string shorterTerm = term.Length < definition.Length ? term : definition;
             string longerDefinition = term.Length >= definition.Length ? term : definition;
             
-            var url = $"interactions?key={_apiKey}";
+            var url = "interactions";
             string prompt = $"Generate a single short-medium easy sentence where the word '{shorterTerm}' (which means '{longerDefinition}') is replaced with '[...]'. " +
-                    $"The sentence must be contextually clear so that '{shorterTerm}' is the only logical answer. " +
-                    $"Return ONLY the sentence text containing '[...]', with no extra explanations, quotes, or formatting.";
+                            $"The sentence must be contextually clear so that '{shorterTerm}' is the only logical answer. " +
+                            $"Return ONLY the sentence text containing '[...]', with no extra explanations, quotes, or formatting.";
+            
             var requestBody = new
             {
-                model = "gemini-3-flash-preview",
+                model = "gemini-2.5-flash", // Оновлено до стабільної 2.5 моделі
                 input = prompt
             };
+
             try
             {
-                var response = await _client.PostAsJsonAsync(url, requestBody);
+                var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = JsonContent.Create(requestBody)
+                };
+                request.Headers.Add("x-goog-api-key", _apiKey);
+
+                var response = await _client.SendAsync(request);
                 if (!response.IsSuccessStatusCode)
                 {
                     _logger.LogWarning("Gemini API returned status code: {StatusCode} during context sentence generation for '{Term}'", response.StatusCode, term);
                     return new ContextGameDto { Sentence = null };
                 }
-                var result = await response.Content.ReadFromJsonAsync<GeminiResponse>();
-                var rawText = result?.Outputs?.LastOrDefault()?.Text;
-                
-                var cleanText = rawText.Trim().Trim('"', '\'', '`', '\n', '\r');
+
+                var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
+
+                var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
+                var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+                var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
+
+                if (string.IsNullOrWhiteSpace(rawJson)) return null;
+
+                var cleanText = rawJson.Trim().Trim('"', '\'', '`', '\n', '\r');
                 if (string.IsNullOrWhiteSpace(cleanText) || !cleanText.Contains("[...]"))
                 {
-                    _logger.LogWarning("Gemini API returned an invalid sentence for term: '{Term}'. Raw response: '{RawText}'", term, rawText);
+                    _logger.LogWarning("Gemini API returned an invalid sentence for term: '{Term}'. Raw response: '{RawText}'", term, rawTextFromGoogle);
                     return new ContextGameDto { Sentence = null };
                 }
 
@@ -163,6 +195,7 @@ namespace Services
                 return new ContextGameDto { Sentence = null, CorrectAnswer = shorterTerm };
             }
         }
+
         public async Task MarkSetIsGenerated(int setId)
         {
             var set = await _unitOfWork.Sets.GetByIdAsync(setId);
@@ -173,15 +206,34 @@ namespace Services
             }
         }
     }
+
     public class GeminiResponse
     {
-        [JsonPropertyName("outputs")]
-        public List<GeminiOutput> Outputs { get; set; } = new();
+        [JsonPropertyName("id")]
+        public string? Id { get; set; }
+
+        [JsonPropertyName("status")]
+        public string? Status { get; set; }
+
+        [JsonPropertyName("steps")]
+        public List<GeminiStep>? Steps { get; set; }
     }
 
-    public class GeminiOutput
+    public class GeminiStep
     {
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
+        [JsonPropertyName("content")]
+        public List<GeminiContent>? Content { get; set; }
+    }
+
+    public class GeminiContent
+    {
+        [JsonPropertyName("type")]
+        public string? Type { get; set; }
+
         [JsonPropertyName("text")]
-        public string Text { get; set; } = string.Empty;
+        public string? Text { get; set; }
     }
 }
