@@ -17,6 +17,19 @@
         position: relative;
     }
 
+    .practice-zone, .summary-card {
+        transition: opacity 0.5s ease, transform 0.5s ease;
+        opacity: 0;
+        transform: translateY(30px);
+        display: none;
+    }
+
+        .practice-zone.active, .summary-card.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
     .progress-container {
         width: 100%;
         height: 12px;
@@ -120,7 +133,6 @@
         .matching-item.selected {
             border-color: var(--accent-color);
             background: rgba(110, 142, 251, 0.2);
-            transform: scale(1.02);
         }
 
         .matching-item.correct-flash {
@@ -130,7 +142,6 @@
 
         .matching-item.wrong-flash {
             background: var(--error-color) !important;
-            border-color: var(--error-color) !important;
             animation: shake 0.4s ease;
         }
 
@@ -138,7 +149,6 @@
             opacity: 0;
             transform: scale(0.8);
             pointer-events: none;
-            transition: 0.4s;
         }
 
     .btn-practice-main {
@@ -173,9 +183,9 @@
         background: rgba(255,255,255,0.05);
         padding: 60px 40px;
         border-radius: 40px;
-        display: none;
         backdrop-filter: blur(20px);
         border: 1px solid rgba(255,255,255,0.1);
+        margin: 0 auto;
     }
 
     @@keyframes shake {
@@ -206,7 +216,7 @@
         <div id="card-counter">Завантаження...</div>
     </div>
 
-    <div id="standardZone" style="display:none">
+    <div id="standardZone" class="practice-zone">
         <div class="flashcard" id="mainCard">
             <div class="card-face card-front">
                 <div id="frontText" class="term-text"></div>
@@ -216,12 +226,14 @@
         </div>
     </div>
 
-    <div id="matchingZone" class="matching-wrapper" style="display: none;"></div>
+    <div id="matchingZone" class="matching-wrapper practice-zone"></div>
 
-    <div id="inputZone" style="display: none; background: rgba(255,255,255,0.03); padding: 50px; border-radius: 30px;">
+    <div id="inputZone" class="practice-zone" style="background: rgba(255,255,255,0.03); padding: 50px; border-radius: 30px;">
         <div id="writingPrompt" class="term-text"></div>
         <input type="text" id="simpleInput" style="width: 100%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 18px; color: white; font-size: 1.4rem; text-align: center;" placeholder="Введіть переклад...">
-        <div id="inputFeedback" style="display:none; margin-top:15px; color:var(--success-color);">Правильно: <span id="correctVal" style="color:white;"></span></div>
+        <div id="inputFeedback" style="display:none; margin-top:20px; font-size: 1.2rem; font-weight: bold;">
+            <span id="feedbackStatus"></span>: <span id="correctVal" style="color:white;"></span>
+        </div>
     </div>
 
     <div id="summaryZone" class="summary-card">
@@ -229,6 +241,7 @@
         <h2 style="font-size: 2.5rem; font-weight: 800; margin-bottom: 10px;">Завершено!</h2>
         <p id="summaryStat" style="opacity: 0.7; font-size: 1.2rem; margin-bottom: 40px;"></p>
         <div style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
+            <button onclick="retryIncorrect()" id="btnRetryIncorrect" class="btn-practice-main" style="background: #ff4d4d; display: none;">Виправити помилки</button>
             <button onclick="retryAll()" class="btn-practice-main">Пройти ще раз</button>
             <button onclick="location.href='/Test/Map/@Model.SetId'" class="btn-practice-outline">До мапи</button>
         </div>
@@ -247,7 +260,8 @@
         const setId = @Model.SetId;
 
         let tasks = [];
-        let currentIndex = 0, practiceResults = { results: [] }, wrongFlashcardIds = new Set();
+        let currentIndex = 0, practiceResults = { results: [] }, totalErrorsCount = 0;
+        let missedCardIds = new Set();
         let sT = null, sD = null;
 
         const getTerm = (c) => c.term || c.Term;
@@ -261,45 +275,37 @@
             const cards = shuffle([...originalCards]);
 
             if (globalMode === 6) {
-            
                 cards.forEach(c => tasks.push({ ...c, assignedMode: 2 }));
-              
                 cards.forEach(c => tasks.push({ ...c, assignedMode: 4 }));
 
                 for(let r=0; r<3; r++) {
-                    const matchPool = shuffle([...originalCards]);
-                    let i = 0;
-                    while (i < matchPool.length) {
-                        let remaining = matchPool.length - i;
-                        let size = 4 + Math.floor(Math.random() * 3); 
-
-                        if (remaining < 3 && tasks.length > 0) {
-                            let lastTask = tasks[tasks.length - 1];
-                            if (lastTask.assignedMode === 3) {
-                                lastTask.batch = [...lastTask.batch, ...matchPool.slice(i)];
-                                break;
-                            }
-                        }
-
-                        if (remaining < size + 3) size = remaining; 
-                        tasks.push({ assignedMode: 3, batch: matchPool.slice(i, i + size) });
-                        i += size;
-                    }
+                    let batch = shuffle([...originalCards]).slice(0, 3);
+                    while(batch.length < 3) batch.push(originalCards[Math.floor(Math.random()*originalCards.length)]);
+                    tasks.push({ assignedMode: 3, batch: batch });
                 }
                 tasks = shuffle(tasks);
             } else if (globalMode === 3) {
                 let i = 0;
                 while (i < cards.length) {
                     let remaining = cards.length - i;
-                    let size = 5;
-                    if (remaining < size + 3) size = remaining;
+                    let size = Math.min(remaining, 5);
                     tasks.push({ assignedMode: 3, batch: cards.slice(i, i + size) });
                     i += size;
                 }
-            } else {
-                tasks = cards.map(c => ({ ...c, assignedMode: globalMode }));
-            }
+            } else tasks = cards.map(c => ({ ...c, assignedMode: globalMode }));
+
             currentIndex = 0;
+            totalErrorsCount = 0;
+            missedCardIds.clear();
+            practiceResults.results = [];
+        }
+
+        function hideAllZones() {
+            ['standardZone', 'matchingZone', 'inputZone', 'summaryZone'].forEach(id => {
+                const el = document.getElementById(id);
+                el.classList.remove('active');
+                setTimeout(() => { if(!el.classList.contains('active')) el.style.display = 'none'; }, 400);
+            });
         }
 
         function render() {
@@ -307,35 +313,33 @@
             const currentTask = tasks[currentIndex];
             const cMode = currentTask.assignedMode;
 
-            document.getElementById('topPanel').style.display = (cMode === 3) ? 'none' : 'block';
             document.getElementById('card-counter').innerText = `Завдання ${currentIndex + 1} з ${tasks.length}`;
             document.getElementById('p-bar').style.width = ((currentIndex + 1) / tasks.length * 100) + '%';
 
-            ['standardZone', 'matchingZone', 'inputZone', 'summaryZone'].forEach(id => document.getElementById(id).style.display = 'none');
+            hideAllZones();
             document.getElementById('navZone').style.display = (cMode === 1) ? 'flex' : 'none';
 
-            if (cMode === 3) renderMatching(currentTask.batch);
-            else if (cMode === 4) renderWriting(currentTask);
-            else renderStandard(currentTask, cMode);
+            setTimeout(() => {
+                let activeId = (cMode === 3) ? 'matchingZone' : (cMode === 4) ? 'inputZone' : 'standardZone';
+                if (cMode === 3) renderMatching(currentTask.batch);
+                else if (cMode === 4) renderWriting(currentTask);
+                else renderStandard(currentTask, cMode);
+
+                const activeEl = document.getElementById(activeId);
+                activeEl.style.display = (cMode === 3) ? 'grid' : 'block';
+                setTimeout(() => activeEl.classList.add('active'), 50);
+            }, 400);
         }
 
         function renderMatching(batch) {
-            const zone = document.getElementById('matchingZone');
-            zone.innerHTML = ''; zone.style.display = 'grid';
-            sT = null; sD = null;
-            let matchedInBatch = 0;
+            const zone = document.getElementById('matchingZone'); zone.innerHTML = '';
+            sT = null; sD = null; let matchedInBatch = 0;
 
-            let terms = shuffle(batch.map(c => ({ id: getId(c), text: getTerm(c), type: 't' })));
-            let defs = shuffle(batch.map(c => ({ id: getId(c), text: getDef(c), type: 'd' })));
-
-            const leftCol = document.createElement('div'); leftCol.className = 'matching-column';
-            const rightCol = document.createElement('div'); rightCol.className = 'matching-column';
+            let terms = shuffle(batch.map((c, i) => ({ id: getId(c), text: getTerm(c), type: 't', k: i })));
+            let defs = shuffle(batch.map((c, i) => ({ id: getId(c), text: getDef(c), type: 'd', k: i })));
 
             const createItem = (item) => {
-                const d = document.createElement('div');
-                d.className = 'matching-item';
-                d.innerText = item.text;
-                d.dataset.id = item.id;
+                const d = document.createElement('div'); d.className = 'matching-item'; d.innerText = item.text; d.dataset.id = item.id;
                 d.onclick = () => {
                     if (d.classList.contains('matched-hidden') || d.classList.contains('correct-flash')) return;
                     if (item.type === 't') { if (sT) sT.classList.remove('selected'); sT = d; }
@@ -343,36 +347,31 @@
                     d.classList.add('selected');
 
                     if (sT && sD) {
-                        const first = sT, second = sD;
-                        if (first.dataset.id === second.dataset.id) {
-                            first.classList.add('correct-flash'); second.classList.add('correct-flash');
-                            matchedInBatch++; saveResult(parseInt(first.dataset.id), true);
-                            setTimeout(() => {
-                                first.classList.add('matched-hidden'); second.classList.add('matched-hidden');
+                        if (sT.dataset.id === sD.dataset.id) {
+                            sT.classList.add('correct-flash'); sD.classList.add('correct-flash');
+                            matchedInBatch++; saveResult(parseInt(sT.dataset.id), true);
+                            let t=sT, d=sD; setTimeout(() => {
+                                t.classList.add('matched-hidden'); d.classList.add('matched-hidden');
                                 if (matchedInBatch === batch.length) { currentIndex++; render(); }
                             }, 500);
                         } else {
-                            first.classList.add('wrong-flash'); second.classList.add('wrong-flash');
-                            saveResult(parseInt(first.dataset.id), false);
-                            wrongFlashcardIds.add(parseInt(first.dataset.id));
-                            setTimeout(() => {
-                                first.classList.remove('wrong-flash', 'selected');
-                                second.classList.remove('wrong-flash', 'selected');
-                            }, 500);
+                            sT.classList.add('wrong-flash'); sD.classList.add('wrong-flash');
+                            saveResult(parseInt(sT.dataset.id), false);
+                            let t=sT, d=sD; setTimeout(() => { t.classList.remove('wrong-flash', 'selected'); d.classList.remove('wrong-flash', 'selected'); }, 500);
                         }
                         sT = null; sD = null;
                     }
                 };
                 return d;
             };
-
+            const leftCol = document.createElement('div'); leftCol.className = 'matching-column';
+            const rightCol = document.createElement('div'); rightCol.className = 'matching-column';
             terms.forEach(t => leftCol.appendChild(createItem(t)));
             defs.forEach(d => rightCol.appendChild(createItem(d)));
             zone.append(leftCol, rightCol);
         }
 
         function renderStandard(card, cMode) {
-            document.getElementById('standardZone').style.display = 'block';
             document.getElementById('frontText').innerText = getTerm(card);
             document.getElementById('backText').innerText = getDef(card);
             document.getElementById('mainCard').classList.remove('is-flipped');
@@ -381,56 +380,69 @@
             if (cMode === 2) {
                 opts.style.display = 'grid';
                 let correct = getDef(card);
-                let distractors = originalCards.map(getDef).filter(d => d !== correct);
-                let choices = shuffle([correct, ...shuffle(distractors).slice(0, 3)]);
+                let choices = shuffle([correct, ...shuffle(originalCards.map(getDef).filter(d => d !== correct)).slice(0, 3)]);
                 choices.forEach(text => {
-                    const b = document.createElement('button');
-                    b.className = 'btn-practice-outline'; b.innerText = text;
+                    const b = document.createElement('button'); b.className = 'btn-practice-outline'; b.innerText = text;
                     b.onclick = (e) => {
                         e.stopPropagation();
-                        if (text === correct) { b.style.background = 'var(--success-color)'; saveResult(getId(card), true); setTimeout(nextManual, 600); }
-                        else { b.style.background = 'var(--error-color)'; saveResult(getId(card), false); wrongFlashcardIds.add(getId(card)); }
+                        opts.querySelectorAll('button').forEach(btn => btn.style.pointerEvents = 'none');
+                        if (text === correct) { b.style.background = 'var(--success-color)'; saveResult(getId(card), true); setTimeout(nextManual, 700); }
+                        else { b.style.background = 'var(--error-color)'; saveResult(getId(card), false); setTimeout(nextManual, 1000); }
                     };
                     opts.appendChild(b);
                 });
                 document.getElementById('mainCard').onclick = null;
-            } else {
-                opts.style.display = 'none';
-                document.getElementById('mainCard').onclick = () => document.getElementById('mainCard').classList.toggle('is-flipped');
-            }
+            } else document.getElementById('mainCard').onclick = () => document.getElementById('mainCard').classList.toggle('is-flipped');
         }
 
         function renderWriting(card) {
-            document.getElementById('inputZone').style.display = 'block';
+            const input = document.getElementById('simpleInput'); const feedback = document.getElementById('inputFeedback');
+            const status = document.getElementById('feedbackStatus'); const correctVal = document.getElementById('correctVal');
             document.getElementById('writingPrompt').innerText = getDef(card);
-            const input = document.getElementById('simpleInput');
-            input.value = ''; input.style.borderColor = 'rgba(255,255,255,0.1)';
-            input.focus();
+            input.value = ''; input.style.borderColor = 'rgba(255,255,255,0.1)'; input.disabled = false; feedback.style.display = 'none'; input.focus();
+
             input.onkeypress = (e) => { if(e.key === 'Enter') {
+                input.disabled = true;
                 if (input.value.trim().toLowerCase() === getTerm(card).toLowerCase()) {
-                    input.style.borderColor = 'var(--success-color)'; saveResult(getId(card), true); setTimeout(nextManual, 800);
+                    input.style.borderColor = 'var(--success-color)'; status.innerText = "Правильно"; status.style.color = "var(--success-color)";
+                    correctVal.innerText = getTerm(card); feedback.style.display = 'block'; saveResult(getId(card), true); setTimeout(nextManual, 1000);
                 } else {
-                    input.style.borderColor = 'var(--error-color)'; document.getElementById('correctVal').innerText = getTerm(card);
-                    document.getElementById('inputFeedback').style.display = 'block'; saveResult(getId(card), false); wrongFlashcardIds.add(getId(card));
-                    setTimeout(() => { document.getElementById('inputFeedback').style.display = 'none'; nextManual(); }, 2000);
+                    input.style.borderColor = 'var(--error-color)'; status.innerText = "Помилка"; status.style.color = "var(--error-color)";
+                    correctVal.innerText = getTerm(card); feedback.style.display = 'block'; saveResult(getId(card), false); setTimeout(nextManual, 2000);
                 }
             }};
         }
 
         function showSummary() {
             finishSession(false);
-            ['standardZone', 'matchingZone', 'inputZone', 'topPanel'].forEach(id => document.getElementById(id).style.display = 'none');
-            document.getElementById('summaryZone').style.display = 'block';
-            document.getElementById('summaryStat').innerText = `Ви пройшли повний цикл тренування!`;
+            const errCount = missedCardIds.size;
+            document.getElementById('summaryStat').innerText = `Тренування завершено! ` + (errCount > 0 ? `Помилок: ${errCount}.` : "Ідеально!");
+            document.getElementById('btnRetryIncorrect').style.display = errCount > 0 ? 'block' : 'none';
+            document.getElementById('topPanel').style.opacity = '0';
+            setTimeout(() => document.getElementById('topPanel').style.display = 'none', 500);
+            hideAllZones();
+            setTimeout(() => { const s = document.getElementById('summaryZone'); s.style.display = 'block'; setTimeout(() => s.classList.add('active'), 50); }, 500);
         }
 
         function saveResult(id, correct) {
+            if (!correct) { totalErrorsCount++; missedCardIds.add(id); }
             practiceResults.results.push({ FlashcardId: id, IsCorrect: correct, ReviewType: globalMode });
+        }
+
+        function retryIncorrect() {
+            const missed = originalCards.filter(c => missedCardIds.has(getId(c)));
+            tasks = [];
+            missed.forEach(c => tasks.push({ ...c, assignedMode: 2 }));
+            missed.forEach(c => tasks.push({ ...c, assignedMode: 4 }));
+            tasks = shuffle(tasks);
+            currentIndex = 0; totalErrorsCount = 0; missedCardIds.clear(); practiceResults.results = [];
+            document.getElementById('topPanel').style.display = 'block';
+            setTimeout(() => { document.getElementById('topPanel').style.opacity = '1'; render(); }, 100);
         }
 
         function nextManual() { currentIndex++; render(); }
         function prevCard() { if (currentIndex > 0) { currentIndex--; render(); } }
-        function retryAll() { initSession(); render(); }
+        function retryAll() { document.getElementById('topPanel').style.display = 'block'; document.getElementById('topPanel').style.opacity = '1'; initSession(); render(); }
 
         async function finishSession(redirect = true) {
             if (practiceResults.results.length > 0) await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ Results: practiceResults.results }) });
