@@ -32,6 +32,6 @@ namespace Core.DTOs.Practice
         public int SetId { get; set; }
         public float Progress { get; set; }
         public int MasteredCards { get; set; }
-        public bool IsCompleted => Progress >= 0.95f;
+        public bool IsCompleted => Progress >= 1.0f;
     }
 }

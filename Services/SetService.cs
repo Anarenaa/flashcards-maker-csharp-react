@@ -66,6 +66,7 @@ namespace Services
                 ToLang = s.ToLang,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                 IsPublic = s.IsPublic,
+                IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt
             }).ToList();
@@ -92,10 +93,55 @@ namespace Services
                 AvatarUrl = s.User?.AvatarUrl ?? null,
                 UserName = s.User?.UserName ?? null,
                 IsPublic = s.IsPublic,
+                IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt
             }).ToList();
             return setDtos;
+        }
+        public async Task<List<SetWithProgressDTO>> GetSetsWithProgress(int userId, List<int>? categoryIds, string? searchText = null)
+        {
+            var allUserProgress = await _unitOfWork.Practice.GetAllUserProgressAsync(userId);
+
+            var activeProgress = allUserProgress.Where(p => p.Progress > 0f && p.Flashcard?.Set != null).ToList();
+
+            if (!activeProgress.Any()) return new List<SetWithProgressDTO>();
+
+            var setDtos = activeProgress
+                .GroupBy(p => p.Flashcard.Set)
+                .Where(g =>
+                    (categoryIds == null || !categoryIds.Any() || g.Key.Categories.Any(c => categoryIds.Contains(c.Id))) &&
+                    (string.IsNullOrEmpty(searchText) || g.Key.Name.Contains(searchText))
+                )
+                .Select(g => new SetWithProgressDTO
+                {
+                    Id = g.Key.Id,
+                    Name = g.Key.Name,
+                    Description = g.Key.Description,
+                    Type = g.Key.Type,
+                    FromLang = g.Key.FromLang,
+                    ToLang = g.Key.ToLang,
+                    FlashcardsCount = g.Key.Flashcards?.Count ?? 0,
+                    IsPublic = g.Key.IsPublic,
+                    IsGenerated = g.Key.IsGenerated,
+                    CreatedAt = g.Key.CreatedAt,
+                    LastUpdatedAt = g.Key.UpdatedAt,
+                    OverallProgress = g.Average(p => p.Progress)
+                })
+                .OrderBy(x => x.OverallProgress)
+                .ToList();
+
+            return setDtos;
+        }
+        public async Task ResetSetProgressAsync(int userId, int setId)
+        {
+            var setProgress = await _unitOfWork.Practice.GetSetProgressAsync(userId, setId);
+
+            if (setProgress.Any())
+            {
+                _unitOfWork.Practice.DeleteRange(setProgress);
+                await _unitOfWork.SaveChangesAsync();
+            }
         }
         public async Task<SetDetailDTO> GetSetByIdAsync(int setId)
         {
@@ -113,6 +159,7 @@ namespace Services
                 ToLang = set.ToLang,
                 FlashcardsCount = set.Flashcards.Count(),
                 IsPublic = set.IsPublic,
+                IsGenerated = set.IsGenerated,
                 CreatedAt = set.CreatedAt,
                 LastUpdatedAt = set.UpdatedAt,
                 Flashcards = set.Flashcards
@@ -141,8 +188,8 @@ namespace Services
                 Name = setDto.Name,
                 Description = setDto.Description,
                 Type = setDto.Type,
-                FromLang = setDto.FromLang,
-                ToLang = setDto.ToLang,
+                FromLang = string.IsNullOrEmpty(setDto.FromLang) ? null : setDto.FromLang,
+                ToLang = string.IsNullOrEmpty(setDto.ToLang) ? null : setDto.ToLang,
                 IsPublic = setDto.IsPublic,
                 UserId = userId,
                 User = user
@@ -176,8 +223,8 @@ namespace Services
             set.Name = setDto.Name;
             set.Description = setDto.Description;
             set.Type = setDto.Type;
-            set.FromLang = setDto.FromLang;
-            set.ToLang = setDto.ToLang;
+            set.FromLang = string.IsNullOrEmpty(setDto.FromLang) ? null : setDto.FromLang; ;
+            set.ToLang = string.IsNullOrEmpty(setDto.ToLang) ? null : setDto.ToLang;
             set.IsPublic = setDto.IsPublic;
             set.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();

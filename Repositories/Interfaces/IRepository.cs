@@ -14,5 +14,6 @@ namespace Repositories.Interfaces
         //Справжня робота (сам SQL запит UPDATE або DELETE) відбувається пізніше —
         //у методі SaveChangesAsync(), який вже є асинхронним.
         void Delete(T entity);
+        void DeleteRange(IEnumerable<T> entities);
     }
 }

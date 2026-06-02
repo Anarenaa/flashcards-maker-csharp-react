@@ -20,7 +20,12 @@ namespace Repositories.Interfaces
 
         // Новий метод для отримання конкретного прогресу картки
         Task<CardProgress> GetCardProgressAsync(int userId, int flashcardId);
+
+        // Новий метод для отримання прогресу одного сету
         Task<List<CardProgress>> GetSetProgressAsync(int userId, int setId);
+
+        // Новий метод для отримання прогресу сетів одним запитом
+        Task<List<CardProgress>> GetProgressForSetsAsync(int userId, List<int> setIds);
 
         // Новий метод для створення прогресу
         Task CreateProgressAsync(CardProgress progress);
@@ -30,5 +35,7 @@ namespace Repositories.Interfaces
 
         // Batch метод для отримання дестракторів для множини карток
         Task<Dictionary<int, List<string>>> GetBatchDistractorsAsync(int setId, List<int> excludeCardIds, int count);
+        
+        void DeleteRange(IEnumerable<CardProgress> entities);
     }
 }

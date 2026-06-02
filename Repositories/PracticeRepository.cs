@@ -78,6 +78,13 @@ namespace Repositories
                 .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
                 .ToListAsync();
         }
+        public async Task<List<CardProgress>> GetProgressForSetsAsync(int userId, List<int> setIds)
+        {
+            return await _dbSet
+                .Include(p => p.Flashcard)
+                .Where(p => p.UserId == userId && setIds.Contains(p.Flashcard.SetId))
+                .ToListAsync();
+        }
         public async Task CreateProgressAsync(CardProgress progress)
         {
             await _context.CardProgresses.AddAsync(progress);
@@ -127,6 +134,10 @@ namespace Repositories
             }
             
             return result;
+        }
+        public void DeleteRange(IEnumerable<CardProgress> entities)
+        {
+            _dbSet.RemoveRange(entities);
         }
     }
 }
