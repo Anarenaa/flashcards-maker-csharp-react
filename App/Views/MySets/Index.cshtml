@@ -519,8 +519,8 @@
             document.getElementById('setDescField').value = desc;
             document.getElementById('setPublicField').checked = (isPublic === 'true');
             document.getElementById('setTypeField').value = type;
-            document.getElementById('learnLangList').value = fromLang || 'en';
-            document.getElementById('nativeLangList').value = toLang || 'uk';
+            document.getElementById('learnLangList').value = fromLang;
+            document.getElementById('nativeLangList').value = toLang;
             document.getElementById('aiPreview').style.display = 'none';
             toggleLangs(); modal.style.display = 'flex';
         }
@@ -534,13 +534,15 @@
 
             btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span>';
 
+            const isLang = document.getElementById('setTypeField').value === "0";
+
             const formData = new FormData();
             formData.append("Name", document.getElementById('setNameField').value);
             formData.append("Description", promptValue);
             formData.append("Prompt", promptValue);
             formData.append("Type", document.getElementById('setTypeField').value);
-            formData.append("FromLang", document.getElementById('learnLangList').value);
-            formData.append("ToLang", document.getElementById('nativeLangList').value);
+            formData.append("FromLang", isLang ? document.getElementById('learnLangList').value : "");
+            formData.append("ToLang", isLang ? document.getElementById('nativeLangList').value : "");
             formData.append("Count", document.getElementById('aiCount').value);
 
             if (fileInput.files[0]) {
@@ -568,29 +570,62 @@
             document.getElementById('aiPreview').style.display = 'block';
         }
 
-                     async function saveSet() {
+        async function saveSet() {
             const id = document.getElementById('setIdField').value;
             const name = document.getElementById('setNameField').value;
 
             if (!name) return alert("Введіть назву сету!");
 
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
+            const isLang = document.getElementById('setTypeField').value === "0";
+            const isEditing = id && id !== "";
+            const hasGenerated = tempGeneratedCards.length > 0;
+
+            if (hasGenerated && !isEditing) {
+                const payload = {
+                    setDto: {
+                        name: name,
+                        description: document.getElementById('setDescField').value,
+                        type: parseInt(document.getElementById('setTypeField').value),
+                        isPublic: document.getElementById('setPublicField').checked,
+                        fromLang: isLang ? document.getElementById('learnLangList').value : null,
+                        toLang: isLang ? document.getElementById('nativeLangList').value : null
+                    },
+                    cards: tempGeneratedCards
+                };
+
+                try {
+                    const response = await fetch('/api/save-generated-set', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
+                        body: JSON.stringify(payload)
+                    });
+
+                    if (response.ok) {
+                        const result = await response.json();
+                        window.location.href = `/MySets/Details/${result.id}`;
+                    } else {
+                        alert("Помилка: " + await response.text());
+                    }
+                } catch (e) {
+                    console.log(e);
+                    alert("Сервер недоступний.");
+                }
+                return;
+            }
 
             const formData = new FormData();
-
             formData.append("Name", name);
             formData.append("Description", document.getElementById('setDescField').value);
             formData.append("Type", document.getElementById('setTypeField').value);
             formData.append("IsPublic", document.getElementById('setPublicField').checked);
-            formData.append("FromLang", document.getElementById('learnLangList').value);
-            formData.append("ToLang", document.getElementById('nativeLangList').value);
-            formData.append("GeneratedCardsJson", JSON.stringify(tempGeneratedCards));
+            formData.append("FromLang", isLang ? document.getElementById('learnLangList').value : "");
+            formData.append("ToLang", isLang ? document.getElementById('nativeLangList').value : "");
 
-            let url = "/MySets/Create"; 
-
-            if (id && id !== "") {
+            let url = "/MySets/Create";
+            if (isEditing) {
                 url = "/MySets/Edit";
-                formData.append("id", id); 
+                formData.append("id", id);
             }
 
             try {
@@ -606,12 +641,12 @@
                     const err = await response.text();
                     alert("Помилка: " + err);
                 }
-            }
-            catch (e) {
+            } catch (e) {
                 console.log(e);
                 alert("Сервер недоступний.");
             }
         }
+
         function toggleMenu(e) { e.stopPropagation(); document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); e.currentTarget.nextElementSibling.style.display = 'flex'; }
         function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown') && !e.target.closest('form')) window.location.href = url; }
         window.onclick = (e) => { if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); if (e.target === modal) closeModal(); };
