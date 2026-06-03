@@ -84,14 +84,15 @@
     }
 
     .def-text {
-        font-size: 1.8rem;
+        font-size: 1.5rem;
         color: #fff;
+        line-height: 1.4;
     }
 
     .matching-wrapper {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        gap: 20px;
+        gap: 25px;
         margin-top: 40px;
     }
 
@@ -137,6 +138,7 @@
             opacity: 0;
             transform: scale(0.9);
             pointer-events: none;
+            transition: 0.5s;
         }
 
     @@keyframes shake {
@@ -220,6 +222,16 @@
         <div id="card-counter">0 / 0</div>
     </div>
 
+    <div id="resumeZone" class="summary-card">
+        <div style="font-size: 60px; margin-bottom: 20px;">📂</div>
+        <h2>Знайдено збережений прогрес</h2>
+        <p style="opacity: 0.7; margin-bottom: 35px;">Бажаєте продовжити з того місця, де зупинилися?</p>
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin: 0 auto;">
+            <button onclick="handleResume()" class="btn-practice-main">Продовжити</button>
+            <button onclick="handleStartNew(null)" class="btn-practice-outline">Почати спочатку</button>
+        </div>
+    </div>
+
     <div id="standardZone" style="display:none">
         <div class="flashcard" id="mainCard">
             <div class="card-face card-front"><div id="frontText" class="term-text"></div><div id="quizOptions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; width: 100%;"></div></div>
@@ -237,11 +249,11 @@
 
     <div id="summaryZone" class="summary-card">
         <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
-        <h2>Завершено!</h2>
+        <h2 id="finalTitle">Завершено!</h2>
         <p id="summaryStat" style="opacity: 0.7; margin-bottom: 35px;"></p>
         <div style="display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin: 0 auto;">
-            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-practice-outline" style="color: #ff4d4d; display: none;">Повторити помилки</button>
-            <button onclick="retryAll()" class="btn-practice-main">Пройти ще раз</button>
+            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-practice-main" style="background: #e74c3c; display: none;">Виправити помилки</button>
+            <button onclick="handleStartNew(null)" class="btn-practice-main">Пройти весь набір</button>
             <button onclick="exitPractice()" class="btn-practice-outline">До мапи</button>
         </div>
     </div>
@@ -260,6 +272,7 @@
         const setId = @Model.SetId;
         const globalMode = @((int)Model.SelectedActivity);
         const BATCH_LIMIT = 5;
+        const STORAGE_KEY = `practice_v2_${setId}_${globalMode}`;
 
         let taskQueue = [];
         let currentIndex = 0;
@@ -270,43 +283,73 @@
         const instructions = {
             1: "Переверніть картку, щоб запам'ятати",
             2: "Оберіть правильний варіант",
-            3: "Знайдіть пари ",
+            3: "Знайдіть пари слів",
             4: "Напишіть відповідь"
         };
 
         const getVal = (obj, prop) => obj[prop.charAt(0).toLowerCase() + prop.slice(1)] || obj[prop];
         function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
 
-        function init(cards) {
-            isFinished = false;
-            let tempTasks = [];
-            const original = JSON.parse(JSON.stringify(cards));
+        function saveProgress() {
+            if (isFinished || resultsData.IsTrainingMode) return;
+            const state = { currentIndex, taskQueue, results: resultsData.Results, wrongIds: Array.from(wrongIds) };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
 
-            if (globalMode === 6) {
-               
-                original.forEach(c => tempTasks.push({ assignedMode: 2, card: c }));
-              
-                original.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
-          
-                let matchPool = shuffle([...original]);
+        function init() {
+            if (localStorage.getItem(STORAGE_KEY)) {
+                ['standardZone', 'matchingZone', 'inputZone', 'navZone', 'topPanel', 'instructionText'].forEach(id => document.getElementById(id).style.display = 'none');
+                document.getElementById('resumeZone').style.display = 'block';
+            } else {
+                handleStartNew(null);
+            }
+        }
+
+        function handleResume() {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            taskQueue = data.taskQueue;
+            currentIndex = data.currentIndex;
+            resultsData.Results = data.results;
+            wrongIds = new Set(data.wrongIds);
+            document.getElementById('resumeZone').style.display = 'none';
+            render();
+        }
+
+        function handleStartNew(specificCards) {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('resumeZone').style.display = 'none';
+            isFinished = false;
+            currentIndex = 0;
+            wrongIds.clear();
+            resultsData.Results = [];
+            resultsData.IsTrainingMode = specificCards !== null;
+
+            const cards = specificCards || JSON.parse(JSON.stringify(rawData));
+            let tempTasks = [];
+
+            if (globalMode === 6 && specificCards !== null) {
+                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
+                taskQueue = shuffle(tempTasks);
+            }
+            else if (globalMode === 6 && specificCards === null) {
+                cards.forEach(c => tempTasks.push({ assignedMode: 2, card: c }));
+                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
+                let matchPool = shuffle([...cards]);
                 for (let i = 0; i < matchPool.length; i += BATCH_LIMIT) {
                     tempTasks.push({ assignedMode: 3, batch: matchPool.slice(i, i + BATCH_LIMIT) });
                 }
                 taskQueue = shuffle(tempTasks);
-            } else if (globalMode === 3) {
-                let matchPool = shuffle([...original]);
-                for (let i = 0; i < matchPool.length; i += BATCH_LIMIT) {
-                    taskQueue.push({ assignedMode: 3, batch: matchPool.slice(i, i + BATCH_LIMIT) });
-                }
-            } else {
-                taskQueue = shuffle(original).map(c => ({ assignedMode: globalMode || 1, card: c }));
             }
-
-            currentIndex = 0;
-            wrongIds.clear();
-            resultsData.Results = [];
-            document.getElementById('retryWrongBtn').style.display = 'none';
-            document.getElementById('instructionText').style.display = 'block';
+            else if (globalMode === 3) {
+                let matchPool = shuffle([...cards]);
+                for (let i = 0; i < matchPool.length; i += BATCH_LIMIT) {
+                    tempTasks.push({ assignedMode: 3, batch: matchPool.slice(i, i + BATCH_LIMIT) });
+                }
+                taskQueue = tempTasks;
+            }
+            else {
+                taskQueue = shuffle(cards).map(c => ({ assignedMode: globalMode || 1, card: c }));
+            }
             render();
         }
 
@@ -315,7 +358,9 @@
             const task = taskQueue[currentIndex];
             const mode = task.assignedMode;
 
-            ['standardZone', 'matchingZone', 'inputZone', 'navZone', 'summaryZone'].forEach(id => document.getElementById(id).style.display = 'none');
+            ['standardZone', 'matchingZone', 'inputZone', 'navZone', 'summaryZone', 'resumeZone'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById('topPanel').style.display = 'block';
+            document.getElementById('instructionText').style.display = 'block';
 
             document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${taskQueue.length}`;
             document.getElementById('p-bar').style.width = `${(currentIndex / taskQueue.length) * 100}%`;
@@ -325,65 +370,8 @@
             else if (mode === 4) renderWriting(task.card);
             else if (mode === 2) renderQuiz(task.card);
             else renderReview(task.card);
-        }
 
-        function renderReview(card) {
-            document.getElementById('standardZone').style.display = 'block';
-            document.getElementById('navZone').style.display = 'flex';
-            document.getElementById('quizOptions').style.display = 'none';
-            const cardEl = document.getElementById('mainCard');
-            cardEl.classList.remove('is-flipped');
-            document.getElementById('frontText').innerText = getVal(card, 'Term');
-            document.getElementById('backText').innerText = getVal(card, 'Definition');
-            cardEl.onclick = () => { cardEl.classList.toggle('is-flipped'); saveStep(getVal(card, 'Id'), true, 1); };
-        }
-
-        function renderQuiz(card) {
-            document.getElementById('standardZone').style.display = 'block';
-            const optsBox = document.getElementById('quizOptions');
-            optsBox.innerHTML = ''; optsBox.style.display = 'grid';
-            document.getElementById('frontText').innerText = getVal(card, 'Term');
-
-            const correct = getVal(card, 'Definition');
-            let options = shuffle([correct, ...shuffle(rawData.filter(c => getVal(c, 'Id') !== getVal(card, 'Id')).map(c => getVal(c, 'Definition'))).slice(0, 3)]);
-
-            options.forEach(opt => {
-                const btn = document.createElement('button');
-                btn.className = 'btn-practice-outline'; btn.innerText = opt;
-                btn.onclick = () => {
-                    const isCorrect = opt === correct;
-                    btn.style.background = isCorrect ? 'var(--success-color)' : 'var(--error-color)';
-                    if(!isCorrect) wrongIds.add(getVal(card, 'Id'));
-                    saveStep(getVal(card, 'Id'), isCorrect, 2);
-                    setTimeout(nextManual, 600);
-                };
-                optsBox.appendChild(btn);
-            });
-        }
-
-        function renderWriting(card) {
-            document.getElementById('inputZone').style.display = 'block';
-            const input = document.getElementById('simpleInput');
-            const feedback = document.getElementById('inputFeedback');
-            feedback.style.display = 'none';
-            input.value = ''; input.disabled = false; input.style.borderColor = '';
-            document.getElementById('writingPrompt').innerText = getVal(card, 'Definition');
-            input.focus();
-
-            input.onkeypress = (e) => {
-                if (e.key === 'Enter') {
-                    const isCorrect = input.value.trim().toLowerCase() === getVal(card, 'Term').toLowerCase();
-                    input.disabled = true;
-                    input.style.borderColor = isCorrect ? 'var(--success-color)' : 'var(--error-color)';
-                    saveStep(getVal(card, 'Id'), isCorrect, 4);
-                    if (!isCorrect) {
-                        wrongIds.add(getVal(card, 'Id'));
-                        document.getElementById('correctVal').innerText = getVal(card, 'Term');
-                        feedback.style.display = 'block';
-                        setTimeout(nextManual, 1500);
-                    } else setTimeout(nextManual, 600);
-                }
-            };
+            saveProgress();
         }
 
         function renderMatching(batch) {
@@ -392,6 +380,8 @@
             let sT = null, sD = null, matches = 0;
             const terms = shuffle(batch.map(c => ({ id: getVal(c, 'Id'), text: getVal(c, 'Term'), type: 't' })));
             const defs = shuffle(batch.map(c => ({ id: getVal(c, 'Id'), text: getVal(c, 'Definition'), type: 'd' })));
+            const leftCol = document.createElement('div'); leftCol.className = 'matching-column';
+            const rightCol = document.createElement('div'); rightCol.className = 'matching-column';
 
             const createItem = (item) => {
                 const div = document.createElement('div');
@@ -409,7 +399,7 @@
                             setTimeout(() => {
                                 t.classList.add('matched-hidden'); d.classList.add('matched-hidden');
                                 if (matches === batch.length) { nextManual(); }
-                            }, 600);
+                            }, 500);
                         } else {
                             sT.className = 'matching-item wrong-flash'; sD.className = 'matching-item wrong-flash';
                             wrongIds.add(parseInt(sT.dataset.id));
@@ -420,11 +410,64 @@
                 };
                 return div;
             };
-            const leftCol = document.createElement('div'); leftCol.className = 'matching-column';
-            const rightCol = document.createElement('div'); rightCol.className = 'matching-column';
             terms.forEach(t => leftCol.appendChild(createItem(t)));
             defs.forEach(d => rightCol.appendChild(createItem(d)));
-            zone.append(leftCol, rightCol);
+            zone.appendChild(leftCol); zone.appendChild(rightCol);
+        }
+
+        function renderQuiz(card) {
+            document.getElementById('standardZone').style.display = 'block';
+            const optsBox = document.getElementById('quizOptions');
+            optsBox.innerHTML = ''; optsBox.style.display = 'grid';
+            document.getElementById('frontText').innerText = getVal(card, 'Term');
+            const correct = getVal(card, 'Definition');
+            let options = shuffle([correct, ...shuffle(rawData.filter(c => getVal(c, 'Id') !== getVal(card, 'Id')).map(c => getVal(c, 'Definition'))).slice(0, 3)]);
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-practice-outline'; btn.innerText = opt;
+                btn.onclick = () => {
+                    const isCorrect = opt === correct;
+                    btn.style.background = isCorrect ? 'var(--success-color)' : 'var(--error-color)';
+                    if(!isCorrect) wrongIds.add(getVal(card, 'Id'));
+                    saveStep(getVal(card, 'Id'), isCorrect, 2);
+                    setTimeout(nextManual, 600);
+                };
+                optsBox.appendChild(btn);
+            });
+        }
+
+        function renderWriting(card) {
+            document.getElementById('inputZone').style.display = 'block';
+            const input = document.getElementById('simpleInput');
+            document.getElementById('inputFeedback').style.display = 'none';
+            input.value = ''; input.disabled = false; input.style.borderColor = '';
+            document.getElementById('writingPrompt').innerText = getVal(card, 'Definition');
+            input.focus();
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    const isCorrect = input.value.trim().toLowerCase() === getVal(card, 'Term').toLowerCase();
+                    input.disabled = true;
+                    input.style.borderColor = isCorrect ? 'var(--success-color)' : 'var(--error-color)';
+                    saveStep(getVal(card, 'Id'), isCorrect, 4);
+                    if (!isCorrect) {
+                        wrongIds.add(getVal(card, 'Id'));
+                        document.getElementById('correctVal').innerText = getVal(card, 'Term');
+                        document.getElementById('inputFeedback').style.display = 'block';
+                        setTimeout(nextManual, 1500);
+                    } else setTimeout(nextManual, 600);
+                }
+            };
+        }
+
+        function renderReview(card) {
+            document.getElementById('standardZone').style.display = 'block';
+            document.getElementById('navZone').style.display = 'flex';
+            document.getElementById('quizOptions').style.display = 'none';
+            const cardEl = document.getElementById('mainCard');
+            cardEl.classList.remove('is-flipped');
+            document.getElementById('frontText').innerText = getVal(card, 'Term');
+            document.getElementById('backText').innerText = getVal(card, 'Definition');
+            cardEl.onclick = () => { cardEl.classList.toggle('is-flipped'); saveStep(getVal(card, 'Id'), true, 1); };
         }
 
         function saveStep(id, correct, mode) {
@@ -436,23 +479,36 @@
 
         function exitPractice() {
             if (isFinished) location.href = `/Test/Map/${setId}`;
-            else if (confirm("Вийти? Прогрес буде втрачено.")) location.href = `/Test/Map/${setId}`;
+            else if (confirm("Вийти? Прогрес сесії збережено.")) location.href = `/Test/Map/${setId}`;
         }
 
         async function finish() {
             isFinished = true;
+            localStorage.removeItem(STORAGE_KEY);
             document.getElementById('p-bar').style.width = '100%';
+            document.getElementById('topPanel').style.display = 'none';
             document.getElementById('instructionText').style.display = 'none';
-            ['standardZone', 'matchingZone', 'inputZone', 'navZone', 'topPanel'].forEach(id => document.getElementById(id).style.display = 'none');
+            ['standardZone', 'matchingZone', 'inputZone', 'navZone'].forEach(id => document.getElementById(id).style.display = 'none');
             document.getElementById('summaryZone').style.display = 'block';
-            document.getElementById('summaryStat').innerText = `Помилок: ${wrongIds.size}`;
-            if (wrongIds.size > 0) document.getElementById('retryWrongBtn').style.display = 'block';
-            await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resultsData) });
+
+            document.getElementById('summaryStat').innerText = resultsData.IsTrainingMode ? "Роботу над помилками завершено!" : `Помилок: ${wrongIds.size}`;
+
+            if (wrongIds.size > 0 && !resultsData.IsTrainingMode) {
+                document.getElementById('retryWrongBtn').style.display = 'block';
+            } else {
+                document.getElementById('retryWrongBtn').style.display = 'none';
+            }
+
+            if (!resultsData.IsTrainingMode) {
+                await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resultsData) });
+            }
         }
 
-        function retryAll() { init(rawData); }
-        function retryIncorrect() { init(rawData.filter(c => wrongIds.has(getVal(c, 'Id')))); }
+        function retryIncorrect() {
+            const failedCards = rawData.filter(c => wrongIds.has(getVal(c, 'Id')));
+            handleStartNew(failedCards);
+        }
 
-        init(rawData);
+        init();
     </script>
 }
