@@ -1,188 +1,274 @@
 ﻿@using Core.DTOs
-@model IEnumerable<SetDTO>
+@model SetDetailDTO
 
 @{
-    ViewData["Title"] = "Всі навчальні сети";
+    ViewData["Title"] = "Перегляд карток - " + Model.Name;
+    bool isOwner = ViewBag.IsOwner ?? false;
 }
 
 <style>
-  
-    .search-container {
-        display: flex;
-        gap: 15px;
-        margin-bottom: 30px;
-        background: rgba(255, 255, 255, 0.03);
-        padding: 15px;
-        border-radius: 12px;
-        border: 1px solid var(--btn-border);
+    /* --- ОСНОВНІ СТИЛІ --- */
+    .back-link {
+        color: var(--accent-color);
+        cursor: pointer;
+        display: inline-flex;
         align-items: center;
+        gap: 8px;
+        margin-bottom: 20px;
+        opacity: 0.7;
+        text-decoration: none;
+        transition: 0.3s;
+        font-size: 0.9rem;
     }
 
-    .search-bar-form {
-        display: flex;
-        flex-grow: 1;
-        gap: 10px;
-    }
-
-        .search-bar-form input {
-            flex-grow: 1;
-            background: #141B25;
-            border: 1px solid #818375;
-            color: white;
-            padding: 12px 15px;
-            border-radius: 8px;
-            outline: none;
+        .back-link:hover {
+            opacity: 1;
+            transform: translateX(-5px);
         }
 
-    .sort-select {
-        background: #141B25;
-        border: 1px solid #818375;
-        color: white;
-        padding: 0 15px;
-        border-radius: 8px;
-        cursor: pointer;
-        min-width: 170px;
+    .header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 30px;
+        gap: 20px;
     }
 
-    .btn-search {
-        background: #6B8789 !important;
+    /* --- КОНТЕЙНЕР ДЛЯ КНОПКИ ПРАКТИКИ --- */
+    .practice-sticky-container {
+        position: fixed;
+        top: 30px;
+        right: 40px;
+        z-index: 100;
+    }
+
+    /* --- КНОПКА ПРАКТИКИ (СТИЛЬ ЯК У САЙДБАРІ) --- */
+    .btn-practice {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background-color: var(--btn-bg) !important;
+        border: 1px solid var(--btn-border) !important;
         color: white !important;
-        border: 1px solid rgba(255,255,255,0.1) !important;
-        font-weight: bold;
-        padding: 0 25px;
-        border-radius: 8px;
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: 0.3s ease;
         cursor: pointer;
-        transition: 0.3s;
-        height: 45px;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .sets-grid {
+        .btn-practice:hover {
+            border-color: var(--accent-color) !important;
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            transform: translateY(-2px);
+        }
+
+        /* Колір іконки всередині кнопки */
+        .btn-practice svg {
+            color: var(--accent-color);
+        }
+
+    /* --- КАТЕГОРІЇ --- */
+    .categories-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-top: 12px;
+        padding: 0;
+        list-style: none;
+    }
+
+    .category-badge {
+        display: inline-flex;
+        align-items: center;
+        background: rgba(119, 158, 203, 0.2);
+        border: 1px solid #779ECB;
+        color: #DEE4C7;
+        padding: 6px 12px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        transition: 0.3s;
+        gap: 8px;
+    }
+
+    /* --- СІТКА КАРТОК --- */
+    .cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
         gap: 25px;
-        margin-top: 20px;
     }
 
-    .set-card {
+    .flashcard-item {
         background-color: var(--btn-bg);
         border: 1px solid var(--btn-border);
-        border-radius: 12px;
+        border-radius: 15px;
         padding: 25px;
-        min-height: 200px;
+        min-height: 160px;
         display: flex;
         flex-direction: column;
         position: relative;
-        cursor: pointer;
-        transition: 0.3s ease;
+        transition: all 0.3s ease;
     }
 
-        .set-card:hover {
+        .flashcard-item:hover {
             border-color: var(--accent-color);
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
-    .author-badge {
-        font-size: 0.75rem;
-        opacity: 0.5;
-        margin-bottom: 8px;
-        color: white;
+    .card-term {
+        font-weight: bold;
+        color: var(--accent-color);
+        font-size: 1.15rem;
+        margin-bottom: 12px;
+        word-wrap: break-word;
+        padding-right: 25px;
     }
 
-    .btn-practice-card {
-        background: linear-gradient(135deg, #6e8efb, #a777e3);
-        color: white !important;
+    .card-divider {
+        height: 1px;
+        background: rgba(240, 255, 255, 0.1);
         border: none;
-        padding: 10px 15px;
-        border-radius: 10px;
-        font-size: 0.85rem;
-        font-weight: 800;
-        cursor: pointer;
-        transition: 0.3s;
-        text-align: center;
-        width: 100%;
-        margin-top: 15px;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: 0 4px 15px rgba(110, 142, 251, 0.2);
+        margin: 10px 0;
     }
 
-        .btn-practice-card:hover {
-            transform: translateY(-2px);
-            filter: brightness(1.1);
-            box-shadow: 0 6px 20px rgba(110, 142, 251, 0.4);
+    .card-definition {
+        opacity: 0.8;
+        font-size: 1rem;
+        line-height: 1.4;
+        word-wrap: break-word;
+    }
+
+    .btn-main {
+        background: #6B8789;
+        color: white;
+        border: none;
+        padding: 12px 25px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+    .dots {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        cursor: pointer;
+        font-size: 1.5rem;
+        opacity: 0.5;
+        z-index: 10;
+        padding: 5px;
+    }
+
+    .dropdown {
+        position: absolute;
+        top: 45px;
+        right: 15px;
+        background: #2C3440;
+        border: 1px solid #818375;
+        border-radius: 8px;
+        display: none;
+        flex-direction: column;
+        z-index: 100;
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        overflow: hidden;
+        min-width: 150px;
+    }
+
+        .dropdown button {
+            background: none;
+            border: none;
+            color: white;
+            padding: 10px 20px;
+            text-align: left;
+            cursor: pointer;
+            width: 100%;
+            font-size: 0.9rem;
         }
 
-    .card-footer {
-        margin-top: auto;
-        padding-top: 10px;
-        border-top: 1px solid rgba(240, 255, 255, 0.05);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .sets-count-badge {
-        background: rgba(240, 255, 255, 0.1);
-        color: var(--accent-color);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: bold;
-    }
-
-    .date-info {
-        font-size: 0.65rem;
-        opacity: 0.4;
-        color: white;
-    }
+            .dropdown button:hover {
+                background-color: #6B8789;
+            }
 </style>
 
 <div class="content-area">
-    <h2 style="margin-bottom: 20px;">Всі навчальні сети</h2>
+    <a asp-controller="Main" asp-action="Index" class="back-link">← Назад до головної</a>
 
-    <div class="search-container">
-        <form asp-controller="Explore" asp-action="Index" method="get" class="search-bar-form">
-            <input type="text" name="searchText" placeholder="Шукати серед усіх сетів..." value="@ViewData["CurrentFilter"]" />
-
-            <select name="categoryId" class="sort-select" onchange="this.form.submit()">
-                <option value="">Усі категорії</option>
-                @if (ViewBag.Categories != null)
-                {
-                    @foreach (var cat in ViewBag.Categories)
-                    {
-                        <option value="@cat.Id" selected="@(ViewData["CurrentCategory"]?.ToString() == cat.Id.ToString())">@cat.Name</option>
-                    }
-                }
-            </select>
-
-            <button type="submit" class="btn-search">Шукати</button>
-        </form>
+    <!-- ПЛАВАЮЧА КНОПКА ПРАКТИКИ -->
+    <div class="practice-sticky-container">
+        <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
+            <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></svg>
+            Практикувати
+        </a>
     </div>
 
-    <div class="sets-grid">
-        @foreach (var set in Model)
+    <div class="header-row">
+        <div>
+            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.8rem;">@Model.Name</h2>
+            <p style="opacity: 0.6; margin: 5px 0 0 0;">@Model.Description</p>
+
+            <ul class="categories-list">
+                @foreach (var cat in Model.Categories)
+                {
+                    <li class="category-badge">
+                        @cat.Name
+                        @if (isOwner)
+                        {
+                            <div style="display:flex; gap:5px;">
+                                <form asp-controller="Details" asp-action="RemoveCategory" method="post" style="display:inline;">
+                                    <input type="hidden" name="setId" value="@Model.Id" />
+                                    <input type="hidden" name="categoryId" value="@cat.Id" />
+                                    <button type="submit" class="remove-cat-btn" title="Прибрати">×</button>
+                                </form>
+                            </div>
+                        }
+                    </li>
+                }
+            </ul>
+        </div>
+
+        <div style="display: flex; gap: 10px;">
+            @if (isOwner)
+            {
+                <button class="btn-main" onclick="openCreateCardModal()">+ Картка</button>
+                <button class="btn-main" onclick="openCategoryModal()">+ Категорія</button>
+            }
+        </div>
+    </div>
+
+    <div class="cards-grid">
+        @foreach (var card in Model.Flashcards)
         {
-            <div class="set-card" onclick="window.location.href='@Url.Action("Index", "Details", new { id = set.Id })'">
+            <div class="flashcard-item">
+                @if (isOwner)
+                {
+                    <div class="dots" onclick="toggleMenu(event)">⋮</div>
+                    <div class="dropdown">
+                        <button type="button" onclick="openEditCardModal('@card.Id', '@card.Term', '@card.Definition')">Редагувати</button>
+                        <form asp-controller="Details" asp-action="DeleteCard" method="post" onsubmit="return confirm('Видалити картку?')">
+                            <input type="hidden" name="cardId" value="@card.Id" />
+                            <input type="hidden" name="setId" value="@Model.Id" />
+                            <button type="submit" style="color: #ff8080;">Видалити</button>
+                        </form>
+                    </div>
+                }
+                <div class="card-term">@card.Term</div>
+                <hr class="card-divider">
+                <div class="card-definition">@card.Definition</div>
 
-                <div class="author-badge">Автор: @set.UserName</div>
-
-                <h3 style="margin: 0; color: var(--accent-color);">@set.Name</h3>
-                <p style="opacity: 0.7; font-size: 0.85rem; margin: 5px 0; flex-grow: 1;">@set.Description</p>
-
-                <button class="btn-practice-card" onclick="event.stopPropagation(); window.location.href='@Url.Action("Map", "Test", new { id = set.Id })'">
-                    <svg width="18" height="18" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></svg>
-                    Практикувати
-                </button>
-
-                <div class="card-footer">
-                    <span class="sets-count-badge">@set.FlashcardsCount карток</span>
-                    <span class="date-info">Оновлено: @set.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                <div class="card-update-info">
+                    @if (Model.LastUpdatedAt.Date == DateTime.Today)
+                    {
+                        <text>Оновлено: @Model.LastUpdatedAt.ToLocalTime().ToString("HH:mm") сьогодні</text>
+                    }
+                    else
+                    {
+                        <text>Оновлено: @Model.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")</text>
+                    }
                 </div>
             </div>
         }
