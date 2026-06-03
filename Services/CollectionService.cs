@@ -33,14 +33,23 @@ namespace Services
         }
         public async Task<CollectionDetailDTO> GetCollectionByIdAsync(int collectionId)
         {
+            // 1. Отримуємо колекцію. 
+            // Переконайся, що includeProperties правильно обробляє вкладеність Sets.User
             var collection = await _unitOfWork.Collections.GetByIdAsync(
                 collectionId,
-                includeProperties: "Sets,User");
-            if (collection == null)
-                throw new NotFoundException("Колекція не знайдена");
+                includeProperties: "Sets.User,User");
 
+            if (collection == null)
+                return null; // Повертаємо null, щоб контролер міг це обробити
+
+            // 2. Отримуємо ID всіх сетів (і своїх, і чужих)
             var setIds = collection.Sets.Select(s => s.Id).ToList();
-            var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+
+            // 3. Рахуємо картки. 
+            // ВАЖЛИВО: Перевір, щоб метод GetCountsBySetIdsAsync не фільтрував сети за власником!
+            var flashcardCounts = setIds.Any()
+                ? await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds)
+                : new Dictionary<int, int>();
 
             return new CollectionDetailDTO
             {
@@ -52,8 +61,9 @@ namespace Services
                     Id = s.Id,
                     Name = s.Name,
                     Description = s.Description,
-                    AvatarUrl = s.User.AvatarUrl ?? null,
-                    UserName = s.User?.UserName ?? null,
+                    // Додаємо жорстку перевірку на null для User
+                    AvatarUrl = s.User?.AvatarUrl,
+                    UserName = s.User?.UserName ?? "Невідомий автор",
                     IsPublic = s.IsPublic,
                     FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                     CreatedAt = s.CreatedAt,

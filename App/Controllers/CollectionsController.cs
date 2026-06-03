@@ -34,15 +34,18 @@ namespace App.Controllers
         // 2. Деталі колекції
         public async Task<IActionResult> Details(int id)
         {
-            try
+            if (id <= 0) return RedirectToAction(nameof(Index));
+
+            // Видаляємо загальний try-catch, щоб побачити реальну помилку в консолі, якщо вона буде
+            var collectionDetail = await _collectionService.GetCollectionByIdAsync(id);
+
+            if (collectionDetail == null)
             {
-                var collectionDetail = await _collectionService.GetCollectionByIdAsync(id);
-                return View(collectionDetail);
+                return NotFound(); // Або RedirectToAction(nameof(Index))
             }
-            catch
-            {
-                return RedirectToAction(nameof(Index));
-            }
+
+            // Переконайся, що повертаєш саме ОДИН об'єкт, а не список
+            return View(collectionDetail);
         }
 
         // 3. Створення
