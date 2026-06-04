@@ -35,12 +35,8 @@ namespace Services.Practice
                     return userAnswer.Trim().Equals(correctAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
                 
                 case PracticeActivityType.Writing:
-                case PracticeActivityType.Context:
-                    // Для Writing та Context - гнучка перевірка
-                    return CheckFlexibleAnswer(userAnswer, correctAnswer);
-                
                 case PracticeActivityType.Mixed:
-                    // Для Mixed - гнучка перевірка (найскладніший)
+                    // Для Writing та Mixed - гнучка перевірка
                     return CheckFlexibleAnswer(userAnswer, correctAnswer);
                 
                 default:

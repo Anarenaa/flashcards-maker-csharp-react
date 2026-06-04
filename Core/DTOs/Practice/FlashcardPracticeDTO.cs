@@ -8,9 +8,5 @@
         public PracticeActivityType CardType { get; set; } // Для Mixed
 
         public List<string>? Distractors { get; set; } // Тільки для Quiz
-        
-        // Заповнюється для Context (ШІ-генерація)
-        public string? ContextSentence { get; set; }
-        public string? ContextHint { get; set; }
     }
 }
