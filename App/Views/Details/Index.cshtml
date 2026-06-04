@@ -14,29 +14,32 @@
         z-index: 9999;
     }
 
-    .btn-practice-float {
-        background: var(--accent-color);
-        color: #141B25 !important;
-        padding: 14px 28px;
-        border-radius: 50px;
-        text-decoration: none;
-        font-weight: 800;
-        font-size: 0.9rem;
-        text-transform: uppercase;
-        letter-spacing: 1.5px;
-        display: flex;
+    .btn-practice {
+        display: inline-flex;
         align-items: center;
         gap: 12px;
-        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        border: 2px solid rgba(255, 255, 255, 0.2);
+        background-color: var(--btn-bg) !important; 
+        border: 1px solid var(--btn-border) !important; 
+        color: white !important;
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
     }
 
-    .btn-practice-float:hover {
-        transform: scale(1.08) translateY(-3px);
-        background: #fff;
-        box-shadow: 0 15px 35px rgba(240, 255, 255, 0.4);
-    }
+        .btn-practice:hover {
+            border-color: var(--accent-color) !important; 
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            transform: translateY(-2px);
+        }
+
+        .btn-practice svg {
+            color: var(--accent-color);
+        }
 
     .back-link {
         color: var(--accent-color);
@@ -252,7 +255,6 @@
         transition: 0.3s;
         box-shadow: 0 0 10px rgba(244, 162, 97, 0.2);
         z-index: 10;
-        padding: 0;
     }
 
         .hint-btn:hover:not(:disabled) {
@@ -260,16 +262,10 @@
             box-shadow: 0 0 15px rgba(244, 162, 97, 0.5);
         }
 
-        .hint-btn:disabled {
-            background: #2c3440 !important;
-            opacity: 0.4;
-            cursor: not-allowed;
-        }
-
     .spinner-hint {
         width: 18px;
         height: 18px;
-        border: 2px solid rgba(0, 0, 0, 0.1);
+        border: 2px solid rgba(0,0,0,0.1);
         border-top: 2px solid #000;
         border-radius: 50%;
         animation: spin-hint 0.8s linear infinite;
@@ -296,47 +292,26 @@
             opacity: 0.9;
         }
 
-    .practice-container {
-        display: flex;
-        justify-content: flex-end;
-        margin-bottom: 20px;
-    }
     @@media (max-width: 950px) {
-        .practice-container
-
-    {
-        justify-content: flex-end;
-    }
-
-    
-    .btn-practice {
-        display: inline-flex;
-        align-items: center;
-        gap: 10px;
-        background: #f4a261;
-        color: #141B25;
-        padding: 10px 20px;
-        border-radius: 10px;
-        font-weight: bold;
-        text-decoration: none; /* 🔥 прибирає синє підкреслення */
-        cursor: pointer;
-        transition: 0.3s;
-        border: 1px solid transparent;
-    }
-
-        .btn-practice:hover {
-            transform: translateY(-2px);
-            opacity: 0.9;
+        .practice-sticky-container {
+            position: static;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
         }
+
+        .btn-practice {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
 
-<!-- ПЛАВАЮЧА КНОПКА (Додана на початок) -->
 <div class="practice-sticky-container">
-    <div class="practice-container">
-        <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
-            ⚡ Практика
-        </a>
-    </div>
+    <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></svg>
+        Практикувати
+    </a>
 </div>
 
 <div class="content-area">
@@ -453,7 +428,6 @@
     <script>
         const cardModal = document.getElementById('cardModal');
         const catModal = document.getElementById('categoryModal');
-
         const termInput = document.getElementById('modalTerm');
         const defInput = document.getElementById('modalDefinition');
         const hintBtn = document.getElementById('hintBtn');
@@ -466,72 +440,46 @@
             if (hintBtn.disabled) hError.style.display = 'none';
         }
 
-               async function askAI() {
-
+        async function askAI() {
             const term = termInput.value.trim();
-
-            if (!term)
-                return;
+            if (!term) return;
 
             hintBtn.disabled = true;
             hIcon.style.display = 'none';
             hLoader.style.display = 'block';
             hError.style.display = 'none';
-
             defInput.value = "Шукає визначення...";
 
             try {
-
                 const url = `/api/get-hint?term=${term}&setType=@((int)Model.Type)&fromLang=@(Model.FromLang)&toLang=@(Model.ToLang)&uiLang=uk`;
-                
                 const response = await fetch(url);
-                console.log(response);
                 if (!response.ok) throw new Error();
-
-                const data = await response.json();    
-                const hintText = await data.text;
-                defInput.value = hintText;
-
-            }
-            catch (e) {
-
-                console.log(e);
-
+                const data = await response.json();
+                defInput.value = data.text;
+            } catch (e) {
                 defInput.value = "";
-
                 hError.style.display = 'block';
-
-                hError.innerText =
-                    "⚠️ Не вдалося знайти короткий опис.";
-
-            }
-            finally {
-
+                hError.innerText = "⚠️ Не вдалося знайти короткий опис.";
+            } finally {
                 hLoader.style.display = 'none';
-
                 hIcon.style.display = 'block';
-
                 validateHintBtn();
-
             }
         }
+
         function openCreateCardModal() {
             document.getElementById('modalTitle').innerText = "Нова картка";
             document.getElementById('modalCardId').value = "0";
-            termInput.value = "";
-            defInput.value = "";
-            hError.style.display = 'none';
-            validateHintBtn();
+            termInput.value = ""; defInput.value = "";
+            hError.style.display = 'none'; validateHintBtn();
             cardModal.style.display = 'flex';
         }
 
         function openEditCardModal(id, term, def) {
             document.getElementById('modalTitle').innerText = "Редагувати картку";
             document.getElementById('modalCardId').value = id;
-            termInput.value = term;
-            defInput.value = def;
-            hError.style.display = 'none';
-            validateHintBtn();
+            termInput.value = term; defInput.value = def;
+            hError.style.display = 'none'; validateHintBtn();
             cardModal.style.display = 'flex';
         }
 
@@ -542,9 +490,7 @@
         function toggleMenu(e) {
             e.stopPropagation();
             const d = e.currentTarget.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(x => {
-                if (x !== d) x.style.display = 'none';
-            });
+            document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; });
             d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
         }
 

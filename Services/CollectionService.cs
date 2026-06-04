@@ -31,13 +31,13 @@ namespace Services
                 }
             );
         }
-        public async Task<CollectionDetailDTO> GetCollectionByIdAsync(int collectionId)
+        public async Task<CollectionDetailDTO?> GetCollectionByIdAsync(int collectionId)
         {
             var collection = await _unitOfWork.Collections.GetByIdAsync(
                 collectionId,
                 includeProperties: "Sets.User");
             if (collection == null)
-                throw new NotFoundException("Колекція не знайдена");
+                return null;
 
             var setIds = collection.Sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
