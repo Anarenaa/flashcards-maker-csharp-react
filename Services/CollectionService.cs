@@ -35,7 +35,7 @@ namespace Services
         {
             var collection = await _unitOfWork.Collections.GetByIdAsync(
                 collectionId,
-                includeProperties: "Sets,User");
+                includeProperties: "Sets.User");
             if (collection == null)
                 throw new NotFoundException("Колекція не знайдена");
 
@@ -52,9 +52,13 @@ namespace Services
                     Id = s.Id,
                     Name = s.Name,
                     Description = s.Description,
-                    AvatarUrl = s.User.AvatarUrl ?? null,
-                    UserName = s.User?.UserName ?? null,
+                    Type = s.Type,
+                    FromLang = s.FromLang,
+                    ToLang = s.ToLang,
+                    AvatarUrl = s.User?.AvatarUrl,
+                    UserName = s.User?.UserName ?? "Користувач",
                     IsPublic = s.IsPublic,
+                    IsGenerated = s.IsGenerated,
                     FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                     CreatedAt = s.CreatedAt,
                     LastUpdatedAt = s.UpdatedAt
