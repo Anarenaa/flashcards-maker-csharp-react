@@ -327,17 +327,18 @@
             const cards = specificCards || JSON.parse(JSON.stringify(rawData));
             let tempTasks = [];
 
-            if (globalMode === 6 && specificCards !== null) {
-                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
+            if (globalMode === 5 && specificCards !== null) {
+                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c })); // для неправильних карток
                 taskQueue = shuffle(tempTasks);
             }
-            else if (globalMode === 6 && specificCards === null) {
-                cards.forEach(c => tempTasks.push({ assignedMode: 2, card: c }));
-                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
-                let matchPool = shuffle([...cards]);
-                for (let i = 0; i < matchPool.length; i += BATCH_LIMIT) {
-                    tempTasks.push({ assignedMode: 3, batch: matchPool.slice(i, i + BATCH_LIMIT) });
-                }
+            else if (globalMode === 5 && specificCards === null) {
+                cards.forEach(c => {
+                    const serverMode = getVal(c, 'CardType') || getVal(c, 'AssignedMode');
+                    tempTasks.push({
+                        assignedMode: serverMode || 2,
+                        card: c
+                    });
+                });
                 taskQueue = shuffle(tempTasks);
             }
             else if (globalMode === 3) {

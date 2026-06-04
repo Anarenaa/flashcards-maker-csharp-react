@@ -149,7 +149,6 @@ namespace Services.Practice
                         PracticeActivityType.Quiz => PracticeActivityLimit.QuizLimit,
                         PracticeActivityType.Matching => PracticeActivityLimit.MatchingLimit,
                         PracticeActivityType.Writing => PracticeActivityLimit.WritingLimit,
-                        PracticeActivityType.Context => PracticeActivityLimit.ContextLimit,
                         _ => PracticeActivityLimit.MaxLimit
                     };
 
@@ -175,8 +174,7 @@ namespace Services.Practice
             PracticeActivityType.Review => 0.10f,
             PracticeActivityType.Quiz => 0.20f,
             PracticeActivityType.Matching => 0.20f,
-            PracticeActivityType.Writing => 0.40f,//0.20f
-            //PracticeActivityType.Context => 0.20f,
+            PracticeActivityType.Writing => 0.40f,
             PracticeActivityType.Mixed => 0.10f
         };
     }

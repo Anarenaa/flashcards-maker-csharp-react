@@ -55,7 +55,6 @@ public class SessionService : ISessionService
             PracticeActivityType.Quiz => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Quiz, needsDistractors: true),
             PracticeActivityType.Matching => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Matching, useBatching: true),
             PracticeActivityType.Writing => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Writing),
-            PracticeActivityType.Context => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Context, currentIndex: currentIndex),
             PracticeActivityType.Mixed => await GetMixedSessionAsync(setId, cardProgresses, currentIndex, userId),
             _ => throw new ArgumentException($"Unsupported activity type: {sessionMode}")
         };
@@ -83,7 +82,6 @@ public class SessionService : ISessionService
             dto.Flashcards.Add(card);
         }
 
-        await AddAiContextAsync(dto, currentIndex, type.ToString().ToLower());
         return dto;
     }
 
@@ -117,37 +115,7 @@ public class SessionService : ISessionService
             }
         }
 
-        await AddAiContextAsync(dto, currentIndex, "mixed");
         return dto;
-    }
-
-    private async Task AddAiContextAsync(PracticeSessionDTO dto, int currentIndex, string modeSuffix)
-    {
-        if (currentIndex < 0 || currentIndex >= dto.Flashcards.Count) return;
-
-        var currentCard = dto.Flashcards[currentIndex];
-
-        if (currentCard.CardType == PracticeActivityType.Context || dto.SelectedActivity == PracticeActivityType.Context)
-        {
-            string cacheKey = $"context_card_{currentCard.Id}_{modeSuffix}";
-
-            if (!_cache.TryGetValue(cacheKey, out ContextGameDto cachedGame))
-            {
-                cachedGame = await _geminiService.GenerateContextSentenceAsync(currentCard.Term, currentCard.Definition);
-
-                if (cachedGame != null && !string.IsNullOrEmpty(cachedGame.Sentence))
-                {
-                    _cache.Set(cacheKey, cachedGame, TimeSpan.FromDays(1));
-                }
-            }
-
-            if (cachedGame != null && !string.IsNullOrEmpty(cachedGame.Sentence))
-            {
-                currentCard.ContextSentence = cachedGame.Sentence;
-                currentCard.ContextHint = (cachedGame.CorrectAnswer == currentCard.Term) ? currentCard.Definition : currentCard.Term;
-                currentCard.Term = cachedGame.CorrectAnswer;
-            }
-        }
     }
 
     private List<string> ShuffleDistractors(List<string> distractors, string correct)
@@ -184,7 +152,6 @@ public class SessionService : ISessionService
         < PracticeActivityLimit.QuizLimit => PracticeActivityType.Quiz,
         < PracticeActivityLimit.MatchingLimit => PracticeActivityType.Matching,
         < PracticeActivityLimit.WritingLimit => PracticeActivityType.Writing,
-        //< PracticeActivityLimit.ContextLimit => PracticeActivityType.Context,
         _ => PracticeActivityType.Mixed
     };
 }
