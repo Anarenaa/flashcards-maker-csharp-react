@@ -2,21 +2,44 @@
 @model SetProgressDTO
 @{
     ViewData["Title"] = "Мапа практики";
-    
-    // Визначаємо, чи є користувач власником для тексту кнопки
+
     bool isOwner = ViewBag.IsOwner ?? false;
+    var collId = Context.Request.Query["collectionId"];
+    string source = Context.Request.Query["source"].ToString();
+    bool fromColl = !string.IsNullOrEmpty(collId);
+
+    string backUrl;
+    string backText;
+
+    if (fromColl)
+    {
+        backUrl = Url.Action("Details", "Collections", new { id = collId });
+        backText = "Назад до колекції";
+    }
+    else if (isOwner)
+    {
+
+        backUrl = Url.Action("Index", "Details", new { id = Model.SetId });
+        backText = "Назад до карток";
+    }
+    else
+    {
+        
+        backUrl = Url.Action("Sets", "DetailsInMain", new { id = Model.SetId });
+        backText = "Назад до перегляду";
+    }
 
     bool IsUnlocked(int mode) => mode switch
     {
-        1 => true,                          
-        2 => Model.OverallProgress >= PracticeActivityLimit.ReviewLimit, 
-        3 => Model.OverallProgress >= PracticeActivityLimit.QuizLimit, 
-        4 => Model.OverallProgress >= PracticeActivityLimit.MatchingLimit, 
-        6 => Model.OverallProgress >= PracticeActivityLimit.WritingLimit, 
+        1 => true,
+        2 => Model.OverallProgress >= PracticeActivityLimit.ReviewLimit,
+        3 => Model.OverallProgress >= PracticeActivityLimit.QuizLimit,
+        4 => Model.OverallProgress >= PracticeActivityLimit.MatchingLimit,
+        5 => Model.OverallProgress >= PracticeActivityLimit.WritingLimit,
         _ => false
     };
 
-    int[] visibleModes = { 1, 2, 3, 4, 6 };
+    int[] visibleModes = { 1, 2, 3, 4, 5 };
 }
 
 <style>
@@ -28,140 +51,151 @@
         animation: fadeIn 0.6s ease;
     }
 
-    .map-page-container .back-link {
-        color: var(--accent-color);
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-        margin-bottom: 30px;
-        opacity: 0.7;
-        font-size: 0.95rem;
-        transition: 0.3s;
-        cursor: pointer;
-        background: none;
-        border: none;
-        font-family: inherit;
-    }
+        .map-page-container .back-link {
+            color: var(--accent-color);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 30px;
+            opacity: 0.7;
+            font-size: 0.95rem;
+            transition: 0.3s;
+            background: none;
+            border: none;
+            font-family: inherit;
+            cursor: pointer;
+        }
 
-    .map-page-container .back-link:hover {
-        opacity: 1;
-        transform: translateX(-5px);
-    }
+            .map-page-container .back-link:hover {
+                opacity: 1;
+                transform: translateX(-5px);
+            }
 
-    .map-page-container .progress-header h2 {
-        color: var(--text-color);
-        opacity: 0.8;
-        margin: 0 0 10px 0;
-        font-size: 2rem;
-    }
+        .map-page-container .progress-header h2 {
+            color: var(--text-color);
+            opacity: 0.8;
+            margin: 0 0 10px 0;
+            font-size: 2rem;
+        }
 
-    .map-page-container .percentage {
-        font-size: 5rem;
-        font-weight: 900;
-        color: var(--accent-color);
-        line-height: 1;
-        margin: 10px 0;
-    }
+        .map-page-container .percentage {
+            font-size: 5rem;
+            font-weight: 900;
+            color: var(--accent-color);
+            line-height: 1;
+            margin: 10px 0;
+        }
 
-    .map-page-container .roadmap {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 0;
-        margin-top: 60px;
-        flex-wrap: wrap;
-    }
+        .map-page-container .roadmap {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            margin-top: 60px;
+            flex-wrap: wrap;
+        }
 
-    .map-page-container .node {
-        display: flex;
-        align-items: center;
-        position: relative;
-        margin-bottom: 60px;
-    }
+        .map-page-container .node {
+            display: flex;
+            align-items: center;
+            position: relative;
+            margin-bottom: 60px;
+        }
 
-    .map-page-container .circle {
-        width: 120px;
-        height: 120px;
-        border-radius: 50%;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        font-weight: 800;
-        font-size: 0.85rem;
-        text-decoration: none;
-        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-        padding: 15px;
-        text-align: center;
-        z-index: 2;
-        border: 4px solid transparent;
-    }
+        .map-page-container .circle {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 0.85rem;
+            text-decoration: none;
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            padding: 15px;
+            text-align: center;
+            z-index: 2;
+            border: 4px solid transparent;
+        }
 
-    .map-page-container .unlocked {
-        background: var(--accent-color);
-        color: var(--bg-color) !important;
-        box-shadow: 0 0 30px var(--btn-border);
-        cursor: pointer;
-    }
+        .map-page-container .unlocked {
+            background: var(--accent-color);
+            color: var(--bg-color) !important;
+            box-shadow: 0 0 30px var(--btn-border);
+            cursor: pointer;
+        }
 
-    .map-page-container .unlocked:hover {
-        transform: scale(1.1) rotate(3deg);
-        filter: brightness(1.1);
-    }
+            .map-page-container .unlocked:hover {
+                transform: scale(1.1) rotate(3deg);
+                filter: brightness(1.1);
+            }
 
-    .map-page-container .locked {
-        background: var(--btn-bg);
-        color: var(--text-color) !important;
-        opacity: 0.4;
-        border-color: var(--btn-border);
-        cursor: not-allowed;
-    }
+        .map-page-container .locked {
+            background: var(--btn-bg);
+            color: var(--text-color) !important;
+            opacity: 0.4;
+            border-color: var(--btn-border);
+            cursor: not-allowed;
+        }
 
-    .map-page-container .line {
-        width: 60px;
-        height: 4px;
-        background: var(--btn-border);
-        border-radius: 2px;
-        z-index: 1;
-    }
+        .map-page-container .line {
+            width: 60px;
+            height: 4px;
+            background: var(--btn-border);
+            border-radius: 2px;
+            z-index: 1;
+        }
 
-    .map-page-container .line.active {
-        background: var(--accent-color);
-        opacity: 0.6;
-    }
+            .map-page-container .line.active {
+                background: var(--accent-color);
+                opacity: 0.6;
+            }
 
-    .map-page-container .lock-tag {
-        position: absolute;
-        bottom: -35px;
-        background: var(--bg-color);
-        color: var(--text-color);
-        padding: 5px 12px;
-        border-radius: 20px;
-        font-size: 0.7rem;
-        border: 1px solid var(--btn-border);
-        white-space: nowrap;
-    }
+        .map-page-container .lock-tag {
+            position: absolute;
+            bottom: -35px;
+            background: var(--bg-color);
+            color: var(--text-color);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            border: 1px solid var(--btn-border);
+            white-space: nowrap;
+        }
 
     @@keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
+        from {
+            opacity: 0;
+            transform: translateY(10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     @@media (max-width: 850px) {
-        .map-page-container .roadmap { gap: 20px; }
-        .map-page-container .line { display: none; }
+        .map-page-container .roadmap {
+            gap: 20px;
+        }
+
+        .map-page-container .line {
+            display: none;
+        }
     }
 </style>
 
 <div class="map-page-container">
     <div style="text-align: left;">
-        @* Використовуємо history.back() для повернення на попередню сторінку *@
-        <a href="javascript:history.back()" class="back-link">
+        <a href="@backUrl" class="back-link">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path d="M19 12H5M12 19l-7-7 7-7"></path>
             </svg>
-            @(isOwner ? "Повернутися" : "Повернутися")
+            @backText
         </a>
     </div>
 
@@ -190,6 +224,8 @@
                        asp-action="Index"
                        asp-route-setId="@Model.SetId"
                        asp-route-mode="@modeId"
+                       asp-route-collectionId="@collId"
+                       asp-route-source="@source"
                        class="circle unlocked">
                         @GetModeName(modeId)
                     </a>
@@ -218,7 +254,7 @@
         2 => "Вікторина",
         3 => "З'єднання",
         4 => "Письмо",
-        6 => "Mixed-режим",
+        5 => "Mixed-режим",
         _ => ""
     };
 }

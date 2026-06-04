@@ -200,6 +200,18 @@
             @{
                 string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
                 string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+                string querySource = Context.Request.Query["source"].ToString();
+                bool isFromColl = Context.Request.Query.ContainsKey("collectionId");
+
+                bool activeMain = (controller == "Main") ||
+                (controller == "DetailsInMain" && !isFromColl) ||
+                (controller == "Test" && querySource == "main");
+
+                bool activeMySets = (controller == "MySets") ||
+                (controller == "Details" && !isFromColl) ||
+                (controller == "Test" && !isFromColl && querySource == "mysets");
+
+                bool activeColl = (controller == "Collections") || isFromColl;
             }
 
             @if (User.IsInRole("Admin"))
@@ -220,18 +232,18 @@
             else
             {
                 <a asp-controller="Main" asp-action="Index"
-                   class="nav-btn @(controller == "Main" || controller == "DetailsInMain" ? "active" : "")">Головна</a>
-               
-                   <a asp-controller="MySets" asp-action="Index"
-                   class="nav-btn @(controller == "MySets" || controller == "Details" || controller == "Test" ? "active" : "")">Мої сети</a>
-               
-                   <a asp-controller="Collections" asp-action="Index"
-                   class="nav-btn @(controller == "Collections" ? "active" : "")">Колекції</a>
-               
-                   <a asp-controller="MyProfile" asp-action="Index"
+                   class="nav-btn @(activeMain ? "active" : "")">Головна</a>
+
+                <a asp-controller="MySets" asp-action="Index"
+                   class="nav-btn @(activeMySets ? "active" : "")">Мої сети</a>
+
+                <a asp-controller="Collections" asp-action="Index"
+                   class="nav-btn @(activeColl ? "active" : "")">Колекції</a>
+
+                <a asp-controller="MyProfile" asp-action="Index"
                    class="nav-btn @(controller == "MyProfile" ? "active" : "")">Профіль</a>
-               
-                   <a asp-controller="Settings" asp-action="Index"
+
+                <a asp-controller="Settings" asp-action="Index"
                    class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
             }
 
