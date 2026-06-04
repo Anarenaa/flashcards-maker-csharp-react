@@ -306,6 +306,7 @@ namespace Services
             if (set == null) throw new NotFoundException("Сет не знайдено в колекції");
 
             collection.Sets.Remove(set);
+            collection.UpdatedAt = DateTime.UtcNow;
 
             await _unitOfWork.SaveChangesAsync();
         }

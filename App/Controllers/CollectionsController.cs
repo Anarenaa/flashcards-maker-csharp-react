@@ -89,13 +89,6 @@ namespace App.Controllers
             try
             {
                 await _setService.RemoveSetFromCollectionAsync(setId, collectionId);
-
-                var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
-                if (collection != null)
-                {
-                    collection.UpdatedAt = DateTime.UtcNow;
-                    await _unitOfWork.SaveChangesAsync();
-                }
             }
             catch (Exception) { /* обробка помилок */ }
 
