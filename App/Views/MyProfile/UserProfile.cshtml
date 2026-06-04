@@ -3,6 +3,8 @@
 
 @{
     ViewData["Title"] = "Профіль автора " + Model.UserName;
+    // Отримуємо статус приватності з контролера
+    bool isPrivate = ViewBag.IsPrivate ?? false;
 }
 
 <style>
@@ -21,7 +23,7 @@
         width: 150px;
         height: 150px;
         border-radius: 50%;
-        background: white; /* Білий фон як на ескізі */
+        background: white;
         overflow: hidden;
         border: 4px solid var(--accent-color);
         display: flex;
@@ -49,7 +51,7 @@
         color: #fff;
     }
 
-    /* СІТКА СТАТИСТИКИ 3 колонки */
+    /* СІТКА СТАТИСТИКИ */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -83,6 +85,23 @@
         font-weight: bold;
         color: var(--accent-color);
     }
+
+    /* Стиль для приватного профілю */
+    .private-lock-container {
+        text-align: center;
+        padding: 80px 20px;
+        background: var(--btn-bg);
+        border: 1px dashed var(--btn-border);
+        border-radius: 20px;
+        margin-top: 20px;
+    }
+
+    .lock-icon {
+        font-size: 4rem;
+        margin-bottom: 20px;
+        display: block;
+        opacity: 0.4;
+    }
 </style>
 
 <div class="content-area">
@@ -92,7 +111,7 @@
         <div class="profile-avatar">
             @if (!string.IsNullOrEmpty(Model.AvatarUrl))
             {
-                <img src="@Model.AvatarUrl" />
+                <img src="@Model.AvatarUrl" alt="Avatar" />
             }
             else
             {
@@ -116,35 +135,53 @@
         </div>
     </div>
 
-    @* СТАТИСТИКА АВТОРА (Беремо з PrivateUserDTO через спадковість) *@
-    <div class="stats-grid">
-        <div class="stat-card">
-            <span class="stat-title">кількість сетів автора</span>
-            <div class="stat-number">@Model.SetsCount</div>
+    @if (isPrivate)
+    {
+        @* ВІДОБРАЖЕННЯ ДЛЯ ПРИВАТНОГО ПРОФІЛЮ *@
+        <div class="private-lock-container">
+            <span class="lock-icon">🔒</span>
+            <h2 style="margin: 0; opacity: 0.8; color: var(--accent-color);">Цей профіль приватний</h2>
+            <p style="opacity: 0.6; margin-top: 10px;">Користувач приховав свою статистику та навчальні сети.</p>
         </div>
-
-        <div class="stat-card">
-            <span class="stat-title">кількість колекцій</span>
-            <div class="stat-number">@(Model.CollectionsCount ?? 0)</div>
-        </div>
-
-        <div class="stat-card">
-            <span class="stat-title">кількість карток</span>
-            <div class="stat-number">@Model.FlashcardsCount</div>
-        </div>
-    </div>
-
-    @* ПУБЛІЧНІ СЕТИ АВТОРА *@
-    <h3 style="color: var(--accent-color); margin-bottom: 20px;">Відкриті сети цього користувача:</h3>
-    <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
-        @foreach (var set in Model.Sets)
-        {
-            <div class="set-card" onclick="location.href='@Url.Action("Sets", "DetailsInMain", new { id = set.Id })'"
-                 style="background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.3s;">
-                <h4 style="margin: 0; color: var(--accent-color);">@set.Name</h4>
-                <p style="opacity: 0.7; font-size: 0.8rem; margin: 10px 0;">@set.Description</p>
-                <div style="font-size: 0.7rem; opacity: 0.5;">@set.FlashcardsCount карток</div>
+    }
+    else
+    {
+        @* ВІДОБРАЖЕННЯ ДЛЯ ПУБЛІЧНОГО ПРОФІЛЮ *@
+        <div class="stats-grid">
+            <div class="stat-card">
+                <span class="stat-title">кількість сетів автора</span>
+                <div class="stat-number">@Model.SetsCount</div>
             </div>
-        }
-    </div>
+
+            <div class="stat-card">
+                <span class="stat-title">кількість колекцій</span>
+                <div class="stat-number">@(Model.CollectionsCount ?? 0)</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-title">кількість карток</span>
+                <div class="stat-number">@Model.FlashcardsCount</div>
+            </div>
+        </div>
+
+        <h3 style="color: var(--accent-color); margin-bottom: 20px;">Відкриті сети цього користувача:</h3>
+        <div class="grid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 20px;">
+            @if (Model.Sets != null && Model.Sets.Any())
+            {
+                foreach (var set in Model.Sets)
+                {
+                    <div class="set-card" onclick="location.href='@Url.Action("Sets", "DetailsInMain", new { id = set.Id })'"
+                         style="background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.3s;">
+                        <h4 style="margin: 0; color: var(--accent-color);">@set.Name</h4>
+                        <p style="opacity: 0.7; font-size: 0.8rem; margin: 10px 0;">@set.Description</p>
+                        <div style="font-size: 0.7rem; opacity: 0.5;">@set.FlashcardsCount карток</div>
+                    </div>
+                }
+            }
+            else
+            {
+                <p style="opacity: 0.5; grid-column: span 3; text-align: center;">У цього автора поки немає публічних сетів.</p>
+            }
+        </div>
+    }
 </div>

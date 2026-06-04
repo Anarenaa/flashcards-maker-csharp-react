@@ -1,10 +1,11 @@
 ﻿@using Core.DTOs
-@using Core.DTOs.Practice 
+@using Core.DTOs.Practice
 @model PrivateUserDTO
 
 @{
     ViewData["Title"] = "Мій профіль";
     var progress = ViewBag.UserProgress as UserProgressDTO;
+    bool isPrivate = ViewBag.IsPrivate ?? false;
 }
 
 <style>
@@ -117,6 +118,22 @@
         display: none;
     }
 
+    .privacy-toggle-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--btn-border);
+        color: var(--text-color);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .privacy-toggle-btn:hover {
+            border-color: var(--accent-color);
+            background: rgba(255,255,255,0.1);
+        }
+
     .floating-save-btn {
         position: fixed;
         bottom: 30px;
@@ -186,7 +203,6 @@
             @Html.AntiForgeryToken()
 
             <div class="profile-header">
-              
                 <div class="avatar-wrapper" onclick="document.getElementById('avatarFileInput').click()">
                     <div class="profile-avatar">
                         @if (!string.IsNullOrEmpty(Model.AvatarUrl))
@@ -209,17 +225,27 @@
                         <input type="text" id="userNameInput" name="userName" class="inline-input" value="@Model.UserName" oninput="toggleSaveBtn(true)" />
                     </div>
                     <div class="info-row">
-                        <span class="label-small">Email:</span>
-                        <span class="info-value" style="font-size: 1.1rem; opacity: 0.8;">@Model.Email</span>
+                        <span class="label-small">Приватність:</span>
+                        <span style="font-size: 0.9rem; opacity: 0.8;">
+                            @(ViewBag.IsPrivate == true ? "🔒 Приватний" : "🌐 Публічний")
+                        </span>
+                   
+                        <button type="submit" form="togglePrivacyForm" class="privacy-toggle-btn" style="margin-left:10px;">
+                            Змінити статус
+                        </button>
                     </div>
-                    <div class="info-row">
-                        <span class="label-small">Реєстрація:</span>
-                        <span class="info-value" style="font-size: 1rem; opacity: 0.6;">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
-                    </div>
+
+                    <form id="togglePrivacyForm" asp-action="TogglePublicity" method="post" style="display:none;">
+                        @Html.AntiForgeryToken()
+                    </form>
                 </div>
             </div>
 
             <button type="submit" id="saveChangesBtn" class="floating-save-btn">Зберегти зміни</button>
+        </form>
+
+        <form id="togglePrivacyForm" asp-action="TogglePublicity" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
         </form>
 
         <div class="stats-grid">
