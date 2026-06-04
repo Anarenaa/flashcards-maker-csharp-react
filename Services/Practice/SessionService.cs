@@ -167,26 +167,11 @@ public class SessionService : ISessionService
 
     private FlashcardPracticeDTO MapToCardDto(CardProgress cp, PracticeActivityType type)
     {
-        var term = cp.Flashcard.Term;
-        var definition = cp.Flashcard.Definition;
-
-        if (type == PracticeActivityType.Writing)
-        {
-            int termWordsCount = term.Split(new[] { ' ' }, StringSplitOptions.RemoveEmptyEntries).Length;
-
-            if (termWordsCount > 3)
-            {
-                var temp = term;
-                term = definition;
-                definition = temp;
-            }
-        }
-
         return new FlashcardPracticeDTO
         {
             Id = cp.FlashcardId,
-            Term = term,
-            Definition = definition,
+            Term = cp.Flashcard.Term,
+            Definition = cp.Flashcard.Definition,
             CardType = type
         };
     }
