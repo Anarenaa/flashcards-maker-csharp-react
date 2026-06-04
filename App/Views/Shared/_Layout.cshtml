@@ -1,4 +1,7 @@
 ﻿@using System.Security.Claims
+@inject Services.UserService UserService
+
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -87,10 +90,6 @@
             transition: color 0.3s ease;
         }
 
-        .nav-btn, .btn-main {
-            color: var(--btn-text) !important;
-        }
-
         aside {
             width: 300px;
             padding: 40px;
@@ -127,14 +126,16 @@
         .nav-btn {
             background-color: var(--btn-bg);
             border: 1px solid var(--btn-border);
-            color: var(--btn-text);
-            padding: 12px;
+            color: var(--btn-text) !important;
+            padding: 10px 12px;
             border-radius: 6px;
             text-decoration: none;
-            text-align: center;
             font-size: 14px;
             transition: 0.3s ease;
-            display: block;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px; 
         }
 
             .nav-btn:hover {
@@ -151,9 +152,35 @@
                 transform: translateX(5px);
             }
 
+        .nav-avatar-mini {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            border: 1.5px solid var(--accent-color);
+            flex-shrink: 0;
+        }
+
+            .nav-avatar-mini img {
+                width: 100%;
+                height: 100%;
+                object-fit: cover;
+            }
+
+            .nav-avatar-mini span {
+                color: #333;
+                font-size: 16px;
+            }
+
         .btn-exit {
             margin-top: auto;
             border-color: rgba(255, 100, 100, 0.2);
+            display: block;
+            text-align: center;
         }
 
         .content-area {
@@ -203,54 +230,55 @@
                 string querySource = Context.Request.Query["source"].ToString();
                 bool isFromColl = Context.Request.Query.ContainsKey("collectionId");
 
-                bool activeMain = (controller == "Main") ||
-                (controller == "DetailsInMain" && !isFromColl) ||
-                (controller == "Test" && querySource == "main");
-
-                bool activeMySets = (controller == "MySets") ||
-                (controller == "Details" && !isFromColl) ||
-                (controller == "Test" && !isFromColl && querySource == "mysets");
-
+                bool activeMain = (controller == "Main") || (controller == "DetailsInMain" && !isFromColl);
+                bool activeMySets = (controller == "MySets") || (controller == "Details" && !isFromColl);
                 bool activeColl = (controller == "Collections") || isFromColl;
+
+                string userAvatar = null;
+                if (User.Identity.IsAuthenticated)
+                {
+                    var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+                    if (int.TryParse(userIdStr, out int uId))
+                    {
+                        var profile = await UserService.GetMyPrivateProfileAsync(uId);
+                        userAvatar = profile?.AvatarUrl;
+                    }
+                }
             }
 
             @if (User.IsInRole("Admin"))
             {
-                
-                <a asp-controller="Admin" asp-action="Reports"
-                   class="nav-btn @(controller == "Admin" && (action == "Reports" || action == "SetDetails") ? "active" : "")">Скарги</a>
-
-                <a asp-controller="Admin" asp-action="Users"
-                   class="nav-btn @(controller == "Admin" && (action == "Users" || action == "UserDetails") ? "active" : "")">Користувачі</a>
-
-                <a asp-controller="Admin" asp-action="Categories"
-                   class="nav-btn @(action == "Categories" ? "active" : "")">Категорії</a>
-
-                <a asp-controller="Admin" asp-action="Settings"
-                   class="nav-btn @(controller == "Admin" && action == "Settings" ? "active" : "")">Налаштування</a>
+                <a asp-controller="Admin" asp-action="Reports" class="nav-btn @(controller == "Admin" && action == "Reports" ? "active" : "")">Скарги</a>
+                <a asp-controller="Admin" asp-action="Users" class="nav-btn @(controller == "Admin" && action == "Users" ? "active" : "")">Користувачі</a>
+                <a asp-controller="Admin" asp-action="Categories" class="nav-btn @(action == "Categories" ? "active" : "")">Категорії</a>
+                <a asp-controller="Admin" asp-action="Settings" class="nav-btn @(controller == "Admin" && action == "Settings" ? "active" : "")">Налаштування</a>
             }
             else
             {
-                <a asp-controller="Main" asp-action="Index"
-                   class="nav-btn @(activeMain ? "active" : "")">Головна</a>
+                <a asp-controller="Main" asp-action="Index" class="nav-btn @(activeMain ? "active" : "")">Головна</a>
+                <a asp-controller="MySets" asp-action="Index" class="nav-btn @(activeMySets ? "active" : "")">Мої сети</a>
+                <a asp-controller="Collections" asp-action="Index" class="nav-btn @(activeColl ? "active" : "")">Колекції</a>
 
-                <a asp-controller="MySets" asp-action="Index"
-                   class="nav-btn @(activeMySets ? "active" : "")">Мої сети</a>
+                <a asp-controller="MyProfile" asp-action="Index" class="nav-btn @(controller == "MyProfile" ? "active" : "")">
+                    <div class="nav-avatar-mini">
+                        @if (!string.IsNullOrEmpty(userAvatar))
+                        {
+                            <img src="@userAvatar" alt="Avatar" />
+                        }
+                        else
+                        {
+                            <span>👤</span>
+                        }
+                    </div>
+                    Профіль
+                </a>
 
-                <a asp-controller="Collections" asp-action="Index"
-                   class="nav-btn @(activeColl ? "active" : "")">Колекції</a>
-
-                <a asp-controller="MyProfile" asp-action="Index"
-                   class="nav-btn @(controller == "MyProfile" ? "active" : "")">Профіль</a>
-
-                <a asp-controller="Settings" asp-action="Index"
-                   class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
+                <a asp-controller="Settings" asp-action="Index" class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
             }
 
             <form asp-controller="Account" asp-action="Logout" method="post" style="margin-top: auto;">
-                <button type="submit" class="nav-btn btn-exit" style="width:100%; text-align:center; cursor: pointer;">Вийти</button>
+                <button type="submit" class="nav-btn btn-exit" style="width:100%; cursor: pointer;">Вийти</button>
             </form>
-
         </nav>
     </aside>
 

@@ -1,9 +1,11 @@
 ﻿using CloudinaryDotNet.Actions;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
+using Services.Practice;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Security.Claims;
 
 namespace App.Controllers
 {
@@ -11,18 +13,27 @@ namespace App.Controllers
     {
         private readonly UserService _userService;
         private readonly UserManager<User> _userManager;
-        public MyProfileController(UserService userService, UserManager<User> userManager)
+        private readonly IProgressService _progressService;
+        public MyProfileController(UserService userService, UserManager<User> userManager, IProgressService progressService)
         {
             _userService = userService;
             _userManager = userManager;
+            _progressService = progressService;
         }
 
         [HttpGet]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
-            var userDto = await _userService.GetMyPrivateProfileAsync(UserId);
-            return View(userDto);
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+
+            var userProfile = await _userService.GetMyPrivateProfileAsync(userId);
+
+            var progress = await _progressService.GetUserProgressAsync(userId);
+
+            ViewBag.UserProgress = progress;
+
+            return View(userProfile);
         }
 
         [HttpPost]
