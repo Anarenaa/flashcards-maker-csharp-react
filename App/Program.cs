@@ -1,4 +1,5 @@
 using System.Text;
+using System.Data.Common;
 using App.Configuration;
 using Core.Context;
 using Core.DTOs;
@@ -17,7 +18,6 @@ using Repositories.Interfaces;
 using Services;
 using Services.Interfaces;
 using Services.Practice;
-using System.Text;
 
 // Дозволяємо .NET працювати з датами Postgres без проблем із часовими поясами
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
@@ -28,8 +28,6 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 
 // ─── Swagger / OpenAPI ────────────────────────────────────────────────────────
-// Swashbuckle автоматично сканує [ApiController]-и та [ProducesResponseType]-атрибути
-// і генерує інтерактивну документацію на /swagger
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c =>
 {
@@ -42,22 +40,23 @@ builder.Services.AddSwaggerGen(c =>
 });
 
 builder.Services.AddDbContext<DataContext>(options =>
-    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"), 
+    options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"),
     b => b.MigrationsAssembly("Core"))
     .ConfigureWarnings(warnings =>
         warnings.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
 builder.Services.AddIdentity<User, IdentityRole<int>>()
-.AddEntityFrameworkStores<DataContext>()
-.AddDefaultTokenProviders()
-.AddRoles<IdentityRole<int>>();
+    .AddEntityFrameworkStores<DataContext>()
+    .AddDefaultTokenProviders()
+    .AddRoles<IdentityRole<int>>();
 
 builder.Services.AddMemoryCache();
+
 static bool IsTransient(HttpResponseMessage? response) =>
     response is null ||
-    (int)response.StatusCode >= 500 ||           // 500, 502, 503, 504 — серверні помилки
-    response.StatusCode == System.Net.HttpStatusCode.RequestTimeout || // 408
-    response.StatusCode == System.Net.HttpStatusCode.TooManyRequests; //429
+    (int)response.StatusCode >= 500 ||
+    response.StatusCode == System.Net.HttpStatusCode.RequestTimeout ||
+    response.StatusCode == System.Net.HttpStatusCode.TooManyRequests;
 
 var geminiSection = builder.Configuration.GetRequiredSection("Gemini");
 var geminiOpts = geminiSection.Get<ApiClientOptions>()!;
@@ -112,7 +111,6 @@ var wikiBreakDuration = double.Parse(wikiConfig["BreakDurationSeconds"]);
 var wikiBuilder = builder.Services.AddHttpClient<IWikipediaService, WikipediaService>(client =>
 {
     client.DefaultRequestHeaders.Add("User-Agent", wikiUserAgent);
-    // Загальний таймаут на рівні клієнта (завжди трохи більший за внутрішній таймаут Polly)
     client.Timeout = TimeSpan.FromSeconds(wikiTimeout * 2);
 });
 
@@ -140,7 +138,6 @@ wikiBuilder.AddResilienceHandler("wikipedia-pipeline", pipelineBuilder =>
 
     pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(wikiTimeout));
 });
-
 
 // --- НАЛАШТУВАННЯ MYMEMORY ---
 var myMemoryConfig = builder.Configuration.GetSection("MyMemory");
@@ -187,7 +184,11 @@ builder.Services.AddAuthentication(options =>
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
     options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
 })
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.Cookie.SameSite = SameSiteMode.Lax;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+})
 .AddJwtBearer(options =>
 {
     options.TokenValidationParameters = new TokenValidationParameters
@@ -235,21 +236,19 @@ builder.Services.AddAuthentication(options =>
                     context.Response.Cookies.Delete("AuthToken");
                 }
             }
-            catch (Exception ex) when (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
+            catch (DbException)
             {
-                // for Middleware later
+                // Замінено на базовий DbException для підтримки Postgres
             }
         },
         OnChallenge = context =>
         {
-            // 401
             context.HandleResponse();
             context.Response.Redirect("/login");
             return Task.CompletedTask;
         },
         OnForbidden = context =>
         {
-            // 403
             context.Response.Redirect("/access-denied");
             return Task.CompletedTask;
         }
@@ -294,10 +293,10 @@ builder.Services.AddScoped<IHintService, HintService>();
 
 var app = builder.Build();
 
-// 2. ВАЖЛИВО: Автоматичний запуск міграцій при старті
+// Автоматичний запуск міграцій при старті
 using (var scope = app.Services.CreateScope())
 {
-    var services = scope.ServiceProvider; // Створюємо змінну services всередині scope
+    var services = scope.ServiceProvider;
     try
     {
         var context = services.GetRequiredService<DataContext>();
@@ -310,6 +309,13 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+// Дозволяємо додатку правильно зчитувати HTTPS заголовки від проксі-сервера Render
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
+                       Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedProto
+});
+
 app.Use(async (context, next) =>
 {
     try
@@ -321,9 +327,9 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = 404;
         context.Response.Redirect($"/Home/NotFoundPage/404");
     }
-    catch (Exception ex) when (ex is Microsoft.Data.SqlClient.SqlException || ex.InnerException is Microsoft.Data.SqlClient.SqlException)
+    catch (DbException) // Замінено на універсальний DbException для Postgres
     {
-        if (!context.Request.Path.Value.StartsWith("/api/"))
+        if (!context.Request.Path.Value!.StartsWith("/api/"))
         {
             context.Response.Redirect("/Home/ServiceUnavailable");
         }
@@ -335,11 +341,9 @@ app.Use(async (context, next) =>
     }
 });
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 if (app.Environment.IsDevelopment())
@@ -359,13 +363,11 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapStaticAssets();
-
 app.MapControllers();
 
 app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();
