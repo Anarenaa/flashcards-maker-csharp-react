@@ -1,8 +1,17 @@
 ﻿@using Core.DTOs
+@using System.Security.Claims
+@inject Services.UserService UserService
 @model PrivateUserDTO
 
 @{
     ViewData["Title"] = "Налаштування";
+
+    // Отримуємо ID користувача безпечно, щоб не було NullReferenceException
+    var userIdStr = User.FindFirstValue(ClaimTypes.NameIdentifier);
+    int.TryParse(userIdStr, out int currentUserId);
+
+    // Перевіряємо статус приватності через сервіс
+    bool isPrivate = await UserService.IsProfilePrivate(currentUserId);
 }
 
 <style>
@@ -11,7 +20,6 @@
         margin-bottom: 50px;
     }
 
-    /* Картки розділів */
     .settings-card {
         background-color: var(--btn-bg);
         border: 1px solid var(--btn-border);
@@ -31,7 +39,6 @@
             gap: 12px;
         }
 
-    /* Рядок налаштування */
     .setting-row {
         display: flex;
         justify-content: space-between;
@@ -44,26 +51,19 @@
             border-bottom: none;
         }
 
-    .setting-info {
-        display: flex;
-        flex-direction: column;
-        gap: 4px;
+    .setting-info label {
+        font-weight: 600;
+        font-size: 1rem;
+        color: var(--text-color);
     }
 
-        .setting-info label {
-            font-weight: 600;
-            font-size: 1rem;
-            color: var(--text-color);
-        }
+    .setting-info p {
+        margin: 0;
+        font-size: 0.85rem;
+        opacity: 0.6;
+        color: var(--text-color);
+    }
 
-        .setting-info p {
-            margin: 0;
-            font-size: 0.85rem;
-            opacity: 0.6;
-            color: var(--text-color);
-        }
-
-    /* --- ПЕРЕМИКАЧ (SWITCH) --- */
     .switch {
         position: relative;
         display: inline-block;
@@ -112,7 +112,6 @@
             transform: translateX(22px);
         }
 
-    /* --- СТИЛІ ТЕМ --- */
     .theme-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
@@ -136,11 +135,6 @@
             transform: translateY(-3px);
         }
 
-        .theme-item.active {
-            border-color: var(--accent-color);
-            background: rgba(240, 255, 255, 0.05);
-        }
-
     .theme-preview {
         display: flex;
         justify-content: center;
@@ -155,7 +149,6 @@
         border: 1px solid rgba(255,255,255,0.1);
     }
 
-    /* Кастомний вибір кольору */
     .custom-colors-box {
         display: flex;
         justify-content: space-between;
@@ -201,12 +194,6 @@
         gap: 8px;
     }
 
-        .btn-main:hover {
-            background-color: var(--btn-hover);
-            border-color: var(--accent-color);
-            transform: translateY(-2px);
-        }
-
     .btn-danger-outline {
         background: transparent;
         border: 1px solid #ff8080;
@@ -217,10 +204,6 @@
         cursor: pointer;
         transition: 0.3s;
     }
-
-        .btn-danger-outline:hover {
-            background: rgba(255, 128, 128, 0.1);
-        }
 </style>
 
 <div class="content-area">
@@ -228,7 +211,6 @@
 
     <div class="settings-container">
 
-        <!-- РОЗДІЛ 1: ПРИВАТНІСТЬ ТА ІНТЕРФЕЙС -->
         <div class="settings-card">
             <h3>🔓 Приватність та інтерфейс</h3>
 
@@ -238,7 +220,8 @@
                     <p>Дозволити іншим бачити вашу статистику та успіхи</p>
                 </div>
                 <label class="switch">
-                    <input type="checkbox" checked>
+                  
+                    <input type="checkbox" id="publicityToggle" onchange="togglePublicity(this)" @(isPrivate ? "" : "checked")>
                     <span class="slider"></span>
                 </label>
             </div>
@@ -257,24 +240,17 @@
             <div class="setting-row">
                 <div class="setting-info">
                     <label>Темна тема</label>
-                    <p>Перемикання між темним Storm та світлим Azure режимом</p>
+                    <p>Перемикання між темним та світлим режимом</p>
                 </div>
                 <label class="switch">
-                    @* ПЕРЕМИКАЧ ДЛЯ ТЕМИ *@
                     <input type="checkbox" id="themeToggle" onchange="toggleDarkLight(this)">
                     <span class="slider"></span>
                 </label>
             </div>
         </div>
 
-        <!-- РОЗДІЛ 2: КАСТОМІЗАЦІЯ ТЕМИ -->
         <div class="settings-card">
             <h3>🎨 Кастомізація кольорів</h3>
-
-            <div class="setting-info">
-                <label>Оберіть кольорову схему</label>
-                <p>Швидкі пресети для миттєвої зміни вигляду</p>
-            </div>
 
             <div class="theme-grid">
                 <div class="theme-item" onclick="setThemePreset('#141B25', '#F0FFFF', '#6B8789')">
@@ -285,7 +261,6 @@
                     </div>
                     <span style="font-size: 0.9rem; font-weight: bold;">Storm Dark</span>
                 </div>
-
                 <div class="theme-item" onclick="setThemePreset('#113223', '#748E47', '#A1982F')">
                     <div class="theme-preview">
                         <div class="preview-circle" style="background: #113223;"></div>
@@ -300,7 +275,7 @@
                         <div class="preview-circle" style="background: #D9AC8D;"></div>
                         <div class="preview-circle" style="background: #629EE4;"></div>
                     </div>
-                    <span style="font-size: 0.9rem; font-weight: bold;">Light Pinkwith Blue</span>
+                    <span style="font-size: 0.9rem; font-weight: bold;">Light Pink</span>
                 </div>
                 <div class="theme-item" onclick="setThemePreset('#211928', '#6F6F8B', '#8097B7')">
                     <div class="theme-preview">
@@ -326,22 +301,6 @@
                     </div>
                     <span style="font-size: 0.9rem; font-weight: bold;">Crystals</span>
                 </div>
-                <div class="theme-item" onclick="setThemePreset('#342917', '#AF9D8C', '#887E72')">
-                    <div class="theme-preview">
-                        <div class="preview-circle" style="background: #342917;"></div>
-                        <div class="preview-circle" style="background: #AF9D8C;"></div>
-                        <div class="preview-circle" style="background: #887E72;"></div>
-                    </div>
-                    <span style="font-size: 0.9rem; font-weight: bold;">Brownie</span>
-                </div>
-                <div class="theme-item" onclick="setThemePreset('#0D0D0D', '#BB86FC', '#3700B3')">
-                    <div class="theme-preview">
-                        <div class="preview-circle" style="background: #0D0D0D;"></div>
-                        <div class="preview-circle" style="background: #BB86FC;"></div>
-                        <div class="preview-circle" style="background: #3700B3;"></div>
-                    </div>
-                    <span style="font-size: 0.9rem; font-weight: bold;">Midnight Purple</span>
-                </div>
             </div>
 
             <div class="custom-colors-box">
@@ -366,13 +325,12 @@
             </div>
         </div>
 
-        <!-- РОЗДІЛ 3: НЕБЕЗПЕЧНА ЗОНА -->
         <div class="settings-card danger-card">
             <h3 style="color: #ff8080 !important;">⚠️ Небезпечна зона</h3>
             <div class="setting-row">
                 <div class="setting-info">
                     <label style="color: #ff8080;">Видалити профіль</label>
-                    <p>Це видалить усі ваші дані назавжди без можливості відновлення</p>
+                    <p>Це видалить усі ваші дані назавжди</p>
                 </div>
                 <form asp-controller="Account" asp-action="DeleteProfile" method="post" onsubmit="return confirm('Ви впевнені?')">
                     @Html.AntiForgeryToken()
@@ -387,36 +345,42 @@
     @Html.AntiForgeryToken()
 
     <script>
-        // Пресети для перемикача Світла/Темна
+        async function togglePublicity(checkbox) {
+            const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
+            try {
+                const response = await fetch('/MyProfile/TogglePublicity', {
+                    method: 'POST',
+                    headers: { 'RequestVerificationToken': token }
+                });
+                if (!response.ok) {
+                    checkbox.checked = !checkbox.checked;
+                    alert("Помилка при зміні статусу");
+                }
+            } catch (e) {
+                checkbox.checked = !checkbox.checked;
+                console.error(e);
+            }
+        }
+
         const baseThemes = {
             dark:  { bg: '#141B25', accent: '#F0FFFF', btn: '#6B8789' },
             light: { bg: '#F8FAFC', accent: '#1E293B', btn: '#CBD5E1' }
         };
 
-        // Встановлюємо стан перемикача при завантаженні на основі поточного фону
         window.addEventListener('DOMContentLoaded', () => {
             const currentBg = getComputedStyle(document.documentElement).getPropertyValue('--bg-color').trim().toUpperCase();
             const lightColors = ["#F8FAFC", "#FFFFFF", "#F0F2F5", "#EDE6D4"];
             const toggle = document.getElementById('themeToggle');
-
-            if (toggle) {
-                // Якщо фон НЕ світлий, значить тема ТЕМНА (checked = true)
-                toggle.checked = !lightColors.includes(currentBg);
-            }
+            if (toggle) toggle.checked = !lightColors.includes(currentBg);
         });
 
-        // 1. Логіка перемикача
         function toggleDarkLight(checkbox) {
             const selected = checkbox.checked ? baseThemes.dark : baseThemes.light;
             saveThemeToServer(selected.bg, selected.accent, selected.btn);
         }
 
-        // 2. Логіка пресетів
-        function setThemePreset(bg, accent, btn) {
-            saveThemeToServer(bg, accent, btn);
-        }
+        function setThemePreset(bg, accent, btn) { saveThemeToServer(bg, accent, btn); }
 
-        // 3. Логіка кастомних пікерів
         function applyCustomColors() {
             const bg = document.getElementById('bgPicker').value;
             const accent = document.getElementById('accentPicker').value;
@@ -424,30 +388,20 @@
             saveThemeToServer(bg, accent, btn);
         }
 
-        // ОСНОВНА ФУНКЦІЯ: Оновлення UI та збереження на сервер
         async function saveThemeToServer(bg, accent, btn) {
-            // Викликаємо функцію з _Layout для миттєвої зміни (включаючи колір ТЕКСТУ)
-            if (typeof applyTheme === "function") {
-                applyTheme(bg, accent, btn);
-            }
-
+            if (typeof applyTheme === "function") applyTheme(bg, accent, btn);
             const formData = new FormData();
             formData.append('bg', bg);
             formData.append('accent', accent);
             formData.append('btn', btn);
-
             const token = document.querySelector('input[name="__RequestVerificationToken"]').value;
-
             try {
                 await fetch('/Account/save-theme', {
                     method: 'POST',
                     body: formData,
                     headers: { 'RequestVerificationToken': token }
                 });
-                console.log("Тему синхронізовано з профілем");
-            } catch (e) {
-                console.error("Помилка відправки теми на сервер", e);
-            }
+            } catch (e) { console.error("Помилка теми", e); }
         }
     </script>
 }

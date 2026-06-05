@@ -1,11 +1,8 @@
 ﻿@using Core.DTOs
-@using Core.DTOs.Practice
 @model PrivateUserDTO
 
 @{
     ViewData["Title"] = "Мій профіль";
-    var progress = ViewBag.UserProgress as UserProgressDTO;
-    bool isPrivate = ViewBag.IsPrivate ?? false;
 }
 
 <style>
@@ -13,6 +10,61 @@
         max-width: 1000px;
         margin: 0 auto;
         position: relative;
+    }
+
+    #loadingOverlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(20, 27, 37, 0.8);
+        display: none; 
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        z-index: 9999;
+    }
+
+    .spinner {
+        width: 50px;
+        height: 50px;
+        border: 5px solid rgba(240, 255, 255, 0.1);
+        border-top: 5px solid var(--accent-color);
+        border-radius: 50%;
+        animation: spin 1s linear infinite;
+    }
+
+    @@keyframes spin {
+        0% {
+            transform: rotate(0deg);
+        }
+
+        100% {
+            transform: rotate(360deg);
+        }
+    }
+
+    .alert-success {
+        background: rgba(136, 255, 136, 0.1);
+        border: 1px solid #88ff88;
+        color: #88ff88;
+        padding: 15px;
+        border-radius: 10px;
+        margin-bottom: 20px;
+        animation: fadeIn 0.4s ease;
+    }
+
+    @@keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
     }
 
     .profile-header {
@@ -118,22 +170,6 @@
         display: none;
     }
 
-    .privacy-toggle-btn {
-        background: rgba(255,255,255,0.05);
-        border: 1px solid var(--btn-border);
-        color: var(--text-color);
-        padding: 5px 12px;
-        border-radius: 15px;
-        font-size: 0.8rem;
-        cursor: pointer;
-        transition: 0.3s;
-    }
-
-        .privacy-toggle-btn:hover {
-            border-color: var(--accent-color);
-            background: rgba(255,255,255,0.1);
-        }
-
     .floating-save-btn {
         position: fixed;
         bottom: 30px;
@@ -189,8 +225,20 @@
     }
 </style>
 
+<div id="loadingOverlay">
+    <div class="spinner"></div>
+    <p style="margin-top: 15px; color: var(--accent-color); font-weight: bold;">Зберігаємо зміни...</p>
+</div>
+
 <div class="content-area">
     <div class="profile-container">
+
+        @if (TempData["Success"] != null)
+        {
+            <div class="alert-success">
+                @TempData["Success"]
+            </div>
+        }
 
         @if (TempData["Error"] != null)
         {
@@ -225,27 +273,17 @@
                         <input type="text" id="userNameInput" name="userName" class="inline-input" value="@Model.UserName" oninput="toggleSaveBtn(true)" />
                     </div>
                     <div class="info-row">
-                        <span class="label-small">Приватність:</span>
-                        <span style="font-size: 0.9rem; opacity: 0.8;">
-                            @(ViewBag.IsPrivate == true ? "🔒 Приватний" : "🌐 Публічний")
-                        </span>
-                   
-                        <button type="submit" form="togglePrivacyForm" class="privacy-toggle-btn" style="margin-left:10px;">
-                            Змінити статус
-                        </button>
+                        <span class="label-small">Email:</span>
+                        <span class="info-value" style="font-size: 1.1rem; opacity: 0.8;">@Model.Email</span>
                     </div>
-
-                    <form id="togglePrivacyForm" asp-action="TogglePublicity" method="post" style="display:none;">
-                        @Html.AntiForgeryToken()
-                    </form>
+                    <div class="info-row">
+                        <span class="label-small">Реєстрація:</span>
+                        <span class="info-value" style="font-size: 1rem; opacity: 0.6;">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
+                    </div>
                 </div>
             </div>
 
             <button type="submit" id="saveChangesBtn" class="floating-save-btn">Зберегти зміни</button>
-        </form>
-
-        <form id="togglePrivacyForm" asp-action="TogglePublicity" method="post" style="display:none;">
-            @Html.AntiForgeryToken()
         </form>
 
         <div class="stats-grid">
@@ -261,15 +299,13 @@
                 <span class="label-small">Кількість ваших карток</span>
                 <div class="stat-number">@Model.FlashcardsCount</div>
             </div>
-
             <div class="stat-card">
                 <span class="label-small">Кількість пройдених тестів</span>
-                <div class="stat-number">@(progress?.TotalPracticeSessions ?? 0)</div>
+                <div class="stat-number">0</div>
             </div>
-
             <div class="stat-card" style="grid-column: span 2;">
                 <span class="label-small">Вивчено карток</span>
-                <div class="stat-number">@(progress?.MasteredCards ?? 0)</div>
+                <div class="stat-number">0</div>
             </div>
         </div>
 
@@ -281,6 +317,12 @@
         const nameText = document.getElementById('userNameText');
         const nameInput = document.getElementById('userNameInput');
         const saveBtn = document.getElementById('saveChangesBtn');
+        const profileForm = document.getElementById('profileForm');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+
+        profileForm.addEventListener('submit', () => {
+            loadingOverlay.style.display = 'flex';
+        });
 
         function enableNameEdit() {
             nameText.style.display = 'none';

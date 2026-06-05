@@ -1,10 +1,11 @@
 ﻿@using Core.DTOs
+@using Core.DTOs.Practice
 @model PublicUserDTO
 
 @{
     ViewData["Title"] = "Профіль автора " + Model.UserName;
-    // Отримуємо статус приватності з контролера
     bool isPrivate = ViewBag.IsPrivate ?? false;
+    var progress = ViewBag.UserProgress as UserProgressDTO;
 }
 
 <style>
@@ -16,7 +17,7 @@
         padding: 40px;
         border-radius: 20px;
         gap: 40px;
-        margin-bottom: 30px;
+        margin-bottom: 40px;
     }
 
     .profile-avatar {
@@ -51,12 +52,11 @@
         color: #fff;
     }
 
-    /* СІТКА СТАТИСТИКИ */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
-        gap: 20px;
-        margin-bottom: 30px;
+        gap: 25px;
+        margin-bottom: 40px;
     }
 
     .stat-card {
@@ -86,7 +86,6 @@
         color: var(--accent-color);
     }
 
-    /* Стиль для приватного профілю */
     .private-lock-container {
         text-align: center;
         padding: 80px 20px;
@@ -96,11 +95,10 @@
         margin-top: 20px;
     }
 
-    .lock-icon {
-        font-size: 4rem;
-        margin-bottom: 20px;
-        display: block;
-        opacity: 0.4;
+    @@media (max-width: 850px) {
+        .stats-grid {
+            grid-template-columns: 1fr;
+        }
     }
 </style>
 
@@ -137,16 +135,14 @@
 
     @if (isPrivate)
     {
-        @* ВІДОБРАЖЕННЯ ДЛЯ ПРИВАТНОГО ПРОФІЛЮ *@
         <div class="private-lock-container">
-            <span class="lock-icon">🔒</span>
+            <span style="font-size: 4rem; display: block; margin-bottom: 20px; opacity: 0.4;">🔒</span>
             <h2 style="margin: 0; opacity: 0.8; color: var(--accent-color);">Цей профіль приватний</h2>
             <p style="opacity: 0.6; margin-top: 10px;">Користувач приховав свою статистику та навчальні сети.</p>
         </div>
     }
     else
     {
-        @* ВІДОБРАЖЕННЯ ДЛЯ ПУБЛІЧНОГО ПРОФІЛЮ *@
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="stat-title">кількість сетів автора</span>
@@ -154,13 +150,13 @@
             </div>
 
             <div class="stat-card">
-                <span class="stat-title">кількість колекцій</span>
-                <div class="stat-number">@(Model.CollectionsCount ?? 0)</div>
+                <span class="stat-title">кількість карток</span>
+                <div class="stat-number">@Model.FlashcardsCount</div>
             </div>
 
             <div class="stat-card">
-                <span class="stat-title">кількість карток</span>
-                <div class="stat-number">@Model.FlashcardsCount</div>
+                <span class="stat-title">кількість пройдених тестів</span>
+                <div class="stat-number">@(progress?.TotalPracticeSessions ?? 0)</div>
             </div>
         </div>
 
@@ -170,8 +166,8 @@
             {
                 foreach (var set in Model.Sets)
                 {
-                    <div class="set-card" onclick="location.href='@Url.Action("Sets", "DetailsInMain", new { id = set.Id })'"
-                         style="background: var(--btn-bg); border: 1px solid var(--btn-border); border-radius: 12px; padding: 20px; cursor: pointer; transition: 0.3s;">
+                    <div class="stat-card" onclick="location.href='@Url.Action("Sets", "DetailsInMain", new { id = set.Id })'"
+                         style="cursor: pointer; text-align: left; padding: 20px;">
                         <h4 style="margin: 0; color: var(--accent-color);">@set.Name</h4>
                         <p style="opacity: 0.7; font-size: 0.8rem; margin: 10px 0;">@set.Description</p>
                         <div style="font-size: 0.7rem; opacity: 0.5;">@set.FlashcardsCount карток</div>
@@ -180,7 +176,7 @@
             }
             else
             {
-                <p style="opacity: 0.5; grid-column: span 3; text-align: center;">У цього автора поки немає публічних сетів.</p>
+                <p style="opacity: 0.5; text-align: center; grid-column: span 3;">У цього автора поки немає публічних сетів.</p>
             }
         </div>
     }
