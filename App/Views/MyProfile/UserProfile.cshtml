@@ -92,18 +92,11 @@
         background: var(--btn-bg);
         border: 1px dashed var(--btn-border);
         border-radius: 20px;
-        margin-top: 20px;
-    }
-
-    @@media (max-width: 850px) {
-        .stats-grid {
-            grid-template-columns: 1fr;
-        }
     }
 </style>
 
 <div class="content-area">
-    <a asp-controller="Main" asp-action="Index" class="back-link" style="color:var(--accent-color); text-decoration:none; opacity:0.7; font-size:0.9rem;">← Назад до пошуку</a>
+    <a asp-controller="Main" asp-action="Index" style="color:var(--accent-color); text-decoration:none; opacity:0.7; font-size:0.9rem;">← Назад до пошуку</a>
 
     <div class="profile-header" style="margin-top: 20px;">
         <div class="profile-avatar">
@@ -123,10 +116,6 @@
                 <span class="info-text">@Model.UserName</span>
             </div>
             <div>
-                <span class="info-label">Email:</span>
-                <span class="info-text" style="font-weight: 400; opacity: 0.9;">@Model.Email</span>
-            </div>
-            <div>
                 <span class="info-label">реєстрація:</span>
                 <span class="info-text" style="font-weight: 400; opacity: 0.7;">@Model.CreatedAt.ToString("dd.MM.yyyy")</span>
             </div>
@@ -138,25 +127,35 @@
         <div class="private-lock-container">
             <span style="font-size: 4rem; display: block; margin-bottom: 20px; opacity: 0.4;">🔒</span>
             <h2 style="margin: 0; opacity: 0.8; color: var(--accent-color);">Цей профіль приватний</h2>
-            <p style="opacity: 0.6; margin-top: 10px;">Користувач приховав свою статистику та навчальні сети.</p>
+            <p style="opacity: 0.6; margin-top: 10px;">Статистика прихована автором.</p>
         </div>
     }
     else
     {
         <div class="stats-grid">
             <div class="stat-card">
-                <span class="stat-title">кількість сетів автора</span>
+                <span class="stat-title">Кількість сетів автора</span>
                 <div class="stat-number">@Model.SetsCount</div>
             </div>
 
             <div class="stat-card">
-                <span class="stat-title">кількість карток</span>
+                <span class="stat-title">Кількість колекцій</span>
+                <div class="stat-number">@(Model.CollectionsCount ?? 0)</div>
+            </div>
+
+            <div class="stat-card">
+                <span class="stat-title">Кількість карток</span>
                 <div class="stat-number">@Model.FlashcardsCount</div>
             </div>
 
             <div class="stat-card">
-                <span class="stat-title">кількість пройдених тестів</span>
+                <span class="stat-title">Кількість пройдених тестів</span>
                 <div class="stat-number">@(progress?.TotalPracticeSessions ?? 0)</div>
+            </div>
+
+            <div class="stat-card" style="grid-column: span 2;">
+                <span class="stat-title">Вивчено карток</span>
+                <div class="stat-number">@(progress?.MasteredCards ?? 0)</div>
             </div>
         </div>
 
@@ -176,7 +175,7 @@
             }
             else
             {
-                <p style="opacity: 0.5; text-align: center; grid-column: span 3;">У цього автора поки немає публічних сетів.</p>
+                <p style="opacity: 0.5; text-align: center; grid-column: span 3;">Немає публічних сетів.</p>
             }
         </div>
     }

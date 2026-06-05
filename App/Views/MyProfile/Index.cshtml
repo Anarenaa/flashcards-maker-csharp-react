@@ -1,8 +1,11 @@
 ﻿@using Core.DTOs
+@using Core.DTOs.Practice
 @model PrivateUserDTO
 
 @{
     ViewData["Title"] = "Мій профіль";
+    // Отримуємо прогрес із ViewBag, який передає контролер
+    var progress = ViewBag.UserProgress as UserProgressDTO;
 }
 
 <style>
@@ -19,7 +22,7 @@
         width: 100%;
         height: 100%;
         background: rgba(20, 27, 37, 0.8);
-        display: none; 
+        display: none;
         flex-direction: column;
         justify-content: center;
         align-items: center;
@@ -299,13 +302,15 @@
                 <span class="label-small">Кількість ваших карток</span>
                 <div class="stat-number">@Model.FlashcardsCount</div>
             </div>
+
             <div class="stat-card">
                 <span class="label-small">Кількість пройдених тестів</span>
-                <div class="stat-number">0</div>
+                <div class="stat-number">@(progress?.TotalPracticeSessions ?? 0)</div>
             </div>
+
             <div class="stat-card" style="grid-column: span 2;">
                 <span class="label-small">Вивчено карток</span>
-                <div class="stat-number">0</div>
+                <div class="stat-number">@(progress?.MasteredCards ?? 0)</div>
             </div>
         </div>
 
