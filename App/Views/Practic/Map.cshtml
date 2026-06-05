@@ -3,20 +3,24 @@
 @{
     ViewData["Title"] = "Мапа практики";
 
+    var collId = (Context.Request.Query["collectionId"].ToString() ?? ViewBag.CollectionId?.ToString()) ?? "";
+    var source = (Context.Request.Query["source"].ToString() ?? ViewBag.Source?.ToString()) ?? "";
     bool isOwner = ViewBag.IsOwner ?? false;
-    var collId = Context.Request.Query["collectionId"];
-    string source = Context.Request.Query["source"].ToString();
-    bool fromColl = !string.IsNullOrEmpty(collId);
 
     string backUrl;
     string backText;
 
-    if (fromColl)
+    if (!string.IsNullOrEmpty(collId) && collId != "0" && collId != "null")
     {
         backUrl = Url.Action("Details", "Collections", new { id = collId });
         backText = "Назад до колекції";
     }
-    else if (isOwner)
+    else if (source == "main")
+    {
+        backUrl = Url.Action("Index", "Main");
+        backText = "Назад до пошуку";
+    }
+    else if (source == "mysets" || isOwner)
     {
         backUrl = Url.Action("Index", "Details", new { id = Model.SetId });
         backText = "Назад до карток";
@@ -195,6 +199,7 @@
 
 <div class="map-page-container">
     <div class="map-top-bar">
+  
         <a href="@backUrl" class="back-link">
             <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
                 <path d="M19 12H5M12 19l-7-7 7-7"></path>
@@ -228,7 +233,12 @@
             <div class="node">
                 @if (unlocked)
                 {
-                    <a asp-controller="Test" asp-action="Index" asp-route-setId="@Model.SetId" asp-route-mode="@modeId" class="circle unlocked">
+                    <a asp-controller="Test" asp-action="Index"
+                       asp-route-setId="@Model.SetId"
+                       asp-route-mode="@modeId"
+                       asp-route-collectionId="@collId"
+                       asp-route-source="@source"
+                       class="circle unlocked">
                         @GetModeName(modeId)
                     </a>
                 }
@@ -236,7 +246,7 @@
                 {
                     <div class="circle locked">
                         @GetModeName(modeId)
-                        <div style="position: absolute; bottom: -35px; font-size: 0.7rem; opacity: 0.8; white-space:nowrap;">🔒 Заблоковано</div>
+                        <div style="position: absolute; bottom: -30px; font-size: 0.7rem; opacity: 0.8; white-space:nowrap;">🔒 Заблоковано</div>
                     </div>
                 }
 

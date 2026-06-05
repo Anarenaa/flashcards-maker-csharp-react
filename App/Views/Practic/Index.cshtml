@@ -1,6 +1,11 @@
 ﻿@using Core.DTOs.Practice
 @model PracticeSessionDTO
 
+@{
+    var source = ViewBag.Source?.ToString() ?? "";
+    var collId = ViewBag.CollectionId?.ToString() ?? "";
+}
+
 <style>
     :root {
         --success-color: #28a745;
@@ -104,7 +109,7 @@
 
     .matching-item {
         background: rgba(255, 255, 255, 0.05);
-        border: 2px solid rgba(255,255,255,0.1);
+        border: 2px solid rgba(255, 255, 255, 0.1);
         color: #fff;
         padding: 18px;
         border-radius: 15px;
@@ -274,6 +279,9 @@
         const BATCH_LIMIT = 5;
         const STORAGE_KEY = `practice_v2_${setId}_${globalMode}`;
 
+        const navSource = '@source';
+        const navCollId = '@collId';
+
         let taskQueue = [];
         let currentIndex = 0;
         let resultsData = { Results: [], IsTrainingMode: false, SetId: setId };
@@ -328,16 +336,13 @@
             let tempTasks = [];
 
             if (globalMode === 5 && specificCards !== null) {
-                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c })); // для неправильних карток
+                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
                 taskQueue = shuffle(tempTasks);
             }
             else if (globalMode === 5 && specificCards === null) {
                 cards.forEach(c => {
                     const serverMode = getVal(c, 'CardType') || getVal(c, 'AssignedMode');
-                    tempTasks.push({
-                        assignedMode: serverMode || 2,
-                        card: c
-                    });
+                    tempTasks.push({ assignedMode: serverMode || 2, card: c });
                 });
                 taskQueue = shuffle(tempTasks);
             }
@@ -479,8 +484,13 @@
         function prevCard() { if (currentIndex > 0) { currentIndex--; render(); } }
 
         function exitPractice() {
-            if (isFinished) location.href = `/Test/Map/${setId}`;
-            else if (confirm("Вийти? Прогрес сесії збережено.")) location.href = `/Test/Map/${setId}`;
+            let returnUrl = `/Test/Map/${setId}?source=${navSource}`;
+            if (navCollId && navCollId !== '' && navCollId !== '0') {
+                returnUrl += `&collectionId=${navCollId}`;
+            }
+
+            if (isFinished) location.href = returnUrl;
+            else if (confirm("Вийти? Прогрес сесії збережено.")) location.href = returnUrl;
         }
 
         async function finish() {
@@ -501,7 +511,19 @@
             }
 
             if (!resultsData.IsTrainingMode) {
-                await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resultsData) });
+ 
+                const response = await fetch('/Test/SaveResults', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(resultsData)
+                });
+                const data = await response.json();
+
+                let finalRedirect = data.redirectUrl + `?source=${navSource}`;
+                if (navCollId && navCollId !== '' && navCollId !== '0') {
+                    finalRedirect += `&collectionId=${navCollId}`;
+                }
+                location.href = finalRedirect;
             }
         }
 
