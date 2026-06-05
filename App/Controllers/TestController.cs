@@ -3,13 +3,15 @@ using Core.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
+using Services; 
 using Services.Interfaces;
 
 namespace App.Controllers
 {
     [Authorize]
-    [Route("Test")] 
-    public class TestController(IPracticeService practiceService, IUnitOfWork unitOfWork) : BaseController
+    [Route("Test")]
+ 
+    public class TestController(IPracticeService practiceService, IUnitOfWork unitOfWork, SetService setService) : BaseController
     {
         [HttpGet("Map/{setId}")]
         public async Task<IActionResult> Map(int setId)
@@ -45,6 +47,20 @@ namespace App.Controllers
             ViewBag.Mode = mode;
 
             return View("~/Views/Practic/Index.cshtml", session);
+        }
+
+        [HttpPost("ResetProgress")]
+        public async Task<IActionResult> ResetProgress(int setId)
+        {
+            try
+            {
+                await setService.ResetSetProgressAsync(UserId, setId);
+                return Ok();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpPost("SaveResults")]
