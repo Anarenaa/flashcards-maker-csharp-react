@@ -392,10 +392,10 @@ namespace Core.Migrations
                         .HasColumnType("character varying(500)");
 
                     b.Property<string>("FromLang")
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("text");
 
                     b.Property<bool>("IsGenerated")
-                        .HasColumnType("bit");
+                        .HasColumnType("boolean");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
@@ -406,7 +406,7 @@ namespace Core.Migrations
                         .HasColumnType("character varying(100)");
 
                     b.Property<string>("ToLang")
-                        .HasColumnType("character varying(5)");
+                        .HasColumnType("text");
 
                     b.Property<int>("Type")
                         .HasColumnType("integer");
@@ -555,7 +555,7 @@ namespace Core.Migrations
                             Id = 1,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             Email = "john_doe@gmail.com",
                             EmailConfirmed = true,
                             IsBanned = false,
@@ -567,7 +567,7 @@ namespace Core.Migrations
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             UserName = "john_doe"
                         },
                         new
@@ -575,7 +575,7 @@ namespace Core.Migrations
                             Id = 2,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "C8A1088E-983C-435E-9804-6334D976451C",
-                            CreatedAt = new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             Email = "jane_smith@gmail.com",
                             EmailConfirmed = true,
                             IsBanned = false,
@@ -587,7 +587,7 @@ namespace Core.Migrations
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "0B4D1A60-F22B-4467-93C0-94D1898E5E7C",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            UpdatedAt = new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             UserName = "jane_smith"
                         },
                         new
@@ -595,7 +595,7 @@ namespace Core.Migrations
                             Id = 13,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             IsBanned = false,
@@ -607,7 +607,7 @@ namespace Core.Migrations
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             UserName = "admin"
                         });
                 });
