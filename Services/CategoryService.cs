@@ -30,7 +30,7 @@ namespace Services
                 Name = c.Name
             });
         }
-        public async Task CreateCategoryAsync(CategoryDTO categoryDto)
+        public async Task<CategoryDTO> CreateCategoryAsync(CategoryDTO categoryDto)
         {
             var category = new Category
             {
@@ -38,6 +38,8 @@ namespace Services
             };
             await _unitOfWork.Categories.AddAsync(category);
             await _unitOfWork.SaveChangesAsync();
+            categoryDto.Id = category.Id;
+            return categoryDto;
         }
         public async Task UpdateCategoryAsync(CategoryDTO categoryDto)
         {

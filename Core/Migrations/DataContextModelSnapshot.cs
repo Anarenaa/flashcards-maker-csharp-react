@@ -391,8 +391,11 @@ namespace Core.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
-                    b.Property<bool>("IsAccessible")
-                        .HasColumnType("boolean");
+                    b.Property<string>("FromLang")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsGenerated")
+                        .HasColumnType("bit");
 
                     b.Property<bool>("IsPublic")
                         .HasColumnType("boolean");
@@ -401,6 +404,12 @@ namespace Core.Migrations
                         .IsRequired()
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
+
+                    b.Property<string>("ToLang")
+                        .HasColumnType("character varying(5)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("integer");
 
                     b.Property<DateTime>("UpdatedAt")
                         .ValueGeneratedOnAdd()
@@ -422,9 +431,10 @@ namespace Core.Migrations
                             Id = 1,
                             CreatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
                             Description = "English vocabulary",
-                            IsAccessible = true,
+                            IsGenerated = false,
                             IsPublic = true,
                             Name = "Fruits",
+                            Type = 0,
                             UpdatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
                             UserId = 1
                         },
@@ -433,9 +443,10 @@ namespace Core.Migrations
                             Id = 2,
                             CreatedAt = new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified),
                             Description = "Math test preparation set",
-                            IsAccessible = true,
+                            IsGenerated = false,
                             IsPublic = false,
                             Name = "Math",
+                            Type = 0,
                             UpdatedAt = new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Unspecified),
                             UserId = 2
                         },
@@ -444,9 +455,10 @@ namespace Core.Migrations
                             Id = 3,
                             CreatedAt = new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified),
                             Description = "Всесвітня історія: революції різних років",
-                            IsAccessible = true,
+                            IsGenerated = false,
                             IsPublic = true,
                             Name = "Роки революцій",
+                            Type = 0,
                             UpdatedAt = new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Unspecified),
                             UserId = 2
                         });
@@ -865,7 +877,7 @@ namespace Core.Migrations
                     b.HasOne("Core.Models.User", "User")
                         .WithMany("Sets")
                         .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.SetNull)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.Navigation("User");

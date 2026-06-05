@@ -16,9 +16,9 @@ namespace Services
             _answerService = answerService;
         }
 
-        public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode)
+        public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode, int currentIndex = 0)
         {
-            return await _sessionService.GetPracticeSessionAsync(setId, userId, requestedMode);
+            return await _sessionService.GetPracticeSessionAsync(setId, userId, requestedMode, currentIndex);
         }
 
         public async Task<List<int>> SavePracticeResultsAsync(int userId, PracticeResultsDTO results)

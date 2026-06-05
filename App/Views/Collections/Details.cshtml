@@ -6,6 +6,7 @@
 }
 
 <style>
+    /* Дизайн залишаємо без змін */
     .header-section {
         margin-bottom: 30px;
     }
@@ -51,7 +52,6 @@
             transform: translateY(-5px);
         }
 
-    /* МЕНЮ КРАПОК */
     .dots {
         position: absolute;
         top: 15px;
@@ -63,11 +63,6 @@
         z-index: 10;
         line-height: 1;
     }
-
-        .dots:hover {
-            opacity: 1;
-            color: var(--accent-color);
-        }
 
     .dropdown {
         position: absolute;
@@ -93,10 +88,6 @@
             width: 100%;
             font-size: 0.9rem;
         }
-
-            .dropdown button:hover {
-                background-color: #6B8789;
-            }
 </style>
 
 <div class="content-area">
@@ -109,34 +100,33 @@
     <div class="grid">
         @foreach (var set in Model.Sets)
         {
-            <div class="set-card"
-                 onclick="handleCardClick(event, '@(User.IsInRole("Admin") ? Url.Action("SetDetails", "Admin", new { id = set.Id }) : Url.Action("Sets", "DetailsInMain", new { id = set.Id }))')">
+            @* 
+               ЛОГІКА ПЕРЕВІРКИ ПРАВ:
+               Якщо власник або адмін — йдемо в Details/Index (редактор).
+               Якщо гість — йдемо в DetailsInMain/Sets (перегляд).
+            *@
+            var isSetOwner = set.UserName == User.Identity.Name;
+            var actionName = (isSetOwner || User.IsInRole("Admin")) ? "Index" : "Sets";
+            var controllerName = (isSetOwner || User.IsInRole("Admin")) ? "Details" : "DetailsInMain";
 
-                @* МЕНЮ ⋮ *@
+            <div class="set-card" onclick="handleCardClick(event, '@Url.Action(actionName, controllerName, new { id = set.Id, collectionId = Model.Id })')">
+
                 <div class="dots" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown">
-                    @* ФОРМА ВИДАЛЕННЯ З КОЛЕКЦІЇ *@
                     <form asp-action="RemoveSet" method="post" onsubmit="return confirm('Прибрати цей сет із папки?')">
                         <input type="hidden" name="setId" value="@set.Id" />
                         <input type="hidden" name="collectionId" value="@Model.Id" />
-                        <button type="submit" style="color: #ff8080;">Прибрати з папки</button>
+                        <button type="submit" style="color: #ff8080;" onclick="event.stopPropagation()">Прибрати з папки</button>
                     </form>
                 </div>
 
-                <h3 style="margin: 0 0 10px 0;">@set.Name</h3>
+                <h3 style="margin: 0 0 10px 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
 
                 <div style="font-size: 0.75rem; margin-top: 15px; opacity: 0.5; display: flex; justify-content: space-between;">
                     <span>@set.FlashcardsCount карток</span>
                     <span>@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
                 </div>
-            </div>
-        }
-
-        @if (!Model.Sets.Any())
-        {
-            <div style="grid-column: 1 / -1; text-align: center; padding: 60px; opacity: 0.4;">
-                Ця папка поки що порожня. Додайте сети зі сторінки "Мої сети" або "Головна".
             </div>
         }
     </div>

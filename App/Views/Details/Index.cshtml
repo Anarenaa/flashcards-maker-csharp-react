@@ -1,4 +1,5 @@
 ﻿@using Core.DTOs
+@using Core.Models
 @model SetDetailDTO
 
 @{
@@ -6,7 +7,40 @@
 }
 
 <style>
-    /* --- ОСНОВНІ СТИЛІ --- */
+    .practice-sticky-container {
+        position: fixed;
+        top: 30px;
+        right: 40px;
+        z-index: 9999;
+    }
+
+    .btn-practice {
+        display: inline-flex;
+        align-items: center;
+        gap: 12px;
+        background-color: var(--btn-bg) !important; 
+        border: 1px solid var(--btn-border) !important; 
+        color: white !important;
+        padding: 12px 25px;
+        border-radius: 10px;
+        text-decoration: none !important;
+        font-weight: 500;
+        font-size: 0.95rem;
+        transition: 0.3s ease;
+        cursor: pointer;
+        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+    }
+
+        .btn-practice:hover {
+            border-color: var(--accent-color) !important; 
+            background-color: rgba(255, 255, 255, 0.05) !important;
+            transform: translateY(-2px);
+        }
+
+        .btn-practice svg {
+            color: var(--accent-color);
+        }
+
     .back-link {
         color: var(--accent-color);
         cursor: pointer;
@@ -33,12 +67,11 @@
         gap: 20px;
     }
 
-    /* --- КАТЕГОРІЇ (ТЕГИ) --- */
     .categories-list {
         display: flex;
         flex-wrap: wrap;
         gap: 8px;
-        margin-top: 12px;
+        margin-top: 15px;
         padding: 0;
         list-style: none;
     }
@@ -68,10 +101,9 @@
     }
 
         .remove-cat-btn:hover {
-            color: #ff4d4d;
+            transform: scale(1.2);
         }
 
-    /* --- СІТКА КАРТОК --- */
     .cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -101,6 +133,7 @@
         font-size: 1.15rem;
         margin-bottom: 12px;
         padding-right: 25px;
+        word-break: break-word;
     }
 
     .card-divider {
@@ -114,9 +147,10 @@
         opacity: 0.8;
         font-size: 1rem;
         line-height: 1.4;
+        white-space: pre-wrap;
+        word-break: break-word;
     }
 
-    /* --- МЕНЮ ТРЬОХ КРАПОК --- */
     .dots {
         position: absolute;
         top: 15px;
@@ -124,13 +158,9 @@
         cursor: pointer;
         font-size: 1.5rem;
         opacity: 0.5;
-        transition: 0.3s;
+        z-index: 10;
+        padding: 5px;
     }
-
-        .dots:hover {
-            opacity: 1;
-            color: var(--accent-color);
-        }
 
     .dropdown {
         position: absolute;
@@ -142,14 +172,16 @@
         display: none;
         flex-direction: column;
         z-index: 100;
-        box-shadow: 0 8px 25px rgba(0,0,0,0.6);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        overflow: hidden;
+        min-width: 150px;
     }
 
         .dropdown button {
             background: none;
             border: none;
             color: white;
-            padding: 12px 20px;
+            padding: 10px 20px;
             text-align: left;
             cursor: pointer;
             width: 100%;
@@ -160,18 +192,14 @@
                 background-color: #6B8789;
             }
 
-    /* --- МОДАЛКИ --- */
     .modal-overlay {
         position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        inset: 0;
         background: rgba(0,0,0,0.85);
         display: none;
         justify-content: center;
         align-items: center;
-        z-index: 1000;
+        z-index: 10000;
     }
 
     .modal {
@@ -180,29 +208,73 @@
         padding: 30px;
         border-radius: 20px;
         width: 420px;
-        max-width: 90%;
         display: flex;
         flex-direction: column;
-        gap: 15px;
+        gap: 5px;
     }
 
-        .modal input, .modal textarea, .modal select {
-            background: #141B25;
-            border: 1px solid #818375;
+    .field-block {
+        display: flex;
+        flex-direction: column;
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+        .field-block label {
+            font-size: 0.75rem;
+            opacity: 0.6;
+            margin-bottom: 5px;
             color: white;
-            padding: 12px;
-            border-radius: 10px;
-            outline: none;
-            font-family: inherit;
-            width: 100%;
-            box-sizing: border-box;
         }
 
-    .modal-label {
-        font-size: 0.85rem;
-        opacity: 0.6;
-        margin-bottom: 5px;
-        display: block;
+    .modal input, .modal textarea, .modal select {
+        background: #141B25;
+        border: 1px solid #818375;
+        color: white !important;
+        padding: 12px;
+        border-radius: 10px;
+        outline: none;
+        box-sizing: border-box;
+        font-family: inherit;
+        width: 100%;
+    }
+
+    .hint-btn {
+        position: absolute;
+        right: 10px;
+        bottom: 10px;
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        border: none;
+        background: #f4a261;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: 0.3s;
+        box-shadow: 0 0 10px rgba(244, 162, 97, 0.2);
+        z-index: 10;
+    }
+
+        .hint-btn:hover:not(:disabled) {
+            transform: scale(1.1) rotate(10deg);
+            box-shadow: 0 0 15px rgba(244, 162, 97, 0.5);
+        }
+
+    .spinner-hint {
+        width: 18px;
+        height: 18px;
+        border: 2px solid rgba(0,0,0,0.1);
+        border-top: 2px solid #000;
+        border-radius: 50%;
+        animation: spin-hint 0.8s linear infinite;
+    }
+
+    @@keyframes spin-hint {
+        to {
+            transform: rotate(360deg);
+        }
     }
 
     .btn-main {
@@ -217,33 +289,54 @@
     }
 
         .btn-main:hover {
-            background: #7ba1a3;
+            opacity: 0.9;
         }
+
+    @@media (max-width: 950px) {
+        .practice-sticky-container {
+            position: static;
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .btn-practice {
+            width: 100%;
+            justify-content: center;
+        }
+    }
 </style>
+
+<div class="practice-sticky-container">
+    <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
+        <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></svg>
+        Практикувати
+    </a>
+</div>
 
 <div class="content-area">
     <a asp-controller="MySets" asp-action="Index" class="back-link">← Назад до моїх сетів</a>
 
     <div class="header-row">
         <div>
-            <h2 style="color: var(--accent-color); margin: 0; font-size: 1.8rem;">@Model.Name</h2>
-            <p style="opacity: 0.6; margin: 5px 0 0 0;">@Model.Description</p>
+            <h2 style="color: var(--accent-color); margin: 0; font-size: 2.2rem;">@Model.Name</h2>
+            <p style="opacity: 0.6; margin: 8px 0 0 0; font-size: 1.1rem;">@Model.Description</p>
 
             <ul class="categories-list">
                 @foreach (var cat in Model.Categories)
                 {
                     <li class="category-badge">
                         @cat.Name
-                        <form asp-controller="Details" asp-action="RemoveCategory" method="post" style="display:inline;">
+                        <form asp-action="RemoveCategory" method="post" style="display:inline;">
                             <input type="hidden" name="setId" value="@Model.Id" />
                             <input type="hidden" name="categoryId" value="@cat.Id" />
-                            <button type="submit" class="remove-cat-btn" title="Прибрати категорію з цього сету">×</button>
+                            <button type="submit" class="remove-cat-btn" title="Видалити категорію">×</button>
                         </form>
                     </li>
                 }
             </ul>
         </div>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 12px;">
             <button class="btn-main" onclick="openCreateCardModal()">+ Картка</button>
             <button class="btn-main" onclick="openCategoryModal()">+ Категорія</button>
         </div>
@@ -256,13 +349,12 @@
                 <div class="dots" onclick="toggleMenu(event)">⋮</div>
                 <div class="dropdown">
                     <button type="button" onclick="openEditCardModal('@card.Id', '@card.Term', '@card.Definition')">Редагувати</button>
-                    <form asp-controller="Details" asp-action="DeleteCard" method="post" onsubmit="return confirm('Видалити картку?')">
+                    <form asp-action="DeleteCard" method="post" onsubmit="return confirm('Видалити?')">
                         <input type="hidden" name="cardId" value="@card.Id" />
                         <input type="hidden" name="setId" value="@Model.Id" />
                         <button type="submit" style="color: #ff8080;">Видалити</button>
                     </form>
                 </div>
-
                 <div class="card-term">@card.Term</div>
                 <hr class="card-divider">
                 <div class="card-definition">@card.Definition</div>
@@ -271,26 +363,34 @@
     </div>
 </div>
 
-<!-- МОДАЛКА КАРТКИ -->
 <div class="modal-overlay" id="cardModal">
     <div class="modal">
-        <h2 id="modalTitle" style="color: var(--accent-color); margin: 0;">Нова картка</h2>
-        <form asp-controller="Details" asp-action="SaveCard" method="post">
+        <h2 id="modalTitle" style="color: var(--accent-color); margin: 0 0 10px 0;">Нова картка</h2>
+        <form asp-action="SaveCard" method="post">
             <input type="hidden" name="setId" value="@Model.Id" />
             <input type="hidden" name="cardDto.Id" id="modalCardId" value="0" />
-            <div style="display: flex; flex-direction: column; gap: 15px; margin-top: 20px;">
-                <div>
-                    <label class="modal-label">Питання</label>
-                    <input type="text" name="cardDto.Term" id="modalTerm" required>
+
+            <div class="field-block">
+                <label>Питання (Термін)</label>
+                <input type="text" name="cardDto.Term" id="modalTerm" required oninput="validateHintBtn()">
+            </div>
+
+            <div class="field-block">
+                <label>Відповідь (Визначення)</label>
+                <div style="position: relative; width: 100%;">
+                    <textarea name="cardDto.Definition" id="modalDefinition" rows="5" required style="padding-right: 50px; resize: none;"></textarea>
+
+                    <button type="button" id="hintBtn" class="hint-btn" onclick="askAI()" disabled title="ШІ підказка">
+                        <span id="hintIcon" style="font-size: 1.2rem;">💡</span>
+                        <div id="hintLoader" class="spinner-hint" style="display: none;"></div>
+                    </button>
                 </div>
-                <div>
-                    <label class="modal-label">Відповідь</label>
-                    <textarea name="cardDto.Definition" id="modalDefinition" rows="4" required></textarea>
-                </div>
-                <div style="display: flex; gap: 10px; justify-content: flex-end;">
-                    <button type="button" onclick="closeCardModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                    <button type="submit" class="btn-main">Зберегти</button>
-                </div>
+                <div id="hintError" style="display: none; color: #ff8080; font-size: 0.75rem; margin-top: 8px; line-height: 1.2;"></div>
+            </div>
+
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
+                <button type="button" onclick="closeCardModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
+                <button type="submit" class="btn-main">Зберегти</button>
             </div>
         </form>
     </div>
@@ -298,17 +398,14 @@
 
 <div class="modal-overlay" id="categoryModal">
     <div class="modal">
-        <form asp-controller="Details" asp-action="SaveCategory" method="post">
+        <form asp-action="SaveCategory" method="post">
             <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Додати категорію</h2>
             <input type="hidden" name="setId" value="@Model.Id" />
 
-            <p style="font-size: 0.85rem; opacity: 0.7; margin-bottom: 10px;">
-                Оберіть тематичну категорію для вашого сету з офіційного списку:
-            </p>
-
-            <div style="display: flex; flex-direction: column; gap: 15px;">
+            <div class="field-block">
+                <label>Оберіть категорію зі списку</label>
                 <select name="selectedCategoryId" required>
-                    <option value="">-- Оберіть категорію --</option>
+                    <option value="">-- Оберіть --</option>
                     @if (ViewBag.AllCategories != null)
                     {
                         @foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
@@ -319,9 +416,9 @@
                 </select>
             </div>
 
-            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px;">
+            <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
                 <button type="button" onclick="closeCategoryModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
-                <button type="submit" class="btn-main">Додати до сету</button>
+                <button type="submit" class="btn-main">Додати</button>
             </div>
         </form>
     </div>
@@ -329,45 +426,80 @@
 
 @section Scripts {
     <script>
-        const catModal = document.getElementById('categoryModal');
         const cardModal = document.getElementById('cardModal');
+        const catModal = document.getElementById('categoryModal');
+        const termInput = document.getElementById('modalTerm');
+        const defInput = document.getElementById('modalDefinition');
+        const hintBtn = document.getElementById('hintBtn');
+        const hIcon = document.getElementById('hintIcon');
+        const hLoader = document.getElementById('hintLoader');
+        const hError = document.getElementById('hintError');
 
-        function openCategoryModal() { catModal.style.display = 'flex'; }
-        function closeCategoryModal() { catModal.style.display = 'none'; }
+        function validateHintBtn() {
+            hintBtn.disabled = termInput.value.trim().length === 0;
+            if (hintBtn.disabled) hError.style.display = 'none';
+        }
+
+        async function askAI() {
+            const term = termInput.value.trim();
+            if (!term) return;
+
+            hintBtn.disabled = true;
+            hIcon.style.display = 'none';
+            hLoader.style.display = 'block';
+            hError.style.display = 'none';
+            defInput.value = "Шукає визначення...";
+
+            try {
+                const url = `/api/get-hint?term=${term}&setType=@((int)Model.Type)&fromLang=@(Model.FromLang)&toLang=@(Model.ToLang)&uiLang=uk`;
+                const response = await fetch(url);
+                if (!response.ok) throw new Error();
+                const data = await response.json();
+                defInput.value = data.text;
+            } catch (e) {
+                defInput.value = "";
+                hError.style.display = 'block';
+                hError.innerText = "⚠️ Не вдалося знайти короткий опис.";
+            } finally {
+                hLoader.style.display = 'none';
+                hIcon.style.display = 'block';
+                validateHintBtn();
+            }
+        }
 
         function openCreateCardModal() {
             document.getElementById('modalTitle').innerText = "Нова картка";
             document.getElementById('modalCardId').value = "0";
-            document.getElementById('modalTerm').value = "";
-            document.getElementById('modalDefinition').value = "";
+            termInput.value = ""; defInput.value = "";
+            hError.style.display = 'none'; validateHintBtn();
             cardModal.style.display = 'flex';
         }
 
         function openEditCardModal(id, term, def) {
             document.getElementById('modalTitle').innerText = "Редагувати картку";
             document.getElementById('modalCardId').value = id;
-            document.getElementById('modalTerm').value = term;
-            document.getElementById('modalDefinition').value = def;
+            termInput.value = term; defInput.value = def;
+            hError.style.display = 'none'; validateHintBtn();
             cardModal.style.display = 'flex';
         }
 
         function closeCardModal() { cardModal.style.display = 'none'; }
+        function openCategoryModal() { catModal.style.display = 'flex'; }
+        function closeCategoryModal() { catModal.style.display = 'none'; }
 
         function toggleMenu(e) {
             e.stopPropagation();
-            const dropdown = e.currentTarget.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(d => {
-                if (d !== dropdown) d.style.display = 'none';
-            });
-            dropdown.style.display = dropdown.style.display === 'flex' ? 'none' : 'flex';
+            const d = e.currentTarget.nextElementSibling;
+            document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; });
+            d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
         }
 
-        window.addEventListener('click', (e) => {
-            if (e.target === catModal) closeCategoryModal();
+        window.onclick = (e) => {
             if (e.target === cardModal) closeCardModal();
+            if (e.target === catModal) closeCategoryModal();
             if (!e.target.matches('.dots')) {
                 document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
             }
-        });
+        };
     </script>
 }

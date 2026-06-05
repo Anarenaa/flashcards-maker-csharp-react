@@ -1,97 +1,128 @@
 using Core.DTOs.Practice;
 using Core.Models;
+using Microsoft.Extensions.Caching.Memory;
 using Repositories.Interfaces;
+using Services.Interfaces;
 using Services.Practice;
 
 public class SessionService : ISessionService
 {
     private readonly IUnitOfWork _unitOfWork;
+    private readonly IGeminiService _geminiService;
+    private readonly IMemoryCache _cache;
     private readonly Random _random = new();
 
-    public SessionService(IUnitOfWork unitOfWork) => _unitOfWork = unitOfWork;
-
-    public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode)
+    public SessionService(IUnitOfWork unitOfWork, IGeminiService geminiService, IMemoryCache cache)
     {
-        var cardProgresses = await _unitOfWork.Practice.GetNewBatchForPracticeAsync(setId, userId, 20);
-        if (cardProgresses == null || !cardProgresses.Any()) return null;
+        _unitOfWork = unitOfWork;
+        _geminiService = geminiService;
+        _cache = cache;
+    }
+
+    public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode, int currentIndex = 0)
+    {
+        string sessionCardsKey = $"session_cards_{userId}_{setId}";
+
+        if (!_cache.TryGetValue(sessionCardsKey, out List<CardProgress> cardProgresses))
+        {
+            cardProgresses = await _unitOfWork.Practice.GetNewBatchForPracticeAsync(setId, userId, 20);
+
+            if (cardProgresses == null || !cardProgresses.Any())
+            {
+                var rawCards = await _unitOfWork.Flashcards.GetAllAsync(f => f.SetId == setId);
+                if (!rawCards.Any()) return null;
+
+                cardProgresses = rawCards.Select(f => new CardProgress
+                {
+                    Flashcard = f,
+                    FlashcardId = f.Id,
+                    UserId = userId,
+                    Progress = 0
+                }).ToList();
+            }
+
+            // Важливо: фіксуємо порядок карток один раз для всієї сесії
+            cardProgresses = cardProgresses.OrderBy(_ => _random.Next()).ToList();
+
+            _cache.Set(sessionCardsKey, cardProgresses, TimeSpan.FromMinutes(30));
+        }
 
         var sessionMode = requestedMode ?? DetermineMode(cardProgresses.Min(cp => cp.Progress));
 
         return sessionMode switch
         {
-            PracticeActivityType.Review => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Review, takeOne: true),
+            PracticeActivityType.Review => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Review),
             PracticeActivityType.Quiz => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Quiz, needsDistractors: true),
             PracticeActivityType.Matching => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Matching, useBatching: true),
             PracticeActivityType.Writing => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Writing),
-            PracticeActivityType.Context => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Context),
-            PracticeActivityType.Mixed => await GetMixedSessionAsync(setId, cardProgresses),
+            PracticeActivityType.Mixed => await GetMixedSessionAsync(setId, cardProgresses, currentIndex, userId),
             _ => throw new ArgumentException($"Unsupported activity type: {sessionMode}")
         };
     }
 
     private async Task<PracticeSessionDTO> PrepareSessionAsync(
-        int setId,
-        List<CardProgress> source,
-        PracticeActivityType type,
-        bool needsDistractors = false,
-        bool useBatching = false,
-        bool takeOne = false)
+        int setId, List<CardProgress> source, PracticeActivityType type,
+        bool needsDistractors = false, bool useBatching = false, int currentIndex = 0)
     {
-        var (selected, batchSize) = useBatching ? ExtractBatch(source) : (takeOne ? (source.Take(1).ToList(), 1) : (source, source.Count));
+        int batchSize = useBatching ? CalculateOptimalBatchSize(source.Count) : source.Count;
 
         Dictionary<int, List<string>> distractorsMap = null;
         if (needsDistractors)
         {
-            distractorsMap = await _unitOfWork.Practice.GetBatchDistractorsAsync(setId, selected.Select(cp => cp.FlashcardId).ToList(), 3);
+            distractorsMap = await _unitOfWork.Practice.GetBatchDistractorsAsync(setId, source.Select(cp => cp.FlashcardId).ToList(), 3);
         }
 
         var dto = CreateBaseDto(setId, batchSize, type);
-        foreach (var cp in selected)
+        foreach (var cp in source)
         {
             var card = MapToCardDto(cp, type);
-            if (distractorsMap != null && distractorsMap.TryGetValue(card.Id, out var d))
+            if (needsDistractors && distractorsMap != null && distractorsMap.TryGetValue(card.Id, out var d))
                 card.Distractors = ShuffleDistractors(d, card.Definition);
 
             dto.Flashcards.Add(card);
         }
+
         return dto;
     }
 
-    private async Task<PracticeSessionDTO> GetMixedSessionAsync(int setId, List<CardProgress> source)
+    private async Task<PracticeSessionDTO> GetMixedSessionAsync(int setId, List<CardProgress> source, int currentIndex, int userId)
     {
-        var (selected, batchSize) = ExtractBatch(source);
-        var assignments = selected.Select(cp => new { Data = cp, Type = (PracticeActivityType)_random.Next(1, 6) }).ToList();
-
-        var quizIds = assignments.Where(a => a.Type == PracticeActivityType.Quiz || a.Type == PracticeActivityType.Context)
-                                 .Select(a => a.Data.FlashcardId).ToList();
-
-        var distractorsMap = quizIds.Any() ? await _unitOfWork.Practice.GetBatchDistractorsAsync(setId, quizIds, 3) : null;
-
-        var dto = CreateBaseDto(setId, batchSize, PracticeActivityType.Mixed);
-        foreach (var item in assignments)
+        // Ключ для кешування розподілу типів у Mixed режимі
+        string mixedTypesKey = $"mixed_types_{userId}_{setId}";
+        if (!_cache.TryGetValue(mixedTypesKey, out List<PracticeActivityType> assignedTypes))
         {
-            var card = MapToCardDto(item.Data, item.Type);
-            if (distractorsMap != null && distractorsMap.TryGetValue(card.Id, out var d))
-                card.Distractors = ShuffleDistractors(d, card.Definition);
+            int[] allowedModes = { 2, 4 };
+            assignedTypes = source.Select(_ => (PracticeActivityType)allowedModes[_random.Next(allowedModes.Length)]).ToList();
+            _cache.Set(mixedTypesKey, assignedTypes, TimeSpan.FromMinutes(30));
+        }
 
+        var dto = CreateBaseDto(setId, source.Count, PracticeActivityType.Mixed);
+
+        for (int i = 0; i < source.Count; i++)
+        {
+            var card = MapToCardDto(source[i], assignedTypes[i]);
             dto.Flashcards.Add(card);
         }
+
+        var quizIds = dto.Flashcards.Where(c => c.CardType == PracticeActivityType.Quiz).Select(c => c.Id).ToList();
+        if (quizIds.Any())
+        {
+            var distractorsMap = await _unitOfWork.Practice.GetBatchDistractorsAsync(setId, quizIds, 3);
+            foreach (var card in dto.Flashcards.Where(c => c.CardType == PracticeActivityType.Quiz))
+            {
+                if (distractorsMap.TryGetValue(card.Id, out var d))
+                    card.Distractors = ShuffleDistractors(d, card.Definition);
+            }
+        }
+
         return dto;
-    }
-
-    // --- Helpers ---
-
-    private (List<CardProgress> Selected, int BatchSize) ExtractBatch(List<CardProgress> source)
-    {
-        int size = CalculateOptimalBatchSize(source.Count);
-        int take = (source.Count / size) * size;
-        return (source.Take(take).ToList(), size);
     }
 
     private List<string> ShuffleDistractors(List<string> distractors, string correct)
     {
-        distractors.Add(correct);
-        return distractors.OrderBy(_ => _random.Next()).ToList();
+        var list = distractors.ToList();
+        if (!list.Contains(correct)) list.Add(correct);
+        return list.OrderBy(_ => _random.Next()).ToList();
     }
 
     private PracticeSessionDTO CreateBaseDto(int setId, int batchSize, PracticeActivityType type) => new()
@@ -102,30 +133,25 @@ public class SessionService : ISessionService
         Flashcards = new()
     };
 
-    private FlashcardPracticeDTO MapToCardDto(CardProgress cp, PracticeActivityType type) => new()
+    private FlashcardPracticeDTO MapToCardDto(CardProgress cp, PracticeActivityType type)
     {
-        Id = cp.FlashcardId,
-        Term = cp.Flashcard.Term,
-        Definition = cp.Flashcard.Definition,
-        CardType = type
-    };
+        return new FlashcardPracticeDTO
+        {
+            Id = cp.FlashcardId,
+            Term = cp.Flashcard.Term,
+            Definition = cp.Flashcard.Definition,
+            CardType = type
+        };
+    }
 
-    private int CalculateOptimalBatchSize(int total) => total switch
-    {
-        <= 5 => total,
-        _ when total % 5 == 0 => 5,
-        _ when total % 4 == 0 => 4,
-        _ when total % 3 == 0 => 3,
-        _ => 4
-    };
+    private int CalculateOptimalBatchSize(int total) => total > 0 ? (total <= 5 ? total : 5) : 0;
 
     private PracticeActivityType DetermineMode(float progress) => progress switch
     {
-        < 0.10f => PracticeActivityType.Review,
-        < 0.30f => PracticeActivityType.Quiz,
-        < 0.50f => PracticeActivityType.Matching,
-        < 0.70f => PracticeActivityType.Writing,
-        < 0.90f => PracticeActivityType.Context,
+        < PracticeActivityLimit.ReviewLimit => PracticeActivityType.Review,
+        < PracticeActivityLimit.QuizLimit => PracticeActivityType.Quiz,
+        < PracticeActivityLimit.MatchingLimit => PracticeActivityType.Matching,
+        < PracticeActivityLimit.WritingLimit => PracticeActivityType.Writing,
         _ => PracticeActivityType.Mixed
     };
 }

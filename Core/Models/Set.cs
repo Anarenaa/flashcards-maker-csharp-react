@@ -2,8 +2,16 @@
 
 namespace Core.Models
 {
+    public enum SetType
+    {
+        Language,
+        Subject
+    }
     public class Set : BaseModel
     {
+        public SetType Type { get; set; } = SetType.Language;
+        public string? FromLang { get; set; }
+        public string? ToLang { get; set; }
 
         [Required]
         [StringLength(100, MinimumLength = 2)]
@@ -11,7 +19,7 @@ namespace Core.Models
         [StringLength(500)]
         public string? Description { get; set; }
         public bool IsPublic { get; set; } = true;
-        public bool IsAccessible { get; set; } = true;
+        public bool IsGenerated { get; set; } = false;
 
         public int UserId { get; set; }
         public User User { get; set; }

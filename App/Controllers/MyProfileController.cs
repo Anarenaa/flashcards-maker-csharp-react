@@ -1,9 +1,10 @@
-﻿using CloudinaryDotNet.Actions;
-using Core.Models;
+﻿using Core.Models;
 using Microsoft.AspNetCore.Authorization;
+using Services.Practice;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using System.Security.Claims;
 
 namespace App.Controllers
 {
@@ -11,18 +12,37 @@ namespace App.Controllers
     {
         private readonly UserService _userService;
         private readonly UserManager<User> _userManager;
-        public MyProfileController(UserService userService, UserManager<User> userManager)
+        private readonly IProgressService _progressService;
+
+        public MyProfileController(UserService userService, UserManager<User> userManager, IProgressService progressService)
         {
             _userService = userService;
             _userManager = userManager;
+            _progressService = progressService;
         }
 
         [HttpGet]
         [Authorize(Roles = "User")]
         public async Task<IActionResult> Index()
         {
-            var userDto = await _userService.GetMyPrivateProfileAsync(UserId);
-            return View(userDto);
+            int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
+            var userProfile = await _userService.GetMyPrivateProfileAsync(userId);
+            var progress = await _progressService.GetUserProgressAsync(userId);
+
+            // Отримуємо актуальний статус приватності
+            ViewBag.IsPrivate = await _userService.IsProfilePrivate(userId);
+            ViewBag.UserProgress = progress;
+
+            return View(userProfile);
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "User")]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> TogglePublicity()
+        {
+            await _userService.SwitchProfilePublicity(UserId);
+            return RedirectToAction(nameof(Index));
         }
 
         [HttpPost]
@@ -39,10 +59,9 @@ namespace App.Controllers
             {
                 TempData["Error"] = ex.Message;
             }
-
             return RedirectToAction(nameof(Index));
         }
-      
+
         [HttpGet("MyProfile/UserProfile/{username}")]
         [Authorize]
         public async Task<IActionResult> UserProfile(string username)
@@ -51,6 +70,11 @@ namespace App.Controllers
             {
                 var user = await _userManager.FindByNameAsync(username);
                 if (user == null) return NotFound();
+
+                // Перевіряємо приватність
+                bool isPrivate = await _userService.IsProfilePrivate(user.Id);
+                ViewBag.IsPrivate = isPrivate;
+
                 var publicProfile = await _userService.GetUserProfileAsync(user.Id);
 
                 return View(publicProfile);

@@ -1,6 +1,7 @@
-using App.Models;
-using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
+using App.Models;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 
 namespace App.Controllers
 {
@@ -22,9 +23,27 @@ namespace App.Controllers
             return View();
         }
 
-        public IActionResult Privacy()
+        [AllowAnonymous]
+        [HttpGet]
+        public IActionResult ServiceUnavailable()
         {
-            return View();
+            return View("/Views/Shareds/ServiceUnavailable.cshtml");
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("Home/NotFoundPage/{id?}")]
+        public IActionResult NotFoundPage(int? id)
+        {
+            return View("/Views/Shareds/NotFoundPage.cshtml");
+        }
+
+        [AllowAnonymous]
+        [HttpGet]
+        [Route("access-denied")]
+        public IActionResult AccessDenied()
+        {
+            return View("/Views/Shareds/AccessDenied.cshtml");
         }
 
         [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
@@ -32,6 +51,5 @@ namespace App.Controllers
         {
             return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
         }
-        
     }
 }

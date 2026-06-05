@@ -1,6 +1,7 @@
 ﻿using Core.DTOs;
 using Core.Models;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
 using Services;
@@ -19,17 +20,17 @@ namespace App.Controllers
         private readonly CollectionService _collectionService;
         private readonly CategoryService _categoryService;
         private readonly IUnitOfWork _unitOfWork;
-
-        public MainController(
-            SetService setService,
-            CollectionService collectionService,
-            CategoryService categoryService,
-            IUnitOfWork unitOfWork)
+        private readonly UserService _userService;
+        private readonly UserManager<User> _userManager;
+        public MainController(SetService setService,CollectionService collectionService,CategoryService categoryService,
+            IUnitOfWork unitOfWork, UserService userService, UserManager<User> userManager)
         {
             _setService = setService;
             _collectionService = collectionService;
             _categoryService = categoryService;
             _unitOfWork = unitOfWork;
+            _userService = userService;
+            _userManager = userManager;
         }
         public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
         {
@@ -51,8 +52,22 @@ namespace App.Controllers
                 _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
             };
 
-            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
+         
+            var authorNames = sets.Select(s => s.UserName).Distinct();
+            var avatarMap = new Dictionary<string, string>();
+            foreach (var name in authorNames)
+            {
+                var user = await _userManager.FindByNameAsync(name);
+                if (user != null)
+                {
+                    var profile = await _userService.GetUserProfileAsync(user.Id);
+                    avatarMap[name] = profile.AvatarUrl;
+                }
+            }
+            ViewBag.AuthorAvatars = avatarMap;
+        
 
+            ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentCategory"] = categoryId;
             ViewData["CurrentSort"] = sortOrder;
@@ -64,7 +79,6 @@ namespace App.Controllers
 
             return View(sets);
         }
-
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)

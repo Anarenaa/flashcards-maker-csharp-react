@@ -4,6 +4,7 @@
 @{
     ViewData["Title"] = "Головна";
     var currentUserName = User.Identity?.Name;
+    var authorAvatars = ViewBag.AuthorAvatars as Dictionary<string, string>;
 }
 
 <style>
@@ -130,10 +131,69 @@
                 background-color: #6B8789;
             }
 
-        .dropdown .btn-report-red:hover {
-            background-color: rgba(255, 100, 100, 0.2);
-            color: #ff8080;
+    .author-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 12px;
+    }
+
+    .author-avatar-mini {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+        border: 1.5px solid var(--accent-color);
+        flex-shrink: 0;
+    }
+
+        .author-avatar-mini img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
+
+        .author-avatar-mini span {
+            font-size: 16px;
+            color: #333;
+        }
+
+    .author-name {
+        font-size: 0.75rem;
+        opacity: 0.6;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-footer {
+        margin-top: auto;
+        padding-top: 15px;
+        border-top: 1px solid rgba(240, 255, 255, 0.05);
+    }
+
+    .date-info {
+        font-size: 0.7rem;
+        opacity: 0.4;
+        display: flex;
+        justify-content: space-between;
+    }
+
+    .my-set-tag {
+        position: absolute;
+        top: -10px;
+        right: 15px;
+        background: var(--accent-color);
+        color: #141B25;
+        padding: 2px 8px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: bold;
+    }
 
     .modal-overlay {
         position: fixed;
@@ -170,38 +230,6 @@
             width: 100%;
             font-family: inherit;
         }
-
-    .card-footer {
-        margin-top: auto;
-        padding-top: 15px;
-        border-top: 1px solid rgba(240, 255, 255, 0.05);
-    }
-
-    .date-info {
-        font-size: 0.7rem;
-        opacity: 0.4;
-        display: flex;
-        justify-content: space-between;
-    }
-
-    .author-name {
-        font-size: 0.75rem;
-        opacity: 0.5;
-        margin-bottom: 10px;
-        display: block;
-    }
-
-    .my-set-tag {
-        position: absolute;
-        top: -10px;
-        right: 15px;
-        background: var(--accent-color);
-        color: #141B25;
-        padding: 2px 8px;
-        border-radius: 4px;
-        font-size: 0.7rem;
-        font-weight: bold;
-    }
 </style>
 
 <div class="content-area">
@@ -247,7 +275,7 @@
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
 
                 <div class="dropdown" onclick="event.stopPropagation()">
-                    <button type="button" onclick="location.href='@Url.Action("UserProfile", "MyProfile", new { id = set.UserName })'">
+                    <button type="button" onclick="location.href='@Url.Action("UserProfile", "MyProfile", new { username = set.UserName })'">
                         Переглянути акаунт
                     </button>
 
@@ -267,7 +295,24 @@
                 {
                     <div class="my-set-tag">МІЙ СЕТ</div>
                 }
-                <span class="author-name">@(isMine ? "Ви створили" : $"Автор: {set.UserName}")</span>
+
+                <div class="author-wrapper">
+                    <div class="author-avatar-mini">
+                        @{
+                            string avatarUrl = null;
+                            authorAvatars?.TryGetValue(set.UserName, out avatarUrl);
+                        }
+                        @if (!string.IsNullOrEmpty(avatarUrl))
+                        {
+                            <img src="@avatarUrl" alt="avatar" />
+                        }
+                        else
+                        {
+                            <span>👤</span>
+                        }
+                    </div>
+                    <span class="author-name">@(isMine ? "Ви створили" : $"Автор: {set.UserName}")</span>
+                </div>
 
                 <h3 style="margin: 0 0 8px 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.9rem; margin: 0; flex-grow: 1;">@set.Description</p>
@@ -380,7 +425,7 @@
             if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
         };
 
-        // Анімація карток
+       
         document.querySelectorAll('.set-card').forEach((card, index) => {
             card.style.opacity = '0';
             card.style.transform = 'translateY(20px)';

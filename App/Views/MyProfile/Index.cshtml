@@ -1,8 +1,11 @@
 ﻿@using Core.DTOs
+@using Core.DTOs.Practice
 @model PrivateUserDTO
 
 @{
     ViewData["Title"] = "Мій профіль";
+    var progress = ViewBag.UserProgress as UserProgressDTO;
+    bool isPrivate = ViewBag.IsPrivate ?? false;
 }
 
 <style>
@@ -12,7 +15,6 @@
         position: relative;
     }
 
-    /* --- ВЕРХНЯ ПАНЕЛЬ (ІНТЕРАКТИВНА) --- */
     .profile-header {
         display: flex;
         align-items: center;
@@ -25,7 +27,6 @@
         gap: 40px;
     }
 
-    /* Аватар */
     .avatar-wrapper {
         position: relative;
         cursor: pointer;
@@ -114,8 +115,24 @@
         font-weight: bold;
         width: 250px;
         outline: none;
-        display: none; 
+        display: none;
     }
+
+    .privacy-toggle-btn {
+        background: rgba(255,255,255,0.05);
+        border: 1px solid var(--btn-border);
+        color: var(--text-color);
+        padding: 5px 12px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        cursor: pointer;
+        transition: 0.3s;
+    }
+
+        .privacy-toggle-btn:hover {
+            border-color: var(--accent-color);
+            background: rgba(255,255,255,0.1);
+        }
 
     .floating-save-btn {
         position: fixed;
@@ -139,7 +156,6 @@
             background: white;
         }
 
-    /* СТАТИСТИКА */
     .stats-grid {
         display: grid;
         grid-template-columns: repeat(3, 1fr);
@@ -166,21 +182,6 @@
         color: var(--accent-color);
     }
 
-    .edit-link-top {
-        position: absolute;
-        top: 40px;
-        right: 40px;
-        color: var(--accent-color);
-        text-decoration: none;
-        font-size: 0.9rem;
-        opacity: 0.7;
-    }
-
-        .edit-link-top:hover {
-            opacity: 1;
-            text-decoration: underline;
-        }
-
     @@media (max-width: 850px) {
         .stats-grid {
             grid-template-columns: 1fr 1fr;
@@ -202,7 +203,6 @@
             @Html.AntiForgeryToken()
 
             <div class="profile-header">
-                <!-- КЛІКАБЕЛЬНИЙ АВАТАР -->
                 <div class="avatar-wrapper" onclick="document.getElementById('avatarFileInput').click()">
                     <div class="profile-avatar">
                         @if (!string.IsNullOrEmpty(Model.AvatarUrl))
@@ -218,7 +218,6 @@
                     <input type="file" id="avatarFileInput" name="avatarFile" hidden accept="image/*" onchange="handleImageChange(this)" />
                 </div>
 
-                <!-- ІНФОРМАЦІЯ ПОСЕРЕДИНІ -->
                 <div class="profile-main-info">
                     <div class="info-row">
                         <span class="label-small">Нікнейм:</span>
@@ -226,22 +225,29 @@
                         <input type="text" id="userNameInput" name="userName" class="inline-input" value="@Model.UserName" oninput="toggleSaveBtn(true)" />
                     </div>
                     <div class="info-row">
-                        <span class="label-small">Email:</span>
-                        <span class="info-value" style="font-size: 1.1rem; opacity: 0.8;">@Model.Email</span>
+                        <span class="label-small">Приватність:</span>
+                        <span style="font-size: 0.9rem; opacity: 0.8;">
+                            @(ViewBag.IsPrivate == true ? "🔒 Приватний" : "🌐 Публічний")
+                        </span>
+                   
+                        <button type="submit" form="togglePrivacyForm" class="privacy-toggle-btn" style="margin-left:10px;">
+                            Змінити статус
+                        </button>
                     </div>
-                    <div class="info-row">
-                        <span class="label-small">Реєстрація:</span>
-                        <span class="info-value" style="font-size: 1rem; opacity: 0.6;">@Model.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
-                    </div>
-                </div>
 
+                    <form id="togglePrivacyForm" asp-action="TogglePublicity" method="post" style="display:none;">
+                        @Html.AntiForgeryToken()
+                    </form>
+                </div>
             </div>
 
-            <!-- ПЛАВАЮЧА КНОПКА ЗБЕРЕЖЕННЯ -->
             <button type="submit" id="saveChangesBtn" class="floating-save-btn">Зберегти зміни</button>
         </form>
 
-        <!-- СІТКА СТАТИСТИКИ (РЕАЛЬНІ ДАНІ) -->
+        <form id="togglePrivacyForm" asp-action="TogglePublicity" method="post" style="display:none;">
+            @Html.AntiForgeryToken()
+        </form>
+
         <div class="stats-grid">
             <div class="stat-card">
                 <span class="label-small">Кількість ваших сетів</span>
@@ -255,13 +261,15 @@
                 <span class="label-small">Кількість ваших карток</span>
                 <div class="stat-number">@Model.FlashcardsCount</div>
             </div>
+
             <div class="stat-card">
                 <span class="label-small">Кількість пройдених тестів</span>
-                <div class="stat-number">0</div>
+                <div class="stat-number">@(progress?.TotalPracticeSessions ?? 0)</div>
             </div>
+
             <div class="stat-card" style="grid-column: span 2;">
                 <span class="label-small">Вивчено карток</span>
-                <div class="stat-number">0</div>
+                <div class="stat-number">@(progress?.MasteredCards ?? 0)</div>
             </div>
         </div>
 

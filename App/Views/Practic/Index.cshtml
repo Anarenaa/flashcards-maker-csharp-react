@@ -1,0 +1,515 @@
+﻿@using Core.DTOs.Practice
+@model PracticeSessionDTO
+
+<style>
+    :root {
+        --success-color: #28a745;
+        --error-color: #dc3545;
+        --practice-gradient: linear-gradient(135deg, #6e8efb, #a777e3);
+        --accent-color: #6e8efb;
+    }
+
+    .practice-page {
+        max-width: 900px;
+        margin: 40px auto;
+        text-align: center;
+        perspective: 1000px;
+        position: relative;
+    }
+
+    .progress-container {
+        width: 100%;
+        height: 12px;
+        background: rgba(255,255,255,0.05);
+        border-radius: 20px;
+        margin-bottom: 25px;
+        overflow: hidden;
+        border: 1px solid rgba(255,255,255,0.1);
+    }
+
+    .p-bar-fill {
+        height: 100%;
+        background: var(--practice-gradient);
+        width: 0%;
+        transition: 0.6s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+    }
+
+    #card-counter {
+        opacity: 0.5;
+        margin-bottom: 15px;
+        font-size: 0.9rem;
+    }
+
+    .flashcard {
+        width: 100%;
+        height: 420px;
+        cursor: pointer;
+        position: relative;
+        transform-style: preserve-3d;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        margin-bottom: 30px;
+    }
+
+        .flashcard.is-flipped {
+            transform: rotateY(180deg);
+        }
+
+    .card-face {
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        padding: 40px;
+        border-radius: 30px;
+        border: 2px solid rgba(255,255,255,0.1);
+        background: rgba(255,255,255,0.03);
+        backdrop-filter: blur(20px);
+        box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+    }
+
+    .card-back {
+        transform: rotateY(180deg);
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .term-text {
+        font-size: 2.8rem;
+        font-weight: 800;
+        color: var(--accent-color);
+        margin-bottom: 20px;
+    }
+
+    .def-text {
+        font-size: 1.5rem;
+        color: #fff;
+        line-height: 1.4;
+    }
+
+    .matching-wrapper {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 25px;
+        margin-top: 40px;
+    }
+
+    .matching-column {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .matching-item {
+        background: rgba(255, 255, 255, 0.05);
+        border: 2px solid rgba(255,255,255,0.1);
+        color: #fff;
+        padding: 18px;
+        border-radius: 15px;
+        cursor: pointer;
+        min-height: 70px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        user-select: none;
+    }
+
+        .matching-item.selected {
+            border-color: var(--accent-color);
+            background: rgba(110, 142, 251, 0.2);
+        }
+
+        .matching-item.correct-flash {
+            background: var(--success-color) !important;
+            border-color: var(--success-color) !important;
+        }
+
+        .matching-item.wrong-flash {
+            background: var(--error-color) !important;
+            border-color: var(--error-color) !important;
+            animation: shake 0.4s ease;
+        }
+
+        .matching-item.matched-hidden {
+            opacity: 0;
+            transform: scale(0.9);
+            pointer-events: none;
+            transition: 0.5s;
+        }
+
+    @@keyframes shake {
+        0%, 100% {
+            transform: translateX(0);
+        }
+
+        25% {
+            transform: translateX(-5px);
+        }
+
+        75% {
+            transform: translateX(5px);
+        }
+    }
+
+    .btn-practice-main {
+        background: var(--practice-gradient);
+        color: white;
+        border: none;
+        padding: 18px 35px;
+        border-radius: 20px;
+        font-weight: 800;
+        cursor: pointer;
+        text-transform: uppercase;
+    }
+
+    .btn-practice-outline {
+        background: transparent;
+        border: 2px solid rgba(255,255,255,0.1);
+        color: white;
+        padding: 16px 30px;
+        border-radius: 20px;
+        cursor: pointer;
+    }
+
+    .summary-card {
+        background: rgba(255,255,255,0.05);
+        padding: 60px 40px;
+        border-radius: 40px;
+        display: none;
+        backdrop-filter: blur(20px);
+    }
+
+    .instruction-text {
+        margin-top: 30px;
+        font-size: 1.2rem;
+        opacity: 0.6;
+        font-weight: 500;
+        color: #fff;
+    }
+
+    .btn-exit {
+        background: none;
+        border: none;
+        color: white;
+        opacity: 0.6;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 1rem;
+        transition: 0.3s;
+    }
+
+        .btn-exit:hover {
+            opacity: 1;
+        }
+</style>
+
+<div class="practice-page">
+    <div class="exit-container" style="position: absolute; top: -45px; left: 0;">
+        <button onclick="exitPractice()" class="btn-exit">
+            <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24"><path d="M15 19l-7-7 7-7"></path></svg>
+            До мапи
+        </button>
+    </div>
+
+    <div id="topPanel">
+        <div class="progress-container"><div id="p-bar" class="p-bar-fill"></div></div>
+        <div id="card-counter">0 / 0</div>
+    </div>
+
+    <div id="resumeZone" class="summary-card">
+        <div style="font-size: 60px; margin-bottom: 20px;">📂</div>
+        <h2>Знайдено збережений прогрес</h2>
+        <p style="opacity: 0.7; margin-bottom: 35px;">Бажаєте продовжити з того місця, де зупинилися?</p>
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin: 0 auto;">
+            <button onclick="handleResume()" class="btn-practice-main">Продовжити</button>
+            <button onclick="handleStartNew(null)" class="btn-practice-outline">Почати спочатку</button>
+        </div>
+    </div>
+
+    <div id="standardZone" style="display:none">
+        <div class="flashcard" id="mainCard">
+            <div class="card-face card-front"><div id="frontText" class="term-text"></div><div id="quizOptions" style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-top: 20px; width: 100%;"></div></div>
+            <div class="card-face card-back"><div id="backText" class="def-text"></div></div>
+        </div>
+    </div>
+
+    <div id="matchingZone" class="matching-wrapper" style="display: none;"></div>
+
+    <div id="inputZone" style="display: none; background: rgba(255,255,255,0.03); padding: 50px; border-radius: 30px;">
+        <div id="writingPrompt" class="term-text"></div>
+        <input type="text" id="simpleInput" autocomplete="off" style="width: 100%; background: rgba(255,255,255,0.05); border: 2px solid rgba(255,255,255,0.1); border-radius: 15px; padding: 18px; color: white; font-size: 1.4rem; text-align: center;" placeholder="Введіть переклад...">
+        <div id="inputFeedback" style="display:none; margin-top:15px; color:var(--error-color);">Правильно: <span id="correctVal" style="color:white;"></span></div>
+    </div>
+
+    <div id="summaryZone" class="summary-card">
+        <div style="font-size: 60px; margin-bottom: 20px;">🎉</div>
+        <h2 id="finalTitle">Завершено!</h2>
+        <p id="summaryStat" style="opacity: 0.7; margin-bottom: 35px;"></p>
+        <div style="display: flex; flex-direction: column; gap: 15px; max-width: 350px; margin: 0 auto;">
+            <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-practice-main" style="background: #e74c3c; display: none;">Виправити помилки</button>
+            <button onclick="handleStartNew(null)" class="btn-practice-main">Пройти весь набір</button>
+            <button onclick="exitPractice()" class="btn-practice-outline">До мапи</button>
+        </div>
+    </div>
+
+    <div id="instructionText" class="instruction-text"></div>
+
+    <div class="navigation-zone" id="navZone" style="display: none; justify-content: center; gap: 40px; margin-top: 30px;">
+        <button class="btn-circle" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.1); color:white; border:none; cursor:pointer;" onclick="prevCard()">←</button>
+        <button class="btn-circle" style="width:60px; height:60px; border-radius:50%; background:rgba(255,255,255,0.1); color:white; border:none; cursor:pointer;" onclick="nextManual()">→</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const rawData = @Json.Serialize(Model.Flashcards);
+        const setId = @Model.SetId;
+        const globalMode = @((int)Model.SelectedActivity);
+        const BATCH_LIMIT = 5;
+        const STORAGE_KEY = `practice_v2_${setId}_${globalMode}`;
+
+        let taskQueue = [];
+        let currentIndex = 0;
+        let resultsData = { Results: [], IsTrainingMode: false, SetId: setId };
+        let wrongIds = new Set();
+        let isFinished = false;
+
+        const instructions = {
+            1: "Переверніть картку, щоб запам'ятати",
+            2: "Оберіть правильний варіант",
+            3: "Знайдіть пари слів",
+            4: "Напишіть відповідь"
+        };
+
+        const getVal = (obj, prop) => obj[prop.charAt(0).toLowerCase() + prop.slice(1)] || obj[prop];
+        function shuffle(arr) { return [...arr].sort(() => Math.random() - 0.5); }
+
+        function saveProgress() {
+            if (isFinished || resultsData.IsTrainingMode) return;
+            const state = { currentIndex, taskQueue, results: resultsData.Results, wrongIds: Array.from(wrongIds) };
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+        }
+
+        function init() {
+            if (localStorage.getItem(STORAGE_KEY)) {
+                ['standardZone', 'matchingZone', 'inputZone', 'navZone', 'topPanel', 'instructionText'].forEach(id => document.getElementById(id).style.display = 'none');
+                document.getElementById('resumeZone').style.display = 'block';
+            } else {
+                handleStartNew(null);
+            }
+        }
+
+        function handleResume() {
+            const data = JSON.parse(localStorage.getItem(STORAGE_KEY));
+            taskQueue = data.taskQueue;
+            currentIndex = data.currentIndex;
+            resultsData.Results = data.results;
+            wrongIds = new Set(data.wrongIds);
+            document.getElementById('resumeZone').style.display = 'none';
+            render();
+        }
+
+        function handleStartNew(specificCards) {
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('resumeZone').style.display = 'none';
+            isFinished = false;
+            currentIndex = 0;
+            wrongIds.clear();
+            resultsData.Results = [];
+            resultsData.IsTrainingMode = specificCards !== null;
+
+            const cards = specificCards || JSON.parse(JSON.stringify(rawData));
+            let tempTasks = [];
+
+            if (globalMode === 5 && specificCards !== null) {
+                cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c })); // для неправильних карток
+                taskQueue = shuffle(tempTasks);
+            }
+            else if (globalMode === 5 && specificCards === null) {
+                cards.forEach(c => {
+                    const serverMode = getVal(c, 'CardType') || getVal(c, 'AssignedMode');
+                    tempTasks.push({
+                        assignedMode: serverMode || 2,
+                        card: c
+                    });
+                });
+                taskQueue = shuffle(tempTasks);
+            }
+            else if (globalMode === 3) {
+                let matchPool = shuffle([...cards]);
+                for (let i = 0; i < matchPool.length; i += BATCH_LIMIT) {
+                    tempTasks.push({ assignedMode: 3, batch: matchPool.slice(i, i + BATCH_LIMIT) });
+                }
+                taskQueue = tempTasks;
+            }
+            else {
+                taskQueue = shuffle(cards).map(c => ({ assignedMode: globalMode || 1, card: c }));
+            }
+            render();
+        }
+
+        function render() {
+            if (currentIndex >= taskQueue.length) { finish(); return; }
+            const task = taskQueue[currentIndex];
+            const mode = task.assignedMode;
+
+            ['standardZone', 'matchingZone', 'inputZone', 'navZone', 'summaryZone', 'resumeZone'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById('topPanel').style.display = 'block';
+            document.getElementById('instructionText').style.display = 'block';
+
+            document.getElementById('card-counter').innerText = `${currentIndex + 1} / ${taskQueue.length}`;
+            document.getElementById('p-bar').style.width = `${(currentIndex / taskQueue.length) * 100}%`;
+            document.getElementById('instructionText').innerText = instructions[mode] || "";
+
+            if (mode === 3) renderMatching(task.batch);
+            else if (mode === 4) renderWriting(task.card);
+            else if (mode === 2) renderQuiz(task.card);
+            else renderReview(task.card);
+
+            saveProgress();
+        }
+
+        function renderMatching(batch) {
+            const zone = document.getElementById('matchingZone');
+            zone.innerHTML = ''; zone.style.display = 'grid';
+            let sT = null, sD = null, matches = 0;
+            const terms = shuffle(batch.map(c => ({ id: getVal(c, 'Id'), text: getVal(c, 'Term'), type: 't' })));
+            const defs = shuffle(batch.map(c => ({ id: getVal(c, 'Id'), text: getVal(c, 'Definition'), type: 'd' })));
+            const leftCol = document.createElement('div'); leftCol.className = 'matching-column';
+            const rightCol = document.createElement('div'); rightCol.className = 'matching-column';
+
+            const createItem = (item) => {
+                const div = document.createElement('div');
+                div.className = 'matching-item'; div.innerText = item.text; div.dataset.id = item.id;
+                div.onclick = () => {
+                    if (div.classList.contains('matched-hidden') || div.classList.contains('correct-flash')) return;
+                    if (item.type === 't') { if(sT) sT.classList.remove('selected'); sT = div; }
+                    else { if(sD) sD.classList.remove('selected'); sD = div; }
+                    div.classList.add('selected');
+                    if (sT && sD) {
+                        if (sT.dataset.id === sD.dataset.id) {
+                            sT.className = 'matching-item correct-flash'; sD.className = 'matching-item correct-flash';
+                            saveStep(parseInt(sT.dataset.id), true, 3); matches++;
+                            let t = sT, d = sD; sT = null; sD = null;
+                            setTimeout(() => {
+                                t.classList.add('matched-hidden'); d.classList.add('matched-hidden');
+                                if (matches === batch.length) { nextManual(); }
+                            }, 500);
+                        } else {
+                            sT.className = 'matching-item wrong-flash'; sD.className = 'matching-item wrong-flash';
+                            wrongIds.add(parseInt(sT.dataset.id));
+                            let t = sT, d = sD; sT = null; sD = null;
+                            setTimeout(() => { t.classList.remove('wrong-flash', 'selected'); d.classList.remove('wrong-flash', 'selected'); }, 600);
+                        }
+                    }
+                };
+                return div;
+            };
+            terms.forEach(t => leftCol.appendChild(createItem(t)));
+            defs.forEach(d => rightCol.appendChild(createItem(d)));
+            zone.appendChild(leftCol); zone.appendChild(rightCol);
+        }
+
+        function renderQuiz(card) {
+            document.getElementById('standardZone').style.display = 'block';
+            const optsBox = document.getElementById('quizOptions');
+            optsBox.innerHTML = ''; optsBox.style.display = 'grid';
+            document.getElementById('frontText').innerText = getVal(card, 'Term');
+            const correct = getVal(card, 'Definition');
+            let options = shuffle([correct, ...shuffle(rawData.filter(c => getVal(c, 'Id') !== getVal(card, 'Id')).map(c => getVal(c, 'Definition'))).slice(0, 3)]);
+            options.forEach(opt => {
+                const btn = document.createElement('button');
+                btn.className = 'btn-practice-outline'; btn.innerText = opt;
+                btn.onclick = () => {
+                    const isCorrect = opt === correct;
+                    btn.style.background = isCorrect ? 'var(--success-color)' : 'var(--error-color)';
+                    if(!isCorrect) wrongIds.add(getVal(card, 'Id'));
+                    saveStep(getVal(card, 'Id'), isCorrect, 2);
+                    setTimeout(nextManual, 600);
+                };
+                optsBox.appendChild(btn);
+            });
+        }
+
+        function renderWriting(card) {
+            document.getElementById('inputZone').style.display = 'block';
+            const input = document.getElementById('simpleInput');
+            document.getElementById('inputFeedback').style.display = 'none';
+            input.value = ''; input.disabled = false; input.style.borderColor = '';
+            document.getElementById('writingPrompt').innerText = getVal(card, 'Definition');
+            input.focus();
+            input.onkeypress = (e) => {
+                if (e.key === 'Enter') {
+                    const isCorrect = input.value.trim().toLowerCase() === getVal(card, 'Term').toLowerCase();
+                    input.disabled = true;
+                    input.style.borderColor = isCorrect ? 'var(--success-color)' : 'var(--error-color)';
+                    saveStep(getVal(card, 'Id'), isCorrect, 4);
+                    if (!isCorrect) {
+                        wrongIds.add(getVal(card, 'Id'));
+                        document.getElementById('correctVal').innerText = getVal(card, 'Term');
+                        document.getElementById('inputFeedback').style.display = 'block';
+                        setTimeout(nextManual, 1500);
+                    } else setTimeout(nextManual, 600);
+                }
+            };
+        }
+
+        function renderReview(card) {
+            document.getElementById('standardZone').style.display = 'block';
+            document.getElementById('navZone').style.display = 'flex';
+            document.getElementById('quizOptions').style.display = 'none';
+            const cardEl = document.getElementById('mainCard');
+            cardEl.classList.remove('is-flipped');
+            document.getElementById('frontText').innerText = getVal(card, 'Term');
+            document.getElementById('backText').innerText = getVal(card, 'Definition');
+            cardEl.onclick = () => { cardEl.classList.toggle('is-flipped'); saveStep(getVal(card, 'Id'), true, 1); };
+        }
+
+        function saveStep(id, correct, mode) {
+            resultsData.Results.push({ FlashcardId: id, IsCorrect: correct, ReviewType: mode });
+        }
+
+        function nextManual() { currentIndex++; render(); }
+        function prevCard() { if (currentIndex > 0) { currentIndex--; render(); } }
+
+        function exitPractice() {
+            if (isFinished) location.href = `/Test/Map/${setId}`;
+            else if (confirm("Вийти? Прогрес сесії збережено.")) location.href = `/Test/Map/${setId}`;
+        }
+
+        async function finish() {
+            isFinished = true;
+            localStorage.removeItem(STORAGE_KEY);
+            document.getElementById('p-bar').style.width = '100%';
+            document.getElementById('topPanel').style.display = 'none';
+            document.getElementById('instructionText').style.display = 'none';
+            ['standardZone', 'matchingZone', 'inputZone', 'navZone'].forEach(id => document.getElementById(id).style.display = 'none');
+            document.getElementById('summaryZone').style.display = 'block';
+
+            document.getElementById('summaryStat').innerText = resultsData.IsTrainingMode ? "Роботу над помилками завершено!" : `Помилок: ${wrongIds.size}`;
+
+            if (wrongIds.size > 0 && !resultsData.IsTrainingMode) {
+                document.getElementById('retryWrongBtn').style.display = 'block';
+            } else {
+                document.getElementById('retryWrongBtn').style.display = 'none';
+            }
+
+            if (!resultsData.IsTrainingMode) {
+                await fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resultsData) });
+            }
+        }
+
+        function retryIncorrect() {
+            const failedCards = rawData.filter(c => wrongIds.has(getVal(c, 'Id')));
+            handleStartNew(failedCards);
+        }
+
+        init();
+    </script>
+}

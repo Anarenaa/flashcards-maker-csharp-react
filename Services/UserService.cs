@@ -298,8 +298,7 @@ namespace Services
                 await DeleteOldAvatarAsync(user.AvatarUrl);
             }
 
-            await _unitOfWork.Sets.DeleteUnusedUserSetsAsync(user.Id);
-            await _unitOfWork.Sets.UnableSetsWithoutUserInCollections();
+            await _unitOfWork.Sets.DeleteUserSets(user.Id);
             await _unitOfWork.Reports.DeleteUserReports(user.Id);
 
             var result = await _userManager.DeleteAsync(user);
@@ -337,8 +336,10 @@ namespace Services
                 AvatarUrl = user.AvatarUrl,
                 UserName = user.UserName,
                 Email = user.Email,
+                IsPublic = user.IsPublic,//аналогічно
                 SetsCount = await _unitOfWork.Sets.GetUserSetsCount(userId),
                 FlashcardsCount = await _unitOfWork.Flashcards.GetUserFlashcardsCount(userId),
+                CollectionsCount = await _unitOfWork.Collections.GetUserCollectionsCount(userId),//бо не показує кількість колекцій
                 CreatedAt = user.CreatedAt,
                 Sets = sets.Select(s => new SetDTO
                     {

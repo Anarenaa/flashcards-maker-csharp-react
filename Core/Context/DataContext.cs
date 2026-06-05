@@ -45,7 +45,7 @@ namespace Core.Context
                 .HasOne(s => s.User)
                 .WithMany(u => u.Sets)
                 .HasForeignKey(s => s.UserId)
-                .OnDelete(DeleteBehavior.SetNull);
+                .OnDelete(DeleteBehavior.NoAction);
             modelBuilder.Entity<Report>()
                 .HasOne(r => r.Reporter)
                 .WithMany() 

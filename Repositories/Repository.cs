@@ -1,5 +1,4 @@
-﻿using System.Linq;
-using System.Linq.Expressions;
+﻿using System.Linq.Expressions;
 using Core.Context;
 using Core.Models;
 using Microsoft.EntityFrameworkCore;
@@ -50,9 +49,17 @@ namespace Repositories
         {
             await _dbSet.AddAsync(entity);
         }
+        public async Task AddRangeAsync(IEnumerable<T> entities)
+        {
+            await _dbSet.AddRangeAsync(entities);
+        }
         public void Delete(T entity)
         {
             _dbSet.Remove(entity);
+        }
+        public void DeleteRange(IEnumerable<T> entities)
+        {
+            _dbSet.RemoveRange(entities);
         }
     }
 }
