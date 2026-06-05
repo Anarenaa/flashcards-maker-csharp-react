@@ -27,9 +27,9 @@ namespace App.Controllers
         {
             int userId = int.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier));
             var userProfile = await _userService.GetMyPrivateProfileAsync(userId);
+
             var progress = await _progressService.GetUserProgressAsync(userId);
 
-            // Отримуємо актуальний статус приватності
             ViewBag.IsPrivate = await _userService.IsProfilePrivate(userId);
             ViewBag.UserProgress = progress;
 
@@ -71,11 +71,13 @@ namespace App.Controllers
                 var user = await _userManager.FindByNameAsync(username);
                 if (user == null) return NotFound();
 
-                // Перевіряємо приватність
                 bool isPrivate = await _userService.IsProfilePrivate(user.Id);
                 ViewBag.IsPrivate = isPrivate;
 
                 var publicProfile = await _userService.GetUserProfileAsync(user.Id);
+
+                var progress = await _progressService.GetUserProgressAsync(user.Id);
+                ViewBag.UserProgress = progress;
 
                 return View(publicProfile);
             }
