@@ -9,7 +9,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace Core.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialPostgresFinal : Migration
+    public partial class Init : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -209,10 +209,13 @@ namespace Core.Migrations
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Type = table.Column<int>(type: "integer", nullable: false),
+                    FromLang = table.Column<string>(type: "text", nullable: true),
+                    ToLang = table.Column<string>(type: "text", nullable: true),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: true),
                     IsPublic = table.Column<bool>(type: "boolean", nullable: false),
-                    IsAccessible = table.Column<bool>(type: "boolean", nullable: false),
+                    IsGenerated = table.Column<bool>(type: "boolean", nullable: false),
                     UserId = table.Column<int>(type: "integer", nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'"),
                     UpdatedAt = table.Column<DateTime>(type: "timestamp without time zone", nullable: false, defaultValueSql: "now() at time zone 'utc'")
@@ -224,8 +227,7 @@ namespace Core.Migrations
                         name: "FK_Sets_AspNetUsers_UserId",
                         column: x => x.UserId,
                         principalTable: "AspNetUsers",
-                        principalColumn: "Id",
-                        onDelete: ReferentialAction.SetNull);
+                        principalColumn: "Id");
                 });
 
             migrationBuilder.CreateTable(
@@ -413,12 +415,12 @@ namespace Core.Migrations
 
             migrationBuilder.InsertData(
                 table: "Sets",
-                columns: new[] { "Id", "CreatedAt", "Description", "IsAccessible", "IsPublic", "Name", "UpdatedAt", "UserId" },
+                columns: new[] { "Id", "CreatedAt", "Description", "FromLang", "IsGenerated", "IsPublic", "Name", "ToLang", "Type", "UpdatedAt", "UserId" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), "English vocabulary", true, true, "Fruits", new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), 1 },
-                    { 2, new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified), "Math test preparation set", true, false, "Math", new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Unspecified), 2 },
-                    { 3, new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified), "Всесвітня історія: революції різних років", true, true, "Роки революцій", new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Unspecified), 2 }
+                    { 1, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), "English vocabulary", null, false, true, "Fruits", null, 0, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), 1 },
+                    { 2, new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified), "Math test preparation set", null, false, false, "Math", null, 0, new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Unspecified), 2 },
+                    { 3, new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified), "Всесвітня історія: революції різних років", null, false, true, "Роки революцій", null, 0, new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Unspecified), 2 }
                 });
 
             migrationBuilder.InsertData(

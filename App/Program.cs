@@ -310,21 +310,6 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<DataContext>();
-        context.Database.CanConnect();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogCritical(ex, "Критична помилка: База даних недоступна при старті!");
-    }
-}
-
 app.Use(async (context, next) =>
 {
     try
