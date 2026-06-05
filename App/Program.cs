@@ -236,9 +236,15 @@ builder.Services.AddAuthentication(options =>
                     context.Response.Cookies.Delete("AuthToken");
                 }
             }
-            catch (DbException)
+            catch (DbException ex)
             {
-                // Замінено на базовий DbException для підтримки Postgres
+                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerEvents>>();
+                logger.LogError(ex, "Database error during token validation for user.");
+
+                context.Fail("Authentication failed due to a database error.");
+
+                context.Response.Cookies.Delete("AuthToken");
+                context.Response.Redirect("/Home/ServiceUnavailable");
             }
         },
         OnChallenge = context =>
@@ -309,7 +315,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Дозволяємо додатку правильно зчитувати HTTPS заголовки від проксі-сервера Render
+// Зчитування HTTPS заголовків від проксі-сервера Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
@@ -327,7 +333,7 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = 404;
         context.Response.Redirect($"/Home/NotFoundPage/404");
     }
-    catch (DbException) // Замінено на універсальний DbException для Postgres
+    catch (DbException)
     {
         if (!context.Request.Path.Value!.StartsWith("/api/"))
         {
