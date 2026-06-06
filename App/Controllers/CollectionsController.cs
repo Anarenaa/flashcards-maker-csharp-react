@@ -23,7 +23,6 @@ namespace App.Controllers
             _unitOfWork = unitOfWork;
         }
 
-        // 1. Список колекцій
         public async Task<IActionResult> Index()
         {
             var collections = (await _collectionService.GetCollectionsByUserIdAsync(UserId)).ToList();
@@ -31,24 +30,31 @@ namespace App.Controllers
             return View(collections);
         }
 
-        // 2. Деталі колекції
         public async Task<IActionResult> Details(int id)
         {
             if (id <= 0) return RedirectToAction(nameof(Index));
 
-            // Видаляємо загальний try-catch, щоб побачити реальну помилку в консолі, якщо вона буде
             var collectionDetail = await _collectionService.GetCollectionByIdAsync(id);
 
             if (collectionDetail == null)
             {
-                return NotFound(); // Або RedirectToAction(nameof(Index))
+                return NotFound();
             }
 
-            // Переконайся, що повертаєш саме ОДИН об'єкт, а не список
+            var progressData = await _setService.GetSetsWithProgress(UserId, null, null);
+
+            foreach (var set in collectionDetail.Sets)
+            {
+                var p = progressData.FirstOrDefault(x => x.Id == set.Id);
+                if (p != null)
+                {
+                    set.OverallProgress = p.OverallProgress;
+                }
+            }
+
             return View(collectionDetail);
         }
 
-        // 3. Створення
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Create(CollectionDTO collectionDto)
@@ -60,7 +66,6 @@ namespace App.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 4. НОВИЙ МЕТОД: Редагування (Update)
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Update(CollectionDTO collectionDto)
@@ -72,7 +77,6 @@ namespace App.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 5. Видалення
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Delete(int id)
@@ -81,7 +85,6 @@ namespace App.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // 6. Видалення сету з папки
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> RemoveSet(int setId, int collectionId)
