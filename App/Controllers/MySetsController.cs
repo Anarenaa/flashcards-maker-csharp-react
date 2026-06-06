@@ -15,10 +15,9 @@ public class MySetsController(
     FlashcardService flashcardService,
     IPracticeService practiceService) : BaseController
 {
-    public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
+    public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest", string filter = "all")
     {
         List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
-
         var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
 
         foreach (var set in sets)
@@ -26,10 +25,17 @@ public class MySetsController(
             if (set.Id.HasValue)
             {
                 var progressInfo = await practiceService.GetSetProgressAsync(set.Id.Value, UserId);
-
                 set.Progress = (int)Math.Round(progressInfo.OverallProgress * 100);
             }
         }
+
+        sets = filter switch
+        {
+            "notstarted" => sets.Where(s => s.Progress == 0).ToList(), 
+            "inprogress" => sets.Where(s => s.Progress > 0 && s.Progress < 100).ToList(), 
+            "finished" => sets.Where(s => s.Progress == 100).ToList(), 
+            _ => sets.ToList() 
+        };
 
         sets = sortOrder switch
         {
@@ -38,13 +44,13 @@ public class MySetsController(
             _ => sets.OrderByDescending(s => s.CreatedAt).ToList()
         };
 
-        // 4. Дані для фільтрів та навігації
         ViewBag.Categories = await categoryService.GetAllCategoriesAsync();
         ViewBag.UserCollections = await collectionService.GetCollectionsByUserIdAsync(UserId);
 
         ViewData["CurrentFilter"] = searchText;
         ViewData["CurrentCategory"] = categoryId;
         ViewData["CurrentSort"] = sortOrder;
+        ViewData["ActiveTab"] = filter;
 
         return View(sets);
     }

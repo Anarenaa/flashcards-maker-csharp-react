@@ -4,14 +4,56 @@
 
 @{
     ViewData["Title"] = "Мої сети";
+    var activeTab = ViewData["ActiveTab"]?.ToString() ?? "all";
 }
 
 <style>
+   
+    .tabs-nav {
+        display: flex;
+        gap: 35px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        margin-bottom: 25px;
+        padding-left: 5px;
+    }
+
+    .tab-item {
+        color: #818375;
+        text-decoration: none;
+        font-weight: 600;
+        padding: 15px 0;
+        font-size: 0.95rem;
+        position: relative;
+        transition: 0.3s ease;
+        background: none;
+        border: none;
+        cursor: pointer;
+    }
+
+        .tab-item:hover {
+            color: white;
+        }
+
+        .tab-item.active {
+            color: white;
+        }
+
+            .tab-item.active::after {
+                content: '';
+                position: absolute;
+                bottom: -1px;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: var(--accent-color);
+                box-shadow: 0 -2px 12px var(--accent-color);
+            }
+
     .search-container {
         display: flex;
         gap: 15px;
         margin-bottom: 30px;
-        background: rgba(255, 255, 255, 0.03);
+        background: rgba(255, 255, 255, 0.02);
         padding: 15px;
         border-radius: 12px;
         border: 1px solid var(--btn-border);
@@ -69,7 +111,7 @@
         border: 1px solid var(--btn-border);
         border-radius: 12px;
         padding: 25px;
-        min-height: 220px; 
+        min-height: 230px;
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -85,7 +127,7 @@
         }
 
     .progress-mini-area {
-        margin: 12px 0;
+        margin: 15px 0;
     }
 
     .progress-mini-label {
@@ -94,19 +136,18 @@
         font-size: 0.65rem;
         color: white;
         opacity: 0.5;
-        margin-bottom: 4px;
+        margin-bottom: 5px;
     }
 
     .progress-mini-track {
         height: 5px;
-        background: rgba(255, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.08);
         border-radius: 10px;
         overflow: hidden;
     }
 
     .progress-mini-fill {
         height: 100%;
-        /* Градієнт як у тебе в тестах */
         background: linear-gradient(135deg, #6e8efb, #a777e3);
         transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
@@ -122,11 +163,11 @@
     .card-footer {
         margin-top: auto;
         padding-top: 10px;
-        border-top: 1px solid rgba(240, 255, 255, 0.05);
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
     }
 
     .sets-count-badge {
-        background: rgba(240, 255, 255, 0.1);
+        background: rgba(255, 255, 255, 0.05);
         color: var(--accent-color);
         padding: 2px 8px;
         border-radius: 6px;
@@ -135,12 +176,12 @@
         width: fit-content;
     }
 
-    .date-info {
-        font-size: 0.65rem;
-        opacity: 0.4;
+    .date-stack {
         display: flex;
-        justify-content: space-between;
-        margin-top: 8px;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.65rem;
+        opacity: 0.6;
         color: white;
     }
 
@@ -273,15 +314,6 @@
         margin-bottom: 5px;
     }
 
-    .date-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        font-size: 0.65rem;
-        opacity: 0.6;
-        color: white;
-    }
-
     .modal-footer {
         display: flex;
         justify-content: space-between;
@@ -368,8 +400,24 @@
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
+
+    <div class="tabs-nav">
+        <a href="@Url.Action("Index", new { filter = "all", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+           class="tab-item @(activeTab == "all" ? "active" : "")">Усі сети</a>
+
+        <a href="@Url.Action("Index", new { filter = "notstarted", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+           class="tab-item @(activeTab == "notstarted" ? "active" : "")">Не початі</a>
+
+        <a href="@Url.Action("Index", new { filter = "inprogress", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+           class="tab-item @(activeTab == "inprogress" ? "active" : "")">В процесі</a>
+
+        <a href="@Url.Action("Index", new { filter = "finished", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+           class="tab-item @(activeTab == "finished" ? "active" : "")">Вивчені</a>
+    </div>
+
     <div class="search-container">
         <form asp-controller="MySets" asp-action="Index" method="get" class="search-bar-form">
+            <input type="hidden" name="filter" value="@activeTab" />
             <input type="text" name="searchText" placeholder="Шукати сети..." value="@ViewData["CurrentFilter"]" />
 
             <select name="categoryId" class="sort-select" onchange="this.form.submit()">
@@ -401,6 +449,7 @@
         {
             <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
+
                 <div class="dropdown" onclick="event.stopPropagation()">
                     <button type="button" onclick="openEditModal(event, @set.Id, '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)', '@set.FromLang', '@set.ToLang')">Редагувати</button>
                     <form asp-action="Delete" method="post">
@@ -415,7 +464,7 @@
 
                 <div class="progress-mini-area">
                     <div class="progress-mini-label">
-                        <span>Прогрес</span>
+                        <span>Прогрес вивчення</span>
                         <span>@set.Progress%</span>
                     </div>
                     <div class="progress-mini-track">
@@ -424,21 +473,19 @@
                 </div>
 
                 <div class="card-footer">
-
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <span class="sets-count-badge">@set.FlashcardsCount карток</span>
                         <span style="
-                font-size:0.65rem;
-                opacity:0.6;
-                padding:2px 6px;
-                border-radius:6px;
-                border:1px solid rgba(255,255,255,0.1);
-                    color:@(set.IsPublic ? "#9C9F57" : "#ff8080");
-                white-space:nowrap;">
+                                font-size:0.65rem;
+                                opacity:0.6;
+                                padding:2px 6px;
+                                border-radius:6px;
+                                border:1px solid rgba(255,255,255,0.1);
+                                color:@(set.IsPublic ? "#9C9F57" : "#ff8080");
+                                white-space:nowrap;">
                             @(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")
                         </span>
                     </div>
-
 
                     <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div class="date-stack">
@@ -566,13 +613,9 @@
             const promptValue = document.getElementById('setDescField').value;
             const btn = document.getElementById('btnAi');
             const fileInput = document.getElementById('fileInput');
-
             if (!promptValue) return alert("Вкажіть тему для ШІ!");
-
             btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span>';
-
             const isLang = document.getElementById('setTypeField').value === "0";
-
             const formData = new FormData();
             formData.append("Name", document.getElementById('setNameField').value);
             formData.append("Description", promptValue);
@@ -581,15 +624,10 @@
             formData.append("FromLang", isLang ? document.getElementById('learnLangList').value : "");
             formData.append("ToLang", isLang ? document.getElementById('nativeLangList').value : "");
             formData.append("Count", document.getElementById('aiCount').value);
-
-            if (fileInput.files[0]) {
-                formData.append("ImageFile", fileInput.files[0]);
-            }
-
+            if (fileInput.files[0]) formData.append("ImageFile", fileInput.files[0]);
             try {
                 const response = await fetch('/api/generate-cards', { method: 'POST', body: formData });
                 if (!response.ok) throw new Error(await response.text());
-
                 tempGeneratedCards = await response.json();
                 renderPreview();
             } catch (e) { alert("Помилка ШІ: " + e.message); }
@@ -610,14 +648,11 @@
         async function saveSet() {
             const id = document.getElementById('setIdField').value;
             const name = document.getElementById('setNameField').value;
-
             if (!name) return alert("Введіть назву сету!");
-
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
             const isLang = document.getElementById('setTypeField').value === "0";
             const isEditing = id && id !== "";
             const hasGenerated = tempGeneratedCards.length > 0;
-
             if (hasGenerated && !isEditing) {
                 const payload = {
                     setDto: {
@@ -630,27 +665,19 @@
                     },
                     cards: tempGeneratedCards
                 };
-
                 try {
                     const response = await fetch('/api/save-generated-set', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
                         body: JSON.stringify(payload)
                     });
-
                     if (response.ok) {
                         const result = await response.json();
                         window.location.href = `/MySets/Details/${result.id}`;
-                    } else {
-                        alert("Помилка: " + await response.text());
-                    }
-                } catch (e) {
-                    console.log(e);
-                    alert("Сервер недоступний.");
-                }
+                    } else alert("Помилка: " + await response.text());
+                } catch (e) { alert("Сервер недоступний."); }
                 return;
             }
-
             const formData = new FormData();
             formData.append("Name", name);
             formData.append("Description", document.getElementById('setDescField').value);
@@ -658,30 +685,13 @@
             formData.append("IsPublic", document.getElementById('setPublicField').checked);
             formData.append("FromLang", isLang ? document.getElementById('learnLangList').value : "");
             formData.append("ToLang", isLang ? document.getElementById('nativeLangList').value : "");
-
             let url = "/MySets/Create";
-            if (isEditing) {
-                url = "/MySets/Edit";
-                formData.append("id", id);
-            }
-
+            if (isEditing) { url = "/MySets/Edit"; formData.append("id", id); }
             try {
-                const response = await fetch(url, {
-                    method: 'POST',
-                    headers: { 'RequestVerificationToken': token },
-                    body: formData
-                });
-
-                if (response.redirected) {
-                    window.location.href = response.url;
-                } else {
-                    const err = await response.text();
-                    alert("Помилка: " + err);
-                }
-            } catch (e) {
-                console.log(e);
-                alert("Сервер недоступний.");
-            }
+                const response = await fetch(url, { method: 'POST', headers: { 'RequestVerificationToken': token }, body: formData });
+                if (response.redirected) window.location.href = response.url;
+                else alert("Помилка: " + await response.text());
+            } catch (e) { alert("Сервер недоступний."); }
         }
 
         function toggleMenu(e) { e.stopPropagation(); document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); e.currentTarget.nextElementSibling.style.display = 'flex'; }
