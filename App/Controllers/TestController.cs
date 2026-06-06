@@ -24,7 +24,6 @@ namespace App.Controllers
             ViewBag.SetId = setId;
             ViewBag.CurrentProgress = progress.OverallProgress;
 
-            // Передаємо контекст навігації
             ViewBag.Source = source;
             ViewBag.CollectionId = collectionId;
             ViewBag.IsOwner = set.UserId == UserId;
