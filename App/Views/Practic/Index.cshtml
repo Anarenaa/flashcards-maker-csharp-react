@@ -359,14 +359,18 @@
             const cards = specificCards || JSON.parse(JSON.stringify(rawData));
             let tempTasks = [];
 
-            if (globalMode === 5) {
-        
-                cards.forEach(c => tempTasks.push({ assignedMode: 2, card: c }));
+            if (globalMode === 5 && specificCards !== null) {
                 cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
-                let matchPool = shuffle([...cards]);
-                for (let i = 0; i < matchPool.length; i += 5) {
-                    tempTasks.push({ assignedMode: 3, batch: matchPool.slice(i, i + 5) });
-                }
+                taskQueue = shuffle(tempTasks);
+            }
+            else if (globalMode === 5 && specificCards === null) {
+                cards.forEach(c => {
+                    const serverMode = getVal(c, 'CardType') || getVal(c, 'AssignedMode');
+                    tempTasks.push({
+                        assignedMode: serverMode || 2,
+                        card: c
+                    });
+                });
                 taskQueue = shuffle(tempTasks);
             } else if (globalMode === 3) {
                 for (let i = 0; i < cards.length; i += 5) tempTasks.push({ assignedMode: 3, batch: cards.slice(i, i + 5) });
@@ -502,27 +506,26 @@
             document.getElementById('summaryStat').innerText = `Помилок: ${wrongIds.size}`;
 
             const exitBtn = document.getElementById('exitBtn');
-            const oldText = exitBtn.innerText;
-            exitBtn.innerText = "Збереження прогресу...";
             exitBtn.disabled = true;
 
-            if (wrongIds.size > 0 && !resultsData.IsTrainingMode) document.getElementById('retryWrongBtn').style.display = 'block';
-
-            if (!resultsData.IsTrainingMode) {
-              
-                try {
-                    await fetch('/Test/SaveResults', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify(resultsData)
-                    });
-                    exitBtn.innerText = "Готово! До мапи";
-                } catch (e) {
-                    exitBtn.innerText = "Помилка збереження. До мапи";
-                }
+            const retryBtn = document.getElementById('retryWrongBtn');
+            if (wrongIds.size > 0 && !resultsData.IsTrainingMode) {
+                retryBtn.style.display = 'block';
             } else {
-                exitBtn.innerText = "До мапи";
+                retryBtn.style.display = 'none';
             }
+
+            try {
+                await fetch('/Test/SaveResults', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(resultsData)
+                });
+                exitBtn.innerText = "Готово! До мапи";
+            } catch (e) {
+                exitBtn.innerText = "Помилка збереження. До мапи";
+            }
+
             exitBtn.disabled = false;
         }
 
