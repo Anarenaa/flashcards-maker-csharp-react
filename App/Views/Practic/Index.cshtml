@@ -36,7 +36,7 @@
         height: 100%;
         background: var(--practice-gradient);
         width: 0%;
-        transition: 0.4s ease-out;
+        transition: 0.5s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
     #card-counter {
@@ -242,12 +242,6 @@
         align-items: center;
         justify-content: center;
     }
-
-        .btn-nav-arrow:hover {
-            border-color: var(--accent-color);
-            transform: scale(1.1);
-            background: rgba(255,255,255,0.1);
-        }
 </style>
 
 <div class="practice-page">
@@ -265,7 +259,7 @@
 
     <div id="resumeZone" class="summary-card">
         <div style="font-size: 60px; margin-bottom: 20px;">📂</div>
-        <h2>Збережений прогрес</h2>
+        <h2>Знайдено збережений прогрес</h2>
         <p style="opacity: 0.7; margin-bottom: 35px;">Продовжити навчання з місця зупинки?</p>
         <div style="display: flex; flex-direction: column; gap: 10px; align-items: center;">
             <button onclick="handleResume()" class="btn-practice-main">Продовжити</button>
@@ -298,7 +292,7 @@
         <div style="display: flex; flex-direction: column; gap: 15px; align-items: center;">
             <button onclick="retryIncorrect()" id="retryWrongBtn" class="btn-practice-main" style="background: #e74c3c; display: none;">Виправити помилки</button>
             <button onclick="handleStartNew(null)" class="btn-practice-main">Пройти весь набір</button>
-            <button onclick="exitPractice()" class="btn-practice-outline">До мапи</button>
+            <button onclick="exitPractice()" id="exitBtn" class="btn-practice-outline">До мапи</button>
         </div>
     </div>
 
@@ -366,6 +360,7 @@
             let tempTasks = [];
 
             if (globalMode === 5) {
+        
                 cards.forEach(c => tempTasks.push({ assignedMode: 2, card: c }));
                 cards.forEach(c => tempTasks.push({ assignedMode: 4, card: c }));
                 let matchPool = shuffle([...cards]);
@@ -485,8 +480,8 @@
         }
 
         function saveStep(id, correct, mode) {
-            let finalMode = globalMode === 5 ? 5 : mode;
-            resultsData.Results.push({ FlashcardId: id, IsCorrect: correct, ReviewType: finalMode });
+            const finalReviewType = globalMode === 5 ? 5 : mode;
+            resultsData.Results.push({ FlashcardId: id, IsCorrect: correct, ReviewType: finalReviewType });
         }
 
         function nextManual() { currentIndex++; render(); }
@@ -499,16 +494,36 @@
         }
 
         async function finish() {
-            isFinished = true; localStorage.removeItem(STORAGE_KEY);
+            isFinished = true;
+            localStorage.removeItem(STORAGE_KEY);
             document.getElementById('p-bar').style.width = '100%';
             ['standardZone', 'matchingZone', 'inputZone', 'topPanel', 'instructionText', 'navZone'].forEach(id => document.getElementById(id).style.display = 'none');
             document.getElementById('summaryZone').style.display = 'block';
             document.getElementById('summaryStat').innerText = `Помилок: ${wrongIds.size}`;
+
+            const exitBtn = document.getElementById('exitBtn');
+            const oldText = exitBtn.innerText;
+            exitBtn.innerText = "Збереження прогресу...";
+            exitBtn.disabled = true;
+
             if (wrongIds.size > 0 && !resultsData.IsTrainingMode) document.getElementById('retryWrongBtn').style.display = 'block';
 
             if (!resultsData.IsTrainingMode) {
-                fetch('/Test/SaveResults', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(resultsData) });
+              
+                try {
+                    await fetch('/Test/SaveResults', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(resultsData)
+                    });
+                    exitBtn.innerText = "Готово! До мапи";
+                } catch (e) {
+                    exitBtn.innerText = "Помилка збереження. До мапи";
+                }
+            } else {
+                exitBtn.innerText = "До мапи";
             }
+            exitBtn.disabled = false;
         }
 
         function retryIncorrect() {
