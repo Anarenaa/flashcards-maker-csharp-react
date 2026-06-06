@@ -5,16 +5,39 @@
     ViewData["Title"] = "Перегляд карток - " + Model.Name;
     bool isOwner = ViewBag.IsOwner ?? false;
 
-    // Перевіряємо, чи прийшли ми з колекції
-    var collectionId = Context.Request.Query["collectionId"];
-    bool fromCollection = !string.IsNullOrEmpty(collectionId);
+    // ВИЗНАЧЕННЯ ШЛЯХУ НАЗАД
+    var collId = Context.Request.Query["collectionId"].ToString();
+    var source = Context.Request.Query["source"].ToString();
+
+    string backUrl;
+    string backText;
+
+    if (!string.IsNullOrEmpty(collId))
+    {
+        backUrl = Url.Action("Details", "Collections", new { id = collId });
+        backText = "Назад до колекції";
+    }
+    else if (source == "main")
+    {
+        backUrl = Url.Action("Index", "Main");
+        backText = "Назад до пошуку";
+    }
+    else if (isOwner)
+    {
+        backUrl = Url.Action("Index", "MySets");
+        backText = "Назад до моїх сетів";
+    }
+    else
+    {
+        backUrl = Url.Action("Index", "Main");
+        backText = "Назад до головної";
+    }
 }
 
 <style>
-    /* --- ОСНОВНІ СТИЛІ --- */
+
     .back-link {
         color: var(--accent-color);
-        cursor: pointer;
         display: inline-flex;
         align-items: center;
         gap: 8px;
@@ -23,11 +46,11 @@
         text-decoration: none;
         transition: 0.3s;
         font-size: 0.9rem;
-        /* Стилізація кнопки під посилання */
         background: none;
         border: none;
         padding: 0;
         font-family: inherit;
+        cursor: pointer;
     }
 
         .back-link:hover {
@@ -43,7 +66,6 @@
         gap: 20px;
     }
 
-    /* --- КОНТЕЙНЕР ДЛЯ КНОПКИ ПРАКТИКИ --- */
     .practice-sticky-container {
         position: fixed;
         top: 30px;
@@ -51,7 +73,6 @@
         z-index: 100;
     }
 
-    /* --- КНОПКА ПРАКТИКИ (СТИЛЬ ЯК У САЙДБАРІ) --- */
     .btn-practice {
         display: inline-flex;
         align-items: center;
@@ -79,7 +100,6 @@
             color: var(--accent-color);
         }
 
-    /* --- КАТЕГОРІЇ --- */
     .categories-list {
         display: flex;
         flex-wrap: wrap;
@@ -113,7 +133,6 @@
         padding: 0;
     }
 
-    /* --- СІТКА КАРТОК --- */
     .cards-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
@@ -224,28 +243,20 @@
 </style>
 
 <div class="content-area">
-    @* КНОПКА НАЗАД З РОЗУМНОЮ ЛОГІКОЮ *@
-    <button onclick="history.back()" class="back-link">
+
+    <a href="@backUrl" class="back-link">
         <svg width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
             <path d="M19 12H5M12 19l-7-7 7-7"></path>
         </svg>
-        @if (fromCollection)
-        {
-            <text>Назад до колекції</text>
-        }
-        else if (isOwner)
-        {
-            <text>Назад до моїх сетів</text>
-        }
-        else
-        {
-            <text>Назад до головної</text>
-        }
-    </button>
+        @backText
+    </a>
 
-    <!-- ПЛАВАЮЧА КНОПКА ПРАКТИКИ -->
     <div class="practice-sticky-container">
-        <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
+        <a asp-controller="Test" asp-action="Map"
+           asp-route-setId="@Model.Id"
+           asp-route-collectionId="@collId"
+           asp-route-source="@source"
+           class="btn-practice">
             <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></svg>
             Практикувати
         </a>

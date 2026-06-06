@@ -4,6 +4,29 @@
 
 @{
     ViewData["Title"] = "Редактор карток - " + Model.Name;
+
+    // ВИЗНАЧЕННЯ ШЛЯХУ НАЗАД
+    var collId = Context.Request.Query["collectionId"].ToString();
+    var source = Context.Request.Query["source"].ToString();
+
+    string backUrl;
+    string backText;
+
+    if (!string.IsNullOrEmpty(collId))
+    {
+        backUrl = Url.Action("Details", "Collections", new { id = collId });
+        backText = "Назад до колекції";
+    }
+    else if (source == "main")
+    {
+        backUrl = Url.Action("Index", "Main");
+        backText = "Назад до пошуку";
+    }
+    else
+    {
+        backUrl = Url.Action("Index", "MySets");
+        backText = "Назад до моїх сетів";
+    }
 }
 
 <style>
@@ -18,8 +41,8 @@
         display: inline-flex;
         align-items: center;
         gap: 12px;
-        background-color: var(--btn-bg) !important; 
-        border: 1px solid var(--btn-border) !important; 
+        background-color: var(--btn-bg) !important;
+        border: 1px solid var(--btn-border) !important;
         color: white !important;
         padding: 12px 25px;
         border-radius: 10px;
@@ -32,7 +55,7 @@
     }
 
         .btn-practice:hover {
-            border-color: var(--accent-color) !important; 
+            border-color: var(--accent-color) !important;
             background-color: rgba(255, 255, 255, 0.05) !important;
             transform: translateY(-2px);
         }
@@ -97,12 +120,7 @@
         font-size: 1.1rem;
         padding: 0;
         line-height: 1;
-        transition: 0.2s;
     }
-
-        .remove-cat-btn:hover {
-            transform: scale(1.2);
-        }
 
     .cards-grid {
         display: grid;
@@ -257,11 +275,6 @@
         z-index: 10;
     }
 
-        .hint-btn:hover:not(:disabled) {
-            transform: scale(1.1) rotate(10deg);
-            box-shadow: 0 0 15px rgba(244, 162, 97, 0.5);
-        }
-
     .spinner-hint {
         width: 18px;
         height: 18px;
@@ -288,10 +301,6 @@
         transition: 0.3s;
     }
 
-        .btn-main:hover {
-            opacity: 0.9;
-        }
-
     @@media (max-width: 950px) {
         .practice-sticky-container {
             position: static;
@@ -308,14 +317,24 @@
 </style>
 
 <div class="practice-sticky-container">
-    <a asp-controller="Test" asp-action="Map" asp-route-setId="@Model.Id" class="btn-practice">
+    <a asp-controller="Test" asp-action="Map"
+       asp-route-setId="@Model.Id"
+       asp-route-collectionId="@collId"
+       asp-route-source="@source"
+       class="btn-practice">
         <svg width="20" height="20" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 14.5v-9l6 4.5-6 4.5z" /></svg>
         Практикувати
     </a>
 </div>
 
 <div class="content-area">
-    <a asp-controller="MySets" asp-action="Index" class="back-link">← Назад до моїх сетів</a>
+  
+    <a href="@backUrl" class="back-link">
+        <svg width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" viewBox="0 0 24 24">
+            <path d="M19 12H5M12 19l-7-7 7-7"></path>
+        </svg>
+        @backText
+    </a>
 
     <div class="header-row">
         <div>
@@ -369,25 +388,15 @@
         <form asp-action="SaveCard" method="post">
             <input type="hidden" name="setId" value="@Model.Id" />
             <input type="hidden" name="cardDto.Id" id="modalCardId" value="0" />
-
-            <div class="field-block">
-                <label>Питання (Термін)</label>
-                <input type="text" name="cardDto.Term" id="modalTerm" required oninput="validateHintBtn()">
-            </div>
-
+            <div class="field-block"><label>Питання (Термін)</label><input type="text" name="cardDto.Term" id="modalTerm" required oninput="validateHintBtn()"></div>
             <div class="field-block">
                 <label>Відповідь (Визначення)</label>
                 <div style="position: relative; width: 100%;">
                     <textarea name="cardDto.Definition" id="modalDefinition" rows="5" required style="padding-right: 50px; resize: none;"></textarea>
-
-                    <button type="button" id="hintBtn" class="hint-btn" onclick="askAI()" disabled title="ШІ підказка">
-                        <span id="hintIcon" style="font-size: 1.2rem;">💡</span>
-                        <div id="hintLoader" class="spinner-hint" style="display: none;"></div>
-                    </button>
+                    <button type="button" id="hintBtn" class="hint-btn" onclick="askAI()" disabled title="ШІ підказка"><span id="hintIcon" style="font-size: 1.2rem;">💡</span><div id="hintLoader" class="spinner-hint" style="display: none;"></div></button>
                 </div>
                 <div id="hintError" style="display: none; color: #ff8080; font-size: 0.75rem; margin-top: 8px; line-height: 1.2;"></div>
             </div>
-
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px; border-top: 1px solid #333; padding-top: 15px;">
                 <button type="button" onclick="closeCardModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
                 <button type="submit" class="btn-main">Зберегти</button>
@@ -401,21 +410,19 @@
         <form asp-action="SaveCategory" method="post">
             <h2 style="color: var(--accent-color); margin: 0 0 10px 0;">Додати категорію</h2>
             <input type="hidden" name="setId" value="@Model.Id" />
-
             <div class="field-block">
                 <label>Оберіть категорію зі списку</label>
                 <select name="selectedCategoryId" required>
                     <option value="">-- Оберіть --</option>
                     @if (ViewBag.AllCategories != null)
                     {
-                        @foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
+                        foreach (var cat in (IEnumerable<CategoryDTO>)ViewBag.AllCategories)
                         {
                             <option value="@cat.Id">@cat.Name</option>
                         }
                     }
                 </select>
             </div>
-
             <div style="display: flex; gap: 10px; justify-content: flex-end; margin-top: 15px;">
                 <button type="button" onclick="closeCategoryModal()" style="background:none; border:none; color:#818375; cursor:pointer;">Скасувати</button>
                 <button type="submit" class="btn-main">Додати</button>
@@ -443,13 +450,8 @@
         async function askAI() {
             const term = termInput.value.trim();
             if (!term) return;
-
-            hintBtn.disabled = true;
-            hIcon.style.display = 'none';
-            hLoader.style.display = 'block';
-            hError.style.display = 'none';
+            hintBtn.disabled = true; hIcon.style.display = 'none'; hLoader.style.display = 'block'; hError.style.display = 'none';
             defInput.value = "Шукає визначення...";
-
             try {
                 const url = `/api/get-hint?term=${term}&setType=@((int)Model.Type)&fromLang=@(Model.FromLang)&toLang=@(Model.ToLang)&uiLang=uk`;
                 const response = await fetch(url);
@@ -457,49 +459,23 @@
                 const data = await response.json();
                 defInput.value = data.text;
             } catch (e) {
-                defInput.value = "";
-                hError.style.display = 'block';
-                hError.innerText = "⚠️ Не вдалося знайти короткий опис.";
+                defInput.value = ""; hError.style.display = 'block'; hError.innerText = "⚠️ Не вдалося знайти короткий опис.";
             } finally {
-                hLoader.style.display = 'none';
-                hIcon.style.display = 'block';
-                validateHintBtn();
+                hLoader.style.display = 'none'; hIcon.style.display = 'block'; validateHintBtn();
             }
         }
 
-        function openCreateCardModal() {
-            document.getElementById('modalTitle').innerText = "Нова картка";
-            document.getElementById('modalCardId').value = "0";
-            termInput.value = ""; defInput.value = "";
-            hError.style.display = 'none'; validateHintBtn();
-            cardModal.style.display = 'flex';
-        }
-
-        function openEditCardModal(id, term, def) {
-            document.getElementById('modalTitle').innerText = "Редагувати картку";
-            document.getElementById('modalCardId').value = id;
-            termInput.value = term; defInput.value = def;
-            hError.style.display = 'none'; validateHintBtn();
-            cardModal.style.display = 'flex';
-        }
-
+        function openCreateCardModal() { document.getElementById('modalTitle').innerText = "Нова картка"; document.getElementById('modalCardId').value = "0"; termInput.value = ""; defInput.value = ""; hError.style.display = 'none'; validateHintBtn(); cardModal.style.display = 'flex'; }
+        function openEditCardModal(id, term, def) { document.getElementById('modalTitle').innerText = "Редагувати картка"; document.getElementById('modalCardId').value = id; termInput.value = term; defInput.value = def; hError.style.display = 'none'; validateHintBtn(); cardModal.style.display = 'flex'; }
         function closeCardModal() { cardModal.style.display = 'none'; }
         function openCategoryModal() { catModal.style.display = 'flex'; }
         function closeCategoryModal() { catModal.style.display = 'none'; }
-
-        function toggleMenu(e) {
-            e.stopPropagation();
-            const d = e.currentTarget.nextElementSibling;
-            document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; });
-            d.style.display = d.style.display === 'flex' ? 'none' : 'flex';
-        }
+        function toggleMenu(e) { e.stopPropagation(); const d = e.currentTarget.nextElementSibling; document.querySelectorAll('.dropdown').forEach(x => { if (x !== d) x.style.display = 'none'; }); d.style.display = d.style.display === 'flex' ? 'none' : 'flex'; }
 
         window.onclick = (e) => {
             if (e.target === cardModal) closeCardModal();
             if (e.target === catModal) closeCategoryModal();
-            if (!e.target.matches('.dots')) {
-                document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none');
-            }
+            if (!e.target.matches('.dots')) { document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); }
         };
     </script>
 }
