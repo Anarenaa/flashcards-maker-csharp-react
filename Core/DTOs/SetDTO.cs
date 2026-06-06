@@ -21,5 +21,6 @@ namespace Core.DTOs
         public int FlashcardsCount { get; set; } = 0;
         public DateTime CreatedAt { get; set; }
         public DateTime LastUpdatedAt { get; set; }
+        public int Progress { get; set; } = 0; // Одне поле для відсотків (ну сорі по іншому ніяк)
     }
 }

@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Interfaces;
 using System.Text.Json;
 
 namespace App.Controllers;
@@ -11,13 +12,24 @@ public class MySetsController(
     SetService setService,
     CollectionService collectionService,
     CategoryService categoryService,
-    FlashcardService flashcardService) : BaseController
+    FlashcardService flashcardService,
+    IPracticeService practiceService) : BaseController
 {
     public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
     {
         List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
 
         var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
+
+        foreach (var set in sets)
+        {
+            if (set.Id.HasValue)
+            {
+                var progressInfo = await practiceService.GetSetProgressAsync(set.Id.Value, UserId);
+
+                set.Progress = (int)Math.Round(progressInfo.OverallProgress * 100);
+            }
+        }
 
         sets = sortOrder switch
         {
@@ -26,6 +38,7 @@ public class MySetsController(
             _ => sets.OrderByDescending(s => s.CreatedAt).ToList()
         };
 
+        // 4. Дані для фільтрів та навігації
         ViewBag.Categories = await categoryService.GetAllCategoriesAsync();
         ViewBag.UserCollections = await collectionService.GetCollectionsByUserIdAsync(UserId);
 
@@ -43,7 +56,6 @@ public class MySetsController(
         if (ModelState.IsValid)
         {
             var createdSet = await setService.AddSetAsync(setDto, UserId);
-
             return RedirectToAction("Index", "Details", new { id = createdSet.Id });
         }
 
@@ -65,7 +77,6 @@ public class MySetsController(
         }
 
         await setService.UpdateSetAsync(id, setDto);
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -79,7 +90,6 @@ public class MySetsController(
         }
 
         await setService.DeleteSetAsync(id);
-
         return RedirectToAction(nameof(Index));
     }
 

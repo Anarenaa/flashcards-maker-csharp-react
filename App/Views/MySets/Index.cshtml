@@ -69,7 +69,7 @@
         border: 1px solid var(--btn-border);
         border-radius: 12px;
         padding: 25px;
-        min-height: 190px;
+        min-height: 220px; 
         display: flex;
         flex-direction: column;
         justify-content: flex-start;
@@ -83,6 +83,33 @@
             transform: translateY(-5px);
             box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
+
+    .progress-mini-area {
+        margin: 12px 0;
+    }
+
+    .progress-mini-label {
+        display: flex;
+        justify-content: space-between;
+        font-size: 0.65rem;
+        color: white;
+        opacity: 0.5;
+        margin-bottom: 4px;
+    }
+
+    .progress-mini-track {
+        height: 5px;
+        background: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+
+    .progress-mini-fill {
+        height: 100%;
+        /* Градієнт як у тебе в тестах */
+        background: linear-gradient(135deg, #6e8efb, #a777e3);
+        transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+    }
 
     .create-card {
         display: flex !important;
@@ -254,6 +281,7 @@
         opacity: 0.6;
         color: white;
     }
+
     .modal-footer {
         display: flex;
         justify-content: space-between;
@@ -385,23 +413,33 @@
                 <h3 style="margin: 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.85rem; margin: 5px 0; flex-grow: 1;">@set.Description</p>
 
+                <div class="progress-mini-area">
+                    <div class="progress-mini-label">
+                        <span>Прогрес</span>
+                        <span>@set.Progress%</span>
+                    </div>
+                    <div class="progress-mini-track">
+                        <div class="progress-mini-fill" style="width: @set.Progress%"></div>
+                    </div>
+                </div>
+
                 <div class="card-footer">
-                  
+
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
                         <span class="sets-count-badge">@set.FlashcardsCount карток</span>
                         <span style="
-            font-size:0.65rem;
-            opacity:0.6;
-            padding:2px 6px;
-            border-radius:6px;
-            border:1px solid rgba(255,255,255,0.1);
-                color:@(set.IsPublic ? "#9C9F57" : "#ff8080");
-            white-space:nowrap;">
+                font-size:0.65rem;
+                opacity:0.6;
+                padding:2px 6px;
+                border-radius:6px;
+                border:1px solid rgba(255,255,255,0.1);
+                    color:@(set.IsPublic ? "#9C9F57" : "#ff8080");
+                white-space:nowrap;">
                             @(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")
                         </span>
                     </div>
 
-                  
+
                     <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div class="date-stack">
                             <span>Оновлено: @set.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
