@@ -101,33 +101,46 @@ namespace Services
         }
         public async Task<List<SetWithProgressDTO>> GetSetsWithProgress(int userId, List<int>? categoryIds, string? searchText = null)
         {
-            var allUserProgress = await _unitOfWork.Practice.GetAllUserProgressAsync(userId);
+            var cardProgressList = await _unitOfWork.Practice.GetAllAsync(
+                filter: p => p.UserId == userId && p.Progress > 0f && p.Flashcard != null && p.Flashcard.Set != null,
+                includeProperties: "Flashcard.Set.User,Flashcard.Set.Categories"
+            );
 
-            var activeProgress = allUserProgress.Where(p => p.Progress > 0f && p.Flashcard?.Set != null).ToList();
+            if (!cardProgressList.Any()) return new List<SetWithProgressDTO>();
 
-            if (!activeProgress.Any()) return new List<SetWithProgressDTO>();
-
-            var setDtos = activeProgress
-                .GroupBy(p => p.Flashcard.Set)
-                .Where(g =>
-                    (categoryIds == null || !categoryIds.Any() || g.Key.Categories.Any(c => categoryIds.Contains(c.Id))) &&
-                    (string.IsNullOrEmpty(searchText) || g.Key.Name.Contains(searchText))
-                )
-                .Select(g => new SetWithProgressDTO
+            var setDtos = cardProgressList
+                .GroupBy(p => p.Flashcard.SetId)
+                .Select(g =>
                 {
-                    Id = g.Key.Id,
-                    Name = g.Key.Name,
-                    Description = g.Key.Description,
-                    Type = g.Key.Type,
-                    FromLang = g.Key.FromLang,
-                    ToLang = g.Key.ToLang,
-                    FlashcardsCount = g.Key.Flashcards?.Count ?? 0,
-                    IsPublic = g.Key.IsPublic,
-                    IsGenerated = g.Key.IsGenerated,
-                    CreatedAt = g.Key.CreatedAt,
-                    LastUpdatedAt = g.Key.UpdatedAt,
-                    OverallProgress = g.Average(p => p.Progress)
+                    var firstCard = g.First();
+                    var set = firstCard.Flashcard.Set;
+                    var user = set.User;
+
+                    return new SetWithProgressDTO
+                    {
+                        Id = set.Id,
+                        Name = set.Name,
+                        Description = set.Description,
+                        Type = set.Type,
+                        FromLang = set.FromLang,
+                        ToLang = set.ToLang,
+                        FlashcardsCount = set.Flashcards?.Count ?? 0,
+                        IsPublic = set.IsPublic,
+                        IsGenerated = set.IsGenerated,
+                        CreatedAt = set.CreatedAt,
+                        LastUpdatedAt = set.UpdatedAt,
+
+                        UserName = user?.UserName,
+                        AvatarUrl = user?.AvatarUrl,
+
+                        OverallProgress = g.Average(p => p.Progress)
+                    };
                 })
+                .Where(dto =>
+                    (categoryIds == null || !categoryIds.Any() ||
+                     cardProgressList.Any(p => p.Flashcard.SetId == dto.Id && p.Flashcard.Set.Categories.Any(c => categoryIds.Contains(c.Id)))) &&
+                    (string.IsNullOrEmpty(searchText) || dto.Name.Contains(searchText, StringComparison.OrdinalIgnoreCase))
+                )
                 .OrderBy(x => x.OverallProgress)
                 .ToList();
 

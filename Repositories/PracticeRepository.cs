@@ -1,4 +1,6 @@
-﻿using Core.Context;
+﻿using System.Linq;
+using System.Linq.Expressions;
+using Core.Context;
 using Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
@@ -15,7 +17,24 @@ namespace Repositories
             _context = context;
             _dbSet = _context.Set<CardProgress>();
         }
+        public async Task<IEnumerable<CardProgress>> GetAllAsync(
+            Expression<Func<CardProgress, bool>>? filter = null,
+            string includeProperties = "")
+        {
+            IQueryable<CardProgress> query = _dbSet;
 
+            foreach (var includeProperty in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
+            {
+                query = query.Include(includeProperty);
+            }
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.ToListAsync();
+        }
         public async Task<List<CardProgress>> GetNewBatchForPracticeAsync(int setId, int userId, int limit)
         {
             var allCardsInSet = await _context.Flashcards
