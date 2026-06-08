@@ -1,0 +1,223 @@
+:root {
+  --bg-color: #141B25;
+  --accent-purple: #2C1335;
+  --accent-color: #6B8789;
+  --square-color-2: rgb(129, 131, 117);
+  --text-color: #DEE4C7;
+}
+
+body {
+  background-color: var(--bg-color);
+  margin: 0;
+  color: var(--text-color);
+  font-family: system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  scroll-behavior: smooth;
+}
+
+.hero-viewport {
+  height: 100vh;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  background: radial-gradient(circle at center, var(--accent-purple) 0%, var(--bg-color) 70%);
+}
+
+.top-right-nav {
+  position: absolute;
+  top: 1.25em;
+  right: 1.25em;
+  display: flex;
+  gap: 0.65em;
+  z-index: 100;
+}
+
+.btn {
+  background-color: rgba(129, 131, 117, 0.2);
+  border: 1px solid var(--square-color-2);
+  color: var(--text-color);
+  padding: 0.8em 1.5em;
+  border-radius: 0.5em;
+  font-size: 1em;
+  transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+
+  @media (min-width: 769px){
+    &:hover {
+        background-color: var(--accent-color);
+        transform: translateY(-0.2em);
+        color: white;
+        box-shadow: 0 0.7em 1.4em rgba(0, 0, 0, 0.4);
+    }
+  }
+}
+
+.hero-content {
+  z-index: 50;
+  text-align: center;
+
+  h1 {
+    font-size: clamp(3rem, 10vw, 5.2rem);
+    margin: 0;
+    text-shadow: 0 0.3em 2em rgba(0, 0, 0, 0.7);
+    font-weight: 900;
+  }
+
+  p {
+    font-size: clamp(0.5rem, 4vw, 1.5rem);
+    opacity: 0.9;
+    margin-top: 0.7em;
+    font-weight: 300;
+  }
+
+  a {
+    display: inline-block;
+    padding: 1em 1.8em;
+    background: var(--accent-color);
+    color: white;
+    border: none; 
+    border-radius: 0.5em;
+  }
+}
+
+.scroll-down {
+  margin-top: 2.5em; // 40px
+  animation: bounce 2s infinite;
+}
+
+// КВАДРАТИ, ЩО ЛІТАЮТЬ
+.squares-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 10;
+}
+
+.square {
+  width: 35vh;
+  height: 18vh;
+  position: absolute;
+  left: -40vh;
+  top: 50%;
+  animation: waveMove 12s linear infinite;
+  filter: blur(2px);
+
+  &:nth-child(odd) { background-color: var(--accent-color); }
+  &:nth-child(even) { background-color: var(--square-color-2); }
+}
+
+// SASS ЦИКЛ ДЛЯ АНІМАЦІЇ КВАДРАТІВ
+@for $i from 1 through 15 {
+  .square:nth-child(#{$i}) {
+    opacity: 0.15 + ($i % 4) * 0.1;
+    animation-delay: #{$i * -1.5}s;
+    height: 12vh + $i;
+  }
+}
+
+// КОНТЕНТНІ БЛОКИ (FEATURES)
+.features-container {
+  position: relative;
+  z-index: 60;
+  max-width: 78em;
+  margin: 0 auto;
+  padding: 5em 1.25em;
+
+  @media (max-width: 768px) {
+    padding: 3em 1em;
+  }
+}
+
+.feature-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 3.75em;         // 60px 
+  margin-bottom: 9.375em; // 150px
+  opacity: 0;
+  transform: translateY(3.125em); // 50px
+  transition: 1.2s cubic-bezier(0.17, 0.67, 0.83, 0.67);
+
+  &.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  &:nth-child(even) { 
+    flex-direction: row-reverse; 
+    
+    @media(max-width: 768px){
+        flex-direction: column;
+    }
+  }
+
+  @media(max-width: 768px){
+    flex-direction: column;
+  }
+}
+
+.feature-info {
+  flex: 1;
+
+  h2 {
+    font-size: 2.5rem;
+    color: color-mix(in srgb, var(--accent-color) 50%, white);
+    margin-bottom: 0.5em;
+    text-shadow: 0 0.1em 0.5em rgba(0, 0, 0, 0.3);
+  }
+
+  p {
+    font-size: 1.2rem;
+    line-height: 1.7;
+    opacity: 0.8;
+  }
+}
+
+.feature-img-wrapper {
+  flex: 1;
+  text-align: center;
+
+  img {
+    max-width: 100%;
+    border-radius: 2em; // 30px -> ~2em
+    filter: drop-shadow(0 1.25em 2.5em rgba(0, 0, 0, 0.6));
+    transition: 0.5s;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+
+    @media (min-width: 769px){
+        &:hover {
+            transform: scale(1.05) rotate(1deg);
+            filter: drop-shadow(0 1.875em 3.75em rgba(107, 135, 137, 0.3));
+        }
+    }
+    
+  }
+}
+
+footer {
+  position: relative;
+  z-index: 60;
+  text-align: center;
+  padding: 3.75em; // 60px 
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.4), transparent);
+  opacity: 0.6;
+}
+
+@keyframes waveMove {
+  0% { left: -40vh; top: 80%; transform: rotate(0deg); }
+  25% { top: 30%; transform: rotate(10deg); }
+  50% { top: 60%; transform: rotate(-10deg); }
+  75% { top: 20%; transform: rotate(5deg); }
+  100% { left: 110vw; top: 70%; transform: rotate(0deg); }
+}
+
+@keyframes bounce {
+  0%, 20%, 50%, 80%, 100% { transform: translateY(0); }
+  40% { transform: translateY(-0.625em); }
+  60% { transform: translateY(-0.312em); }
+}
