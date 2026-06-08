@@ -19,7 +19,7 @@ public class SessionService : ISessionService
         _cache = cache;
     }
 
-    public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode, int currentIndex = 0)
+    public async Task<PracticeSessionDTO> GetPracticeSessionAsync(int setId, int userId, PracticeActivityType? requestedMode)
     {
         string sessionCardsKey = $"session_cards_{userId}_{setId}";
 
@@ -55,14 +55,14 @@ public class SessionService : ISessionService
             PracticeActivityType.Quiz => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Quiz, needsDistractors: true),
             PracticeActivityType.Matching => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Matching, useBatching: true),
             PracticeActivityType.Writing => await PrepareSessionAsync(setId, cardProgresses, PracticeActivityType.Writing),
-            PracticeActivityType.Mixed => await GetMixedSessionAsync(setId, cardProgresses, currentIndex, userId),
+            PracticeActivityType.Mixed => await GetMixedSessionAsync(setId, cardProgresses, userId),
             _ => throw new ArgumentException($"Unsupported activity type: {sessionMode}")
         };
     }
 
     private async Task<PracticeSessionDTO> PrepareSessionAsync(
         int setId, List<CardProgress> source, PracticeActivityType type,
-        bool needsDistractors = false, bool useBatching = false, int currentIndex = 0)
+        bool needsDistractors = false, bool useBatching = false)
     {
         int batchSize = useBatching ? CalculateOptimalBatchSize(source.Count) : source.Count;
 
@@ -85,7 +85,7 @@ public class SessionService : ISessionService
         return dto;
     }
 
-    private async Task<PracticeSessionDTO> GetMixedSessionAsync(int setId, List<CardProgress> source, int currentIndex, int userId)
+    private async Task<PracticeSessionDTO> GetMixedSessionAsync(int setId, List<CardProgress> source, int userId)
     {
         // Ключ для кешування розподілу типів у Mixed режимі
         string mixedTypesKey = $"mixed_types_{userId}_{setId}";

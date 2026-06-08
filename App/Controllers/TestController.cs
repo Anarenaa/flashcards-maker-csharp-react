@@ -32,10 +32,10 @@ namespace App.Controllers
         }
 
         [HttpGet("Index/{setId}/{mode}")]
-        public async Task<IActionResult> Index(int setId, int mode, string? source, int? collectionId, int currentIndex = 0)
+        public async Task<IActionResult> Index(int setId, int mode, string? source, int? collectionId)
         {
             var activityType = (PracticeActivityType)mode;
-            var session = await practiceService.GetPracticeSessionAsync(setId, UserId, activityType, currentIndex);
+            var session = await practiceService.GetPracticeSessionAsync(setId, UserId, activityType);
             var progress = await practiceService.GetSetProgressAsync(setId, UserId);
 
             if (session == null || session.Flashcards == null || !session.Flashcards.Any())
