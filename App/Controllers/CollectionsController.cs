@@ -34,7 +34,7 @@ namespace App.Controllers
         {
             if (id <= 0) return RedirectToAction(nameof(Index));
 
-            var collectionDetail = await _collectionService.GetCollectionByIdAsync(id);
+            var collectionDetail = await _collectionService.GetCollectionByIdAsync(id, UserId);
 
             if (collectionDetail == null)
             {
