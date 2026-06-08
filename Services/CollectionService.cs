@@ -31,7 +31,7 @@ namespace Services
                 }
             );
         }
-        public async Task<CollectionDetailDTO?> GetCollectionByIdAsync(int collectionId)
+        public async Task<CollectionDetailDTO?> GetCollectionByIdAsync(int collectionId, int userId)
         {
             var collection = await _unitOfWork.Collections.GetByIdAsync(
                 collectionId,
@@ -41,6 +41,7 @@ namespace Services
 
             var setIds = collection.Sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
 
             return new CollectionDetailDTO
             {
@@ -61,7 +62,8 @@ namespace Services
                     IsGenerated = s.IsGenerated,
                     FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
                     CreatedAt = s.CreatedAt,
-                    LastUpdatedAt = s.UpdatedAt
+                    LastUpdatedAt = s.UpdatedAt,
+                    OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
                 }).ToList()
             };
         }
