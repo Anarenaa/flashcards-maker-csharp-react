@@ -8,14 +8,18 @@
 }
 
 <style>
-   
     .tabs-nav {
         display: flex;
         gap: 35px;
         border-bottom: 1px solid rgba(255, 255, 255, 0.05);
         margin-bottom: 25px;
         padding-left: 5px;
+        overflow-x: auto;
     }
+
+        .tabs-nav::-webkit-scrollbar {
+            display: none;
+        }
 
     .tab-item {
         color: #818375;
@@ -28,13 +32,10 @@
         background: none;
         border: none;
         cursor: pointer;
+        white-space: nowrap;
     }
 
-        .tab-item:hover {
-            color: white;
-        }
-
-        .tab-item.active {
+        .tab-item:hover, .tab-item.active {
             color: white;
         }
 
@@ -75,6 +76,7 @@
             border-radius: 8px;
             outline: none;
             font-family: inherit;
+            width: 100%;
         }
 
     .sort-select {
@@ -86,6 +88,7 @@
         outline: none;
         cursor: pointer;
         min-width: 170px;
+        height: 45px;
     }
 
     .btn-search {
@@ -94,9 +97,10 @@
         border: none;
         padding: 0 25px;
         border-radius: 8px;
-        cursor: pointer;
         font-weight: bold;
+        cursor: pointer;
         transition: 0.3s;
+        height: 45px;
     }
 
     .sets-grid {
@@ -123,7 +127,6 @@
         .set-card:hover {
             border-color: var(--accent-color);
             transform: translateY(-5px);
-            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
         }
 
     .progress-mini-area {
@@ -152,39 +155,6 @@
         transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
     }
 
-    .create-card {
-        display: flex !important;
-        flex-direction: column !important;
-        justify-content: center !important;
-        align-items: center !important;
-        text-align: center;
-    }
-
-    .card-footer {
-        margin-top: auto;
-        padding-top: 10px;
-        border-top: 1px solid rgba(255, 255, 255, 0.05);
-    }
-
-    .sets-count-badge {
-        background: rgba(255, 255, 255, 0.05);
-        color: var(--accent-color);
-        padding: 2px 8px;
-        border-radius: 6px;
-        font-size: 0.75rem;
-        font-weight: bold;
-        width: fit-content;
-    }
-
-    .date-stack {
-        display: flex;
-        flex-direction: column;
-        gap: 3px;
-        font-size: 0.65rem;
-        opacity: 0.6;
-        color: white;
-    }
-
     .card-menu-btn {
         position: absolute;
         top: 15px;
@@ -194,6 +164,7 @@
         opacity: 0.5;
         z-index: 20;
         padding: 5px;
+        line-height: 1;
     }
 
     .dropdown {
@@ -203,14 +174,14 @@
         background: #2C3440;
         border: 1px solid #818375;
         border-radius: 8px;
-        display: none;
+        display: none; 
         flex-direction: column;
         z-index: 100;
-        overflow: hidden;
         box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        overflow: hidden;
     }
 
-        .dropdown button, .dropdown form button {
+        .dropdown button {
             background: none;
             border: none;
             color: white;
@@ -222,7 +193,7 @@
             display: block;
         }
 
-            .dropdown button:hover, .dropdown form button:hover {
+            .dropdown button:hover {
                 background-color: #6B8789;
             }
 
@@ -242,9 +213,10 @@
         padding: 20px;
         border-radius: 15px;
         width: 460px;
+        max-width: 95%;
         display: flex;
         flex-direction: column;
-        gap: 3px;
+        gap: 10px;
     }
 
     .field-block {
@@ -268,9 +240,6 @@
         padding: 10px;
         border-radius: 8px;
         outline: none;
-        box-sizing: border-box;
-        font-family: inherit;
-        width: 100%;
     }
 
     .stepper {
@@ -281,6 +250,7 @@
         border-radius: 8px;
         overflow: hidden;
         height: 42px;
+        width: fit-content;
     }
 
         .stepper button {
@@ -291,66 +261,23 @@
             height: 100%;
             cursor: pointer;
             font-size: 1.2rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
 
         .stepper input {
-            width: 50px !important;
+            width: 45px !important;
+            height: 100% !important;
             border: none !important;
             text-align: center !important;
-            padding: 0 !important;
             background: none !important;
-            font-weight: bold;
             color: white !important;
+            font-weight: bold !important;
+            padding: 0 !important;
+            font-size: 1rem;
+            outline: none !important;
         }
-
-    .ai-preview-container {
-        background: rgba(0,0,0,0.2);
-        border: 1px solid #444;
-        border-radius: 8px;
-        padding: 8px;
-        max-height: 120px;
-        overflow-y: auto;
-        display: none;
-        margin-bottom: 5px;
-    }
-
-    .modal-footer {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        border-top: 1px solid #333;
-        padding-top: 15px;
-        margin-top: 10px;
-    }
-
-    .btn-ai {
-        background: #f4a261;
-        color: #141B25 !important;
-        border: none;
-        padding: 10px 20px;
-        border-radius: 8px;
-        font-weight: bold;
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 8px;
-    }
-
-    .spinner-mini {
-        width: 14px;
-        height: 14px;
-        border: 2px solid rgba(255,255,255,0.2);
-        border-top-color: #fff;
-        border-radius: 50%;
-        animation: spin 0.8s linear infinite;
-    }
-
-    @@keyframes spin {
-        to {
-            transform: rotate(360deg);
-        }
-    }
 
     .switch {
         position: relative;
@@ -368,10 +295,7 @@
     .slider {
         position: absolute;
         cursor: pointer;
-        top: 0;
-        left: 0;
-        right: 0;
-        bottom: 0;
+        inset: 0;
         background-color: #444;
         transition: .4s;
         border-radius: 20px;
@@ -396,22 +320,81 @@
         input:checked + .slider:before {
             transform: translateX(20px);
         }
+
+    @@media (max-width: 900px) {
+        .search-container {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 10px;
+        }
+
+        .search-bar-form {
+            flex-direction: column;
+        }
+
+        .sort-select, .btn-search {
+            width: 100% !important;
+            height: 45px;
+        }
+    }
+
+    .create-card {
+        display: flex !important;
+        flex-direction: column !important;
+        justify-content: center !important;
+        align-items: center !important;
+        text-align: center;
+    }
+
+    .card-footer {
+        margin-top: auto;
+        padding-top: 10px;
+        border-top: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .date-stack {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        font-size: 0.65rem;
+        opacity: 0.6;
+        color: white;
+    }
+
+    .modal-footer {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-top: 1px solid #333;
+        padding-top: 15px;
+        margin-top: 10px;
+    }
+
+    .btn-ai {
+        background: #f4a261;
+        color: #141B25 !important;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: bold;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
 </style>
 
 <div class="content-area">
     <h2 style="margin-bottom: 20px;">Ваші навчальні сети</h2>
 
     <div class="tabs-nav">
-        <a href="@Url.Action("Index", new { filter = "all", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+        <a href="@Url.Action("Index", new { filter = "all", searchText = ViewData["CurrentFilter"] })"
            class="tab-item @(activeTab == "all" ? "active" : "")">Усі сети</a>
-
-        <a href="@Url.Action("Index", new { filter = "notstarted", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+        <a href="@Url.Action("Index", new { filter = "notstarted" })"
            class="tab-item @(activeTab == "notstarted" ? "active" : "")">Не початі</a>
-
-        <a href="@Url.Action("Index", new { filter = "inprogress", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+        <a href="@Url.Action("Index", new { filter = "inprogress" })"
            class="tab-item @(activeTab == "inprogress" ? "active" : "")">В процесі</a>
-
-        <a href="@Url.Action("Index", new { filter = "finished", searchText = ViewData["CurrentFilter"], categoryId = ViewData["CurrentCategory"], sortOrder = ViewData["CurrentSort"] })"
+        <a href="@Url.Action("Index", new { filter = "finished" })"
            class="tab-item @(activeTab == "finished" ? "active" : "")">Вивчені</a>
     </div>
 
@@ -419,7 +402,6 @@
         <form asp-controller="MySets" asp-action="Index" method="get" class="search-bar-form">
             <input type="hidden" name="filter" value="@activeTab" />
             <input type="text" name="searchText" placeholder="Шукати сети..." value="@ViewData["CurrentFilter"]" />
-
             <select name="categoryId" class="sort-select" onchange="this.form.submit()">
                 <option value="">Усі категорії</option>
                 @if (ViewBag.Categories != null)
@@ -430,7 +412,6 @@
                     }
                 }
             </select>
-
             <select name="sortOrder" class="sort-select" onchange="this.form.submit()">
                 <!option value="newest" @(ViewData["CurrentSort"]?.ToString() == "newest" ? "selected" : "")>Спочатку нові</!option>
                 <!option value="oldest" @(ViewData["CurrentSort"]?.ToString() == "oldest" ? "selected" : "")>Спочатку старі</!option>
@@ -449,52 +430,30 @@
         {
             <div class="set-card" onclick="handleCardClick(event, '@Url.Action("Index", "Details", new { id = set.Id })')">
                 <div class="card-menu-btn" onclick="toggleMenu(event)">⋮</div>
-
-                <div class="dropdown" onclick="event.stopPropagation()">
-                    <button type="button" onclick="openEditModal(event, @set.Id, '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)', '@set.FromLang', '@set.ToLang')">Редагувати</button>
+                <div class="dropdown">
+                    <button type="button" onclick="openEditModal(event, @set.Id, '@set.Name', '@set.Description', '@set.IsPublic'.toLowerCase(), '@((int)set.Type)')">Редагувати</button>
                     <form asp-action="Delete" method="post">
                         @Html.AntiForgeryToken()
                         <input type="hidden" name="id" value="@set.Id" />
                         <button type="submit" style="color: #ff8080;" onclick="return confirm('Видалити цей сет?')">Видалити</button>
                     </form>
                 </div>
-
                 <h3 style="margin: 0; color: var(--accent-color);">@set.Name</h3>
                 <p style="opacity: 0.7; font-size: 0.85rem; margin: 5px 0; flex-grow: 1;">@set.Description</p>
-
                 <div class="progress-mini-area">
-                    <div class="progress-mini-label">
-                        <span>Прогрес вивчення</span>
-                        <span>@set.Progress%</span>
-                    </div>
-                    <div class="progress-mini-track">
-                        <div class="progress-mini-fill" style="width: @set.Progress%"></div>
-                    </div>
+                    <div class="progress-mini-label"><span>Прогрес вивчення</span><span>@set.Progress%</span></div>
+                    <div class="progress-mini-track"><div class="progress-mini-fill" style="width: @set.Progress%"></div></div>
                 </div>
-
                 <div class="card-footer">
                     <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
-                        <span class="sets-count-badge">@set.FlashcardsCount карток</span>
-                        <span style="
-                                font-size:0.65rem;
-                                opacity:0.6;
-                                padding:2px 6px;
-                                border-radius:6px;
-                                border:1px solid rgba(255,255,255,0.1);
-                                color:@(set.IsPublic ? "#9C9F57" : "#ff8080");
-                                white-space:nowrap;">
-                            @(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")
-                        </span>
+                        <span style="font-size:0.75rem; opacity:0.6;">@set.FlashcardsCount карток</span>
+                        <span style="font-size:0.65rem; opacity:0.6; color:@(set.IsPublic ? "#9C9F57" : "#ff8080");">@(set.IsPublic ? "🌐 Публічний" : "🔒 Приватний")</span>
                     </div>
-
                     <div style="display: flex; justify-content: space-between; align-items: flex-end;">
                         <div class="date-stack">
                             <span>Оновлено: @set.LastUpdatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
-                            <span>Створено: @set.CreatedAt.ToLocalTime().ToString("dd.MM.yyyy")</span>
                         </div>
-                        <span style="font-size: 0.65rem; opacity: 0.4; color: white;">
-                            @((int)set.Type == 0 ? "Мова" : "Предмет")
-                        </span>
+                        <span style="font-size: 0.65rem; opacity: 0.4;">@((int)set.Type == 0 ? "Мова" : "Предмет")</span>
                     </div>
                 </div>
             </div>
@@ -506,10 +465,10 @@
     <div class="modal">
         <form id="setForm" onsubmit="return false;">
             @Html.AntiForgeryToken()
-            <h2 id="modalTitle" style="margin: 0 0 5px 0; font-size: 1.2rem;">Новий сет</h2>
+            <h2 id="modalTitle">Новий сет</h2>
             <input type="hidden" id="setIdField">
 
-            <div style="display: flex; gap: 10px; width: 100%;">
+            <div style="display: flex; gap: 10px; width: 100%; align-items: flex-end;">
                 <div class="field-block" style="flex: 2;">
                     <label>Тип навчання</label>
                     <select id="setTypeField" onchange="toggleLangs()">
@@ -517,7 +476,7 @@
                         <option value="0">Мова (Language)</option>
                     </select>
                 </div>
-                <div class="field-block" style="flex: 1;">
+                <div class="field-block">
                     <label>Кількість</label>
                     <div class="stepper">
                         <button type="button" onclick="step(-1)">−</button>
@@ -527,42 +486,16 @@
                 </div>
             </div>
 
-            <div id="languageRow" style="display: none; gap: 10px; margin-bottom: 5px;">
-                <div class="field-block" style="flex: 1;">
-                    <label>Вивчаю</label>
-                    <select id="learnLangList">
-                        <option value="en">Англійська</option>
-                        <option value="uk">Українська</option>
-                        <option value="de">Німецька</option>
-                        <option value="fr">Французька</option>
-                        <option value="es">Іспанська</option>
-                        <option value="it">Італійська</option>
-                        <option value="pl">Польська</option>
-                    </select>
-                </div>
-                <div style="margin-top: 15px; color: var(--accent-color);">→</div>
-                <div class="field-block" style="flex: 1;">
-                    <label>На яку</label>
-                    <select id="nativeLangList">
-                        <option value="uk">Українська</option>
-                        <option value="en">Англійська</option>
-                        <option value="de">Німецька</option>
-                        <option value="fr">Французька</option>
-                        <option value="es">Іспанська</option>
-                        <option value="pl">Польська</option>
-                    </select>
-                </div>
+            <div id="languageRow" style="display: none; gap: 10px; margin-top: 5px;">
+                <div class="field-block" style="flex: 1;"><label>Вивчаю</label><select id="learnLangList"><option value="en">Англійська</option><option value="uk">Українська</option></select></div>
+                <div class="field-block" style="flex: 1;"><label>На яку</label><select id="nativeLangList"><option value="uk">Українська</option><option value="en">Англійська</option></select></div>
             </div>
 
             <div class="field-block"><label>Назва сету</label><input type="text" id="setNameField" required placeholder="Назва..." /></div>
             <div class="field-block"><label>Опис (Тема для ШІ)</label><textarea id="setDescField" rows="2" placeholder="Опишіть тему..."></textarea></div>
 
-            <div class="field-block">
-                <label>Зображення (опційно)</label>
-                <input type="file" id="fileInput" accept="image/*" style="font-size: 0.7rem; padding: 5px;">
-            </div>
-
-            <div id="aiPreview" class="ai-preview-container"><div id="aiCardsList"></div></div>
+            <div class="field-block"><label>Зображення (опційно)</label><input type="file" id="fileInput" accept="image/*" style="font-size: 0.7rem; padding: 5px;"></div>
+            <div id="aiPreview" style="background:rgba(0,0,0,0.2); border-radius:8px; padding:8px; max-height:100px; overflow-y:auto; display:none; margin-bottom:5px;"></div>
 
             <div style="display: flex; justify-content: flex-end; align-items: center; gap: 8px; margin: 5px 0;">
                 <span style="font-size: 0.8rem; opacity: 0.7;">Зробити публічним</span>
@@ -589,113 +522,61 @@
         function closeModal() { modal.style.display = 'none'; }
         function toggleLangs() { document.getElementById('languageRow').style.display = document.getElementById('setTypeField').value === "0" ? 'flex' : 'none'; }
 
-        function openCreateModal() {
-            document.getElementById('setForm').reset();
-            document.getElementById('setIdField').value = "";
-            document.getElementById('aiPreview').style.display = 'none';
-            tempGeneratedCards = []; toggleLangs(); modal.style.display = 'flex';
-        }
+        function openCreateModal() { document.getElementById('setForm').reset(); document.getElementById('setIdField').value = ""; document.getElementById('aiPreview').style.display='none'; toggleLangs(); modal.style.display = 'flex'; }
 
-        function openEditModal(e, id, name, desc, isPublic, type, fromLang, toLang) {
-            e.stopPropagation(); document.getElementById('modalTitle').innerText = "Редагувати сет";
-            document.getElementById('setIdField').value = id;
+        function openEditModal(e, id, name, desc, isPublic, type) {
+            e.stopPropagation(); document.getElementById('setIdField').value = id;
             document.getElementById('setNameField').value = name;
             document.getElementById('setDescField').value = desc;
             document.getElementById('setPublicField').checked = (isPublic === 'true');
             document.getElementById('setTypeField').value = type;
-            document.getElementById('learnLangList').value = fromLang;
-            document.getElementById('nativeLangList').value = toLang;
-            document.getElementById('aiPreview').style.display = 'none';
             toggleLangs(); modal.style.display = 'flex';
         }
 
         async function generateAI() {
-            const promptValue = document.getElementById('setDescField').value;
+            const prompt = document.getElementById('setDescField').value;
             const btn = document.getElementById('btnAi');
-            const fileInput = document.getElementById('fileInput');
-            if (!promptValue) return alert("Вкажіть тему для ШІ!");
+            if (!prompt) return alert("Вкажіть тему!");
             btn.disabled = true; btn.innerHTML = '<span class="spinner-mini"></span>';
-            const isLang = document.getElementById('setTypeField').value === "0";
             const formData = new FormData();
             formData.append("Name", document.getElementById('setNameField').value);
-            formData.append("Description", promptValue);
-            formData.append("Prompt", promptValue);
+            formData.append("Description", prompt);
             formData.append("Type", document.getElementById('setTypeField').value);
-            formData.append("FromLang", isLang ? document.getElementById('learnLangList').value : "");
-            formData.append("ToLang", isLang ? document.getElementById('nativeLangList').value : "");
             formData.append("Count", document.getElementById('aiCount').value);
-            if (fileInput.files[0]) formData.append("ImageFile", fileInput.files[0]);
             try {
                 const response = await fetch('/api/generate-cards', { method: 'POST', body: formData });
-                if (!response.ok) throw new Error(await response.text());
                 tempGeneratedCards = await response.json();
-                renderPreview();
-            } catch (e) { alert("Помилка ШІ: " + e.message); }
+                const pre = document.getElementById('aiPreview'); pre.innerHTML = tempGeneratedCards.map(c => `<div>${c.term} - ${c.definition}</div>`).join('');
+                pre.style.display = 'block';
+            } catch (e) { alert("Помилка ШІ"); }
             finally { btn.disabled = false; btn.innerHTML = "✨ ШІ"; }
-        }
-
-        function renderPreview() {
-            const list = document.getElementById('aiCardsList'); list.innerHTML = '';
-            tempGeneratedCards.forEach((c, i) => {
-                list.innerHTML += `<div style="display:flex; justify-content:space-between; font-size:0.75rem; padding:4px; border-bottom:1px solid rgba(255,255,255,0.1);">
-                    <span><b>${c.term}</b> - ${c.definition}</span>
-                    <span onclick="tempGeneratedCards.splice(${i}, 1); renderPreview();" style="color:#ff8080; cursor:pointer;">✕</span>
-                </div>`;
-            });
-            document.getElementById('aiPreview').style.display = 'block';
         }
 
         async function saveSet() {
             const id = document.getElementById('setIdField').value;
             const name = document.getElementById('setNameField').value;
-            if (!name) return alert("Введіть назву сету!");
+            if (!name) return alert("Назва!");
             const token = document.querySelector('input[name="__RequestVerificationToken"]')?.value;
-            const isLang = document.getElementById('setTypeField').value === "0";
-            const isEditing = id && id !== "";
-            const hasGenerated = tempGeneratedCards.length > 0;
-            if (hasGenerated && !isEditing) {
-                const payload = {
-                    setDto: {
-                        name: name,
-                        description: document.getElementById('setDescField').value,
-                        type: parseInt(document.getElementById('setTypeField').value),
-                        isPublic: document.getElementById('setPublicField').checked,
-                        fromLang: isLang ? document.getElementById('learnLangList').value : null,
-                        toLang: isLang ? document.getElementById('nativeLangList').value : null
-                    },
-                    cards: tempGeneratedCards
-                };
-                try {
-                    const response = await fetch('/api/save-generated-set', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json', 'RequestVerificationToken': token },
-                        body: JSON.stringify(payload)
-                    });
-                    if (response.ok) {
-                        const result = await response.json();
-                        window.location.href = `/MySets/Details/${result.id}`;
-                    } else alert("Помилка: " + await response.text());
-                } catch (e) { alert("Сервер недоступний."); }
+
+            if (tempGeneratedCards.length > 0 && !id) {
+                const payload = { setDto: { name, description: document.getElementById('setDescField').value, type: parseInt(document.getElementById('setTypeField').value), isPublic: document.getElementById('setPublicField').checked }, cards: tempGeneratedCards };
+                const res = await fetch('/api/save-generated-set', { method:'POST', headers:{'Content-Type':'application/json','RequestVerificationToken':token}, body:JSON.stringify(payload)});
+                if (res.ok) window.location.reload();
                 return;
             }
+
             const formData = new FormData();
             formData.append("Name", name);
             formData.append("Description", document.getElementById('setDescField').value);
             formData.append("Type", document.getElementById('setTypeField').value);
             formData.append("IsPublic", document.getElementById('setPublicField').checked);
-            formData.append("FromLang", isLang ? document.getElementById('learnLangList').value : "");
-            formData.append("ToLang", isLang ? document.getElementById('nativeLangList').value : "");
-            let url = "/MySets/Create";
-            if (isEditing) { url = "/MySets/Edit"; formData.append("id", id); }
-            try {
-                const response = await fetch(url, { method: 'POST', headers: { 'RequestVerificationToken': token }, body: formData });
-                if (response.redirected) window.location.href = response.url;
-                else alert("Помилка: " + await response.text());
-            } catch (e) { alert("Сервер недоступний."); }
+            if(id) formData.append("id", id);
+            const res = await fetch(id ? "/MySets/Edit" : "/MySets/Create", { method:'POST', headers:{'RequestVerificationToken':token}, body:formData });
+            if (res.redirected) window.location.href = res.url;
         }
 
         function toggleMenu(e) { e.stopPropagation(); document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); e.currentTarget.nextElementSibling.style.display = 'flex'; }
-        function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown') && !e.target.closest('form')) window.location.href = url; }
+        function handleCardClick(e, url) { if (!e.target.closest('.card-menu-btn') && !e.target.closest('.dropdown')) window.location.href = url; }
         window.onclick = (e) => { if (!e.target.matches('.card-menu-btn')) document.querySelectorAll('.dropdown').forEach(d => d.style.display = 'none'); if (e.target === modal) closeModal(); };
     </script>
 }
