@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Repositories.Interfaces;
 using Services;
+using Services.Interfaces; // Додано для IPracticeService
 using System;
-using System.Collections.Generic; 
+using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -22,8 +23,16 @@ namespace App.Controllers
         private readonly IUnitOfWork _unitOfWork;
         private readonly UserService _userService;
         private readonly UserManager<User> _userManager;
-        public MainController(SetService setService,CollectionService collectionService,CategoryService categoryService,
-            IUnitOfWork unitOfWork, UserService userService, UserManager<User> userManager)
+        private readonly IPracticeService _practiceService; 
+
+        public MainController(
+            SetService setService,
+            CollectionService collectionService,
+            CategoryService categoryService,
+            IUnitOfWork unitOfWork,
+            UserService userService,
+            UserManager<User> userManager,
+            IPracticeService practiceService) 
         {
             _setService = setService;
             _collectionService = collectionService;
@@ -31,28 +40,38 @@ namespace App.Controllers
             _unitOfWork = unitOfWork;
             _userService = userService;
             _userManager = userManager;
+            _practiceService = practiceService;
         }
-        public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
+
+        public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest", string filter = "all")
         {
             if (User.IsInRole("Admin"))
             {
                 return RedirectToAction("Users", "Admin");
             }
 
-            List<int>? categoryIds = categoryId.HasValue
-                ? new List<int> { categoryId.Value }
-                : null;
+            List<int>? categoryIds = categoryId.HasValue ? new List<int> { categoryId.Value } : null;
 
+            // 1. Отримуємо всі доступні сети
             var sets = await _setService.GetAllSetsAsync(UserId, categoryIds, searchText);
 
+            // 3. Фільтрація по табах (працює тільки коли тицяєш на конкретний таб)
+            sets = filter switch
+            {
+                "notstarted" => sets.Where(s => s.Progress == 0).ToList(),
+                "inprogress" => sets.Where(s => s.Progress > 0 && s.Progress < 100).ToList(),
+                "finished" => sets.Where(s => s.Progress == 100).ToList(),
+                _ => sets.ToList() // "all" показує абсолютно все
+            };
+
+            // 4. Сортування
             sets = sortOrder switch
             {
                 "oldest" => sets.OrderBy(s => s.CreatedAt).ToList(),
-                "newest" => sets.OrderByDescending(s => s.CreatedAt).ToList(),
                 _ => sets.OrderByDescending(s => s.CreatedAt).ToList(),
             };
 
-         
+            // 5. Аватари
             var authorNames = sets.Select(s => s.UserName).Distinct();
             var avatarMap = new Dictionary<string, string>();
             foreach (var name in authorNames)
@@ -65,12 +84,12 @@ namespace App.Controllers
                 }
             }
             ViewBag.AuthorAvatars = avatarMap;
-        
 
             ViewBag.Categories = await _categoryService.GetAllCategoriesAsync();
             ViewData["CurrentFilter"] = searchText;
             ViewData["CurrentCategory"] = categoryId;
             ViewData["CurrentSort"] = sortOrder;
+            ViewData["ActiveTab"] = filter;
 
             if (UserId > 0)
             {
@@ -79,6 +98,7 @@ namespace App.Controllers
 
             return View(sets);
         }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> AddToCollection(int setId, int? collectionId, string? newCollectionName)

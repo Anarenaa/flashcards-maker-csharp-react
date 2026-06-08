@@ -1,7 +1,6 @@
 ﻿@using System.Security.Claims
 @inject Services.UserService UserService
 
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -85,19 +84,16 @@
             transition: background 0.3s ease, color 0.3s ease;
         }
 
-        h1, h2, h3, label, p {
-            color: var(--text-color);
-            transition: color 0.3s ease;
-        }
-
+        /* --- SIDEBAR (Desktop) --- */
         aside {
-            width: 300px;
-            padding: 40px;
+            width: 280px;
+            padding: 30px;
             display: flex;
             flex-direction: column;
-            border-right: 2px solid rgba(240, 255, 255, 0.2);
+            border-right: 2px solid rgba(240, 255, 255, 0.1);
             flex-shrink: 0;
             z-index: 20;
+            background: var(--bg-color);
         }
 
         h1 {
@@ -105,20 +101,21 @@
             margin: 0;
             text-shadow: 0 2px 10px rgba(0,0,0,0.5);
             color: var(--accent-color);
+            text-align: center;
         }
 
         .line {
             width: 100%;
             height: 2px;
             background-color: var(--accent-color);
-            margin-top: 10px;
-            opacity: 0.8;
+            margin-top: 15px;
+            opacity: 0.5;
         }
 
         nav {
             display: flex;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
             margin-top: 30px;
             flex-grow: 1;
         }
@@ -127,21 +124,22 @@
             background-color: var(--btn-bg);
             border: 1px solid var(--btn-border);
             color: var(--btn-text) !important;
-            padding: 10px 12px;
-            border-radius: 6px;
+            padding: 12px;
+            border-radius: 8px;
             text-decoration: none;
             font-size: 14px;
             transition: 0.3s ease;
             display: flex;
             align-items: center;
             justify-content: center;
-            gap: 12px; 
+            gap: 10px;
+            width: 100%;
         }
 
             .nav-btn:hover {
                 background-color: var(--btn-hover);
                 border-color: var(--accent-color);
-                transform: translateX(8px);
+                transform: translateX(5px);
             }
 
             .nav-btn.active {
@@ -149,12 +147,11 @@
                 border-color: var(--accent-color);
                 color: var(--accent-color) !important;
                 font-weight: 600;
-                transform: translateX(5px);
             }
 
         .nav-avatar-mini {
-            width: 28px;
-            height: 28px;
+            width: 26px;
+            height: 26px;
             border-radius: 50%;
             background: white;
             display: flex;
@@ -171,17 +168,20 @@
                 object-fit: cover;
             }
 
-            .nav-avatar-mini span {
-                color: #333;
-                font-size: 16px;
-            }
+        .logout-form {
+            margin-top: auto;
+            width: 100%;
+        }
 
         .btn-exit {
-            margin-top: auto;
-            border-color: rgba(255, 100, 100, 0.2);
-            display: block;
-            text-align: center;
+            border-color: rgba(255, 100, 100, 0.3);
+            color: #ff8080 !important;
         }
+
+            .btn-exit:hover {
+                background-color: rgba(255, 100, 100, 0.1);
+                border-color: #ff8080;
+            }
 
         .content-area {
             flex-grow: 1;
@@ -189,6 +189,7 @@
             overflow-y: auto;
         }
 
+        /* --- ADAPTIVE (Tablet & Mobile) --- */
         @@media (max-width: 950px) {
             body {
                 flex-direction: column;
@@ -200,21 +201,38 @@
                 width: 100%;
                 padding: 20px;
                 border-right: none;
-                border-bottom: 2px solid rgba(240, 255, 255, 0.2);
+                border-bottom: 1px solid rgba(240, 255, 255, 0.1);
             }
 
             nav {
-                flex-direction: row;
-                flex-wrap: wrap;
+                display: grid;
+                /* Робимо сітку: по 3 кнопки в ряд на планшетах, по 2 на малих телефонах */
+                grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+                gap: 8px;
                 margin-top: 20px;
             }
 
-            .nav-btn {
-                flex: 1 1 140px;
+            .logout-form {
+                margin-top: 0; /* Прибираємо відступ зверху, щоб стала в сітку */
+                grid-column: span 1; /* Займає одну ячейку як і всі */
             }
+
+            .nav-btn {
+                height: 45px; /* Фіксована висота для гармонії */
+            }
+
+                .nav-btn:hover {
+                    transform: translateY(-2px); /* На мобілках краще вгору, а не вбік */
+                }
 
             .content-area {
                 padding: 20px;
+            }
+        }
+
+        @@media (max-width: 500px) {
+            nav {
+                grid-template-columns: 1fr 1fr; /* На зовсім малих екранах тільки по 2 в ряд */
             }
         }
     </style>
@@ -227,7 +245,6 @@
             @{
                 string action = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
                 string controller = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
-                string querySource = Context.Request.Query["source"].ToString();
                 bool isFromColl = Context.Request.Query.ContainsKey("collectionId");
 
                 bool activeMain = (controller == "Main") || (controller == "DetailsInMain" && !isFromColl);
@@ -276,8 +293,8 @@
                 <a asp-controller="Settings" asp-action="Index" class="nav-btn @(controller == "Settings" ? "active" : "")">Налаштування</a>
             }
 
-            <form asp-controller="Account" asp-action="Logout" method="post" style="margin-top: auto;">
-                <button type="submit" class="nav-btn btn-exit" style="width:100%; cursor: pointer;">Вийти</button>
+            <form asp-controller="Account" asp-action="Logout" method="post" class="logout-form">
+                <button type="submit" class="nav-btn btn-exit" style="cursor: pointer;">Вийти</button>
             </form>
         </nav>
     </aside>

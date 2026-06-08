@@ -27,6 +27,7 @@ namespace Services
 
             var setIds = sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(currentUserId, setIds);
 
             var setDtos = sets.Select(s => new SetDTO
             {
@@ -40,7 +41,8 @@ namespace Services
                 IsPublic = s.IsPublic,
                 IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt
+                LastUpdatedAt = s.UpdatedAt,
+                OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
             }).ToList();
 
             return setDtos;
@@ -55,6 +57,7 @@ namespace Services
 
             var setIds = sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
 
             var setDtos = sets.Select(s => new SetDTO
             {
@@ -68,12 +71,13 @@ namespace Services
                 IsPublic = s.IsPublic,
                 IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt
+                LastUpdatedAt = s.UpdatedAt,
+                OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
             }).ToList();
 
             return setDtos;
         }
-        public async Task<List<SetDTO>> GetSetsByCollectionIdAsync(int collectionId)
+        public async Task<List<SetDTO>> GetSetsByCollectionIdAsync(int collectionId, int userId)
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.Collections.Any(c => c.Id == collectionId),
@@ -81,6 +85,8 @@ namespace Services
             );
             var setIds = sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
+            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
+
             var setDtos = sets.Select(s => new SetDTO
             {
                 Id = s.Id,
@@ -95,42 +101,9 @@ namespace Services
                 IsPublic = s.IsPublic,
                 IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt
+                LastUpdatedAt = s.UpdatedAt,
+                OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
             }).ToList();
-            return setDtos;
-        }
-        public async Task<List<SetWithProgressDTO>> GetSetsWithProgress(int userId, List<int>? categoryIds, string? searchText = null)
-        {
-            var allUserProgress = await _unitOfWork.Practice.GetAllUserProgressAsync(userId);
-
-            var activeProgress = allUserProgress.Where(p => p.Progress > 0f && p.Flashcard?.Set != null).ToList();
-
-            if (!activeProgress.Any()) return new List<SetWithProgressDTO>();
-
-            var setDtos = activeProgress
-                .GroupBy(p => p.Flashcard.Set)
-                .Where(g =>
-                    (categoryIds == null || !categoryIds.Any() || g.Key.Categories.Any(c => categoryIds.Contains(c.Id))) &&
-                    (string.IsNullOrEmpty(searchText) || g.Key.Name.Contains(searchText))
-                )
-                .Select(g => new SetWithProgressDTO
-                {
-                    Id = g.Key.Id,
-                    Name = g.Key.Name,
-                    Description = g.Key.Description,
-                    Type = g.Key.Type,
-                    FromLang = g.Key.FromLang,
-                    ToLang = g.Key.ToLang,
-                    FlashcardsCount = g.Key.Flashcards?.Count ?? 0,
-                    IsPublic = g.Key.IsPublic,
-                    IsGenerated = g.Key.IsGenerated,
-                    CreatedAt = g.Key.CreatedAt,
-                    LastUpdatedAt = g.Key.UpdatedAt,
-                    OverallProgress = g.Average(p => p.Progress)
-                })
-                .OrderBy(x => x.OverallProgress)
-                .ToList();
-
             return setDtos;
         }
         public async Task ResetSetProgressAsync(int userId, int setId)

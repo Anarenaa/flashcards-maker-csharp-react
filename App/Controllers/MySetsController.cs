@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Interfaces;
 using System.Text.Json;
 
 namespace App.Controllers;
@@ -11,13 +12,21 @@ public class MySetsController(
     SetService setService,
     CollectionService collectionService,
     CategoryService categoryService,
-    FlashcardService flashcardService) : BaseController
+    FlashcardService flashcardService,
+    IPracticeService practiceService) : BaseController
 {
-    public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest")
+    public async Task<IActionResult> Index(string? searchText, int? categoryId, string sortOrder = "newest", string filter = "all")
     {
         List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
-
         var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
+
+        sets = filter switch
+        {
+            "notstarted" => sets.Where(s => s.Progress == 0).ToList(), 
+            "inprogress" => sets.Where(s => s.Progress > 0 && s.Progress < 100).ToList(), 
+            "finished" => sets.Where(s => s.Progress == 100).ToList(), 
+            _ => sets.ToList() 
+        };
 
         sets = sortOrder switch
         {
@@ -32,6 +41,7 @@ public class MySetsController(
         ViewData["CurrentFilter"] = searchText;
         ViewData["CurrentCategory"] = categoryId;
         ViewData["CurrentSort"] = sortOrder;
+        ViewData["ActiveTab"] = filter;
 
         return View(sets);
     }
@@ -43,7 +53,6 @@ public class MySetsController(
         if (ModelState.IsValid)
         {
             var createdSet = await setService.AddSetAsync(setDto, UserId);
-
             return RedirectToAction("Index", "Details", new { id = createdSet.Id });
         }
 
@@ -65,7 +74,6 @@ public class MySetsController(
         }
 
         await setService.UpdateSetAsync(id, setDto);
-
         return RedirectToAction(nameof(Index));
     }
 
@@ -79,7 +87,6 @@ public class MySetsController(
         }
 
         await setService.DeleteSetAsync(id);
-
         return RedirectToAction(nameof(Index));
     }
 

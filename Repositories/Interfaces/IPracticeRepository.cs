@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Text;
 using System.Threading.Tasks;
 using Core.Models;
@@ -9,6 +10,9 @@ namespace Repositories.Interfaces
 {
     public interface IPracticeRepository
     {
+        Task<IEnumerable<CardProgress>> GetAllAsync(
+            Expression<Func<CardProgress, bool>>? filter = null,
+            string includeProperties = "");
         // Взяти нову порцію карток для "зациклювання" (тих, що ще не вивчені до 1.0)
         Task<List<CardProgress>> GetNewBatchForPracticeAsync(int setId, int userId, int limit);
 
