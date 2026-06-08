@@ -20,15 +20,6 @@ public class MySetsController(
         List<int>? categoryIds = categoryId.HasValue ? [categoryId.Value] : null;
         var sets = await setService.GetAllUserSetsAsync(UserId, categoryIds, searchText);
 
-        foreach (var set in sets)
-        {
-            if (set.Id.HasValue)
-            {
-                var progressInfo = await practiceService.GetSetProgressAsync(set.Id.Value, UserId);
-                set.Progress = (int)Math.Round(progressInfo.OverallProgress * 100);
-            }
-        }
-
         sets = filter switch
         {
             "notstarted" => sets.Where(s => s.Progress == 0).ToList(), 

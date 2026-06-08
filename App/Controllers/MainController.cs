@@ -55,16 +55,6 @@ namespace App.Controllers
             // 1. Отримуємо всі доступні сети
             var sets = await _setService.GetAllSetsAsync(UserId, categoryIds, searchText);
 
-            // 2. Рахуємо прогрес для кожного (навіть якщо там 0)
-            foreach (var set in sets)
-            {
-                if (set.Id.HasValue)
-                {
-                    var progressInfo = await _practiceService.GetSetProgressAsync(set.Id.Value, UserId);
-                    set.Progress = (int)Math.Round(progressInfo.OverallProgress * 100);
-                }
-            }
-
             // 3. Фільтрація по табах (працює тільки коли тицяєш на конкретний таб)
             sets = filter switch
             {
