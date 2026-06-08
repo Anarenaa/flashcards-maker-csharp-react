@@ -25,6 +25,14 @@ namespace App.Controllers.api
             var sets = await _setService.GetAllSetsAsync(0, null, searchText);
             return Ok(sets);
         }
+        [HttpGet]
+        [Route("progress/{userId}")]
+        [ProducesResponseType(typeof(IEnumerable<SetWithProgressDTO>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetAllWithProgress(int userId, [FromQuery] string? searchText)
+        {
+            var sets = await _setService.GetSetsWithProgress(userId, null, searchText);
+            return Ok(sets);
+        }
 
         [HttpDelete]
         [Route("progress/{userId}")]

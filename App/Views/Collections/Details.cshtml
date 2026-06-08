@@ -135,6 +135,8 @@
             var actionName = (isSetOwner || User.IsInRole("Admin")) ? "Index" : "Sets";
             var controllerName = (isSetOwner || User.IsInRole("Admin")) ? "Details" : "DetailsInMain";
 
+            double masteryPercent = Math.Round(set.OverallProgress * 100);
+
             <div class="set-card" onclick="handleCardClick(event, '@Url.Action(actionName, controllerName, new { id = set.Id, collectionId = Model.Id })')">
 
                 <div class="dots" onclick="toggleMenu(event)">⋮</div>
@@ -152,10 +154,10 @@
                 <div class="mastery-container">
                     <div class="mastery-info">
                         <span style="opacity: 0.5;">Майстерність</span>
-                        <span style="color: var(--accent-color);">@set.Progress%</span>
+                        <span style="color: var(--accent-color);">@masteryPercent%</span>
                     </div>
                     <div class="mastery-bar-bg">
-                        <div class="mastery-bar-fill" style="width: @set.Progress%;"></div>
+                        <div class="mastery-bar-fill" style="width: @masteryPercent%;"></div>
                     </div>
                 </div>
 
