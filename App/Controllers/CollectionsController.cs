@@ -34,12 +34,24 @@ namespace App.Controllers
         {
             if (id <= 0) return RedirectToAction(nameof(Index));
 
-            var collectionDetail = await _collectionService.GetCollectionByIdAsync(id, UserId);
+            var collectionDetail = await _collectionService.GetCollectionByIdAsync(id);
 
             if (collectionDetail == null)
             {
                 return NotFound();
             }
+
+            var progressData = await _setService.GetSetsWithProgress(UserId, null, null);
+
+            foreach (var set in collectionDetail.Sets)
+            {
+                var p = progressData.FirstOrDefault(x => x.Id == set.Id);
+                if (p != null)
+                {
+                    set.OverallProgress = p.OverallProgress;
+                }
+            }
+
             return View(collectionDetail);
         }
 
