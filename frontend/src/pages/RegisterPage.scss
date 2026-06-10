@@ -1,9 +1,9 @@
 body {
-    background: linear-gradient(#141B25, #2C1335);
+    background: linear-gradient(var(--bg-color), var(--accent-purple));
     min-height: 100vh;
     margin: 0;
     font-family: system-ui, sans-serif;
-    color: var(--text-color); 
+    color: var(--text-color);
 }
 
 .auth-card {
@@ -11,48 +11,60 @@ body {
     top: 50%;
     left: 50%;
     transform: translate(-50%, -50%);
+
     background: #ffffff08;
     backdrop-filter: blur(15px);
     border: 1px solid #f0ffff1a;
-    padding: 40px;
-    border-radius: 25px;
+
+    padding: 1.75rem 2.25rem;
+    border-radius: 1.6rem;
+
     width: 100%;
-    max-width: 400px;
-    box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+    max-width: 25rem;
+
+    box-shadow: 0 1.25rem 3.125rem rgba(0, 0, 0, 0.5);
+
+    @media (max-width: 425px) {
+        max-width: 21.25rem; 
+        padding-left: 1rem;
+        padding-right: 1rem;
+    }
 
     .title {
         color: #F0FFFF;
         text-align: center;
-        margin-bottom: 25px;
-        font-size: 25px;
+        margin-bottom: 1.6rem;
+        font-size: 1.6rem;
         font-weight: 700;
     }
 }
 
-.separator{
-    display: flex; 
-    align-items: center; 
-    text-align: center; 
-    margin: 12px 0; 
-    opacity: 0.4; 
+.separator {
+    display: flex;
+    align-items: center;
+    text-align: center;
+
+    margin: 0.75rem 0;
+    opacity: 0.4;
     font-size: 0.8rem;
 
     span {
-        flex: 1; 
-        border-bottom: 1px solid rgba(255,255,255,0.2); 
+        flex: 1;
+        border-bottom: 1px solid rgba(255,255,255,0.2);
         margin-right: 0.5em;
     }
 }
 
-.form-group {
-    margin-bottom: 15px;
+.flexs-container {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 0.5rem;
 }
 
-label {
-    display: block;
-    margin-bottom: 6px;
-    font-size: 0.8rem;
-    opacity: 0.7;
+.flex-container {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem; 
 }
 
 .password-container {
@@ -63,12 +75,15 @@ label {
 
 input {
     width: 100%;
-    background: #141B25;
+    background: var(--bg-color);
     border: 1px solid var(--square-color-2);
     color: white;
-    padding: 11px;
-    padding-right: 40px;
-    border-radius: 10px;
+
+    padding: 0.7rem;
+    padding-right: 2.5rem;
+
+    border-radius: 0.6rem; 
+
     outline: none;
     box-sizing: border-box;
     transition: 0.3s;
@@ -76,18 +91,20 @@ input {
     &:focus {
         border-color: #F0FFFF;
     }
-    
-    
 }
-.error-input{
+
+.error-input {
     border-color: var(--error-color);
 }
+
 .toggle-password {
     position: absolute;
-    right: 12px;
+    right: 0.75rem;
+
     cursor: pointer;
     opacity: 0.5;
     transition: 0.3s;
+
     display: flex;
     align-items: center;
     user-select: none;
@@ -102,43 +119,62 @@ input {
     width: 100%;
     background: #6B8789;
     color: white;
+
     border: none;
-    padding: 13px;
-    border-radius: 10px;
+    padding: 0.8rem;
+    border-radius: 0.6rem;
+
     font-weight: bold;
-    margin-top: 10px;
+    margin-top: 0.6rem;
+
     transition: 0.3s;
 
-    &:hover {
-        background: #F0FFFF;
-        color: #141B25;
-        transform: translateY(-2px);
+    @media (hover: hover) and (pointer: fine) {
+        &:hover:not(:disabled) {
+            background: #F0FFFF;
+            color: #141B25;
+            transform: translateY(-2px);
+        }
+    }
+
+    &:disabled {
+        opacity: 0.7;
+        cursor: not-allowed;
     }
 }
-.btn-auth-google{
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
-    gap: 10px; 
-    background: white; 
-    color: #141B25; 
-    padding: 12px; 
-    border-radius: 10px; 
-    font-weight: bold; 
-    font-size: 0.9rem; 
-    transition: 0.3s; 
-    margin-bottom: 10px;
 
-    &:hover{
-        transform: translateY(-2px);
-        box-shadow: 0px 8px 10px rgba(0, 0, 0, 0.2);
+.btn-auth-google {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+
+    background: white;
+    color: var(--bg-color);
+
+    padding: 0.75rem;
+    border-radius: 0.6rem; 
+
+    font-weight: bold;
+    font-size: 0.9rem;
+
+    transition: 0.3s;
+    margin-bottom: 0.6rem;
+
+    @media (hover: hover) and (pointer: fine) {
+        &:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 0.5rem 0.625rem rgba(0, 0, 0, 0.2);
+        }
     }
 }
 
 .text-danger {
     color: var(--error-color);
     font-size: 0.75rem;
-    margin-top: 5px;
+
+    margin-top: 0.3rem; 
+
     display: block;
     list-style: none;
     padding: 0;
@@ -146,7 +182,8 @@ input {
 
 .auth-footer {
     text-align: center;
-    margin-top: 20px;
+    margin-top: 1.25rem;
+
     font-size: 0.85rem;
     opacity: 0.6;
 
