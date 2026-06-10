@@ -1,3 +1,11 @@
+:root {
+  --bg-color: #141B25;
+  --accent-purple: #2C1335;
+  --accent-color: #6B8789;
+  --square-color-2: #818375;
+  --text-color: #DEE4C7;
+}
+
 *{
 	padding: 0;
 	margin: 0;

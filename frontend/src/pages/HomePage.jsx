@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { Link } from 'react-router';
 import './HomePage.scss';
 
 export default function HomePage() {
@@ -35,7 +36,7 @@ export default function HomePage() {
 
       <section className="hero-viewport">
         <nav className="top-right-nav">
-          <a href="/register" className="btn">Реєстрація</a>
+          <Link to="/register" className="btn">Реєстрація</Link>
           <a href="/login" className="btn">Увійти</a>
         </nav>
 
