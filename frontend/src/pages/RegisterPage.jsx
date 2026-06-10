@@ -13,20 +13,49 @@ export default function RegisterPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
   const [errors, setErrors] = useState({});
+  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setErrors({});
 
-    if (password !== confirmPassword) {
-      setErrors({ ConfirmPassword: ["Паролі не збігаються"] });
-      setPassword("");
-      setConfirmPassword("");
+    // Validation -----------
+    const validationErrors = {};
+
+    if (!name.trim()) {
+      validationErrors.UserName = ["Введіть ім'я користувача"];
+    }
+
+    if (!email.trim()) {
+      validationErrors.Email = ["Введіть email"];
+    }
+    else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      validationErrors.Email = ["Невірний формат email"];
+    }
+
+    if (!password) {
+      validationErrors.Password = ["Введіть пароль"];
+    }
+
+    if (!confirmPassword) {
+      validationErrors.ConfirmPassword = ["Підтвердіть пароль"];
+    }
+
+    if (Object.keys(validationErrors).length > 0) {
+      setErrors(validationErrors);
       return;
     }
 
+    if (password !== confirmPassword) {
+      setErrors({ ConfirmPassword: ["Паролі не збігаються"] });
+      return;
+    }
+    // ---------------------
+
     try {
+      setIsLoading(true);
+
       const response = await fetch("/api/auth/register", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -37,122 +66,146 @@ export default function RegisterPage() {
 
       if (response.ok) {
         navigate("/");
+
+        setName("");
+        setEmail("");
+        setPassword("");
+        setConfirmPassword("");
       } else {
-        setErrors(data || {});
+        console.log(data);
+
+        if (data.errors) {
+          setErrors(data.errors);
+        } else if (typeof data === "string") {
+          setErrors({ global: data });
+        } else if (data) {
+          setErrors(data);
+        }
       }
     } catch (error) {
       setErrors({
         global: "Не вдалося з'єднатися з сервером. Спробуйте пізніше.",
       });
+      console.log(error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
+  const hasError = (field) => !!errors[field];
+
   return (
-    <div className="auth-card">
-      <h2>Реєстрація</h2>
-      {errors.global &&
-        alert(errors.global[0])
-      }
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <input
-            placeholder="Вигадайте нікнейм"
-            name="userName"
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            required
-          />
-          {errors.UserName && (
-            <span className="text-danger">{errors.UserName[0]}</span>
-          )}
-        </div>
+    <>
+      {errors.global && <div className="text-danger">{errors.global}</div>}
+      <div className="auth-card">
+        <h1 className="title">Реєстрація</h1>
 
-        <div className="form-group">
-          <input
-            type="email"
-            name="email"
-            placeholder="Email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          {errors.Email && (
-            <span className="text-danger">{errors.Email[0]}</span>
-          )}
-        </div>
+        <form onSubmit={handleSubmit} autoComplete="off">
+          <div className="form-group">
+            <input
+              placeholder="Вигадайте нікнейм"
+              name="userName"
+              className={hasError("UserName") ? "error-input" : ""}
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+            />
+            {errors.UserName && (
+              <span className="text-danger">{errors.UserName[0]}</span>
+            )}
+          </div>
 
+          <div className="form-group">
+            <input
+              type="text"
+              name="email"
+              className={hasError("Email") ? "error-input" : ""}
+              placeholder="example@mail.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+            />
+            {errors.Email && (
+              <span className="text-danger">{errors.Email[0]}</span>
+            )}
+          </div>
+
+          <div className="separator">
+            <span></span>
+          </div>
+
+          <div className="form-group">
+            <div className="password-container">
+              <input
+                type={showPassword ? "text" : "password"}
+                name="password"
+                className={hasError("Password") ? "error-input" : ""}
+                placeholder="Пароль"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+              />
+              <span
+                className="toggle-password"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </span>
+            </div>
+            {errors.Password && (
+              <span className="text-danger">{errors.Password[0]}</span>
+            )}
+          </div>
+
+          <div className="form-group">
+            <div className="password-container">
+              <input
+                type={showConfirmPassword ? "text" : "password"}
+                name="confirm"
+                className={hasError("ConfirmPassword") ? "error-input" : ""}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                placeholder="Повторіть пароль"
+              />
+              <span
+                className="toggle-password"
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              >
+                {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </span>
+            </div>
+
+            {errors.ConfirmPassword && (
+              <span className="text-danger">{errors.ConfirmPassword[0]}</span>
+            )}
+          </div>
+
+          <button
+            type="submit"
+            className="btn-auth"
+            id="btn-auth"
+            disabled={isLoading}
+          >
+            {isLoading ? "Реєстрація..." : "Зареєструватися"}
+          </button>
+        </form>
         <div className="separator">
+          <span></span>
+          або
           <span></span>
         </div>
 
-        <div className="form-group">
-          <div className="password-container">
-            <input
-              type={showPassword ? "text" : "password"}
-              name="password"
-              placeholder="Пароль"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-            />
-            <span
-              className="toggle-password"
-              onClick={() => setShowPassword(!showPassword)}
-            >
-              {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </span>
-          </div>
-          {errors.Password && (
-            <span className="text-danger">{errors.Password[0]}</span>
-          )}
+        <a className="btn-auth-google">
+          <img
+            src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
+            width="18"
+            height="18"
+          />
+          через Google
+        </a>
+
+        <div className="auth-footer">
+          Вже маєте акаунт? <Link to="/login">Увійти</Link>
         </div>
-
-        <div className="form-group">
-          <div className="password-container">
-            <input
-              type={showConfirmPassword ? "text" : "password"}
-              name="confirm"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              placeholder="Повторіть пароль"
-              required
-            />
-            <span
-              className="toggle-password"
-              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-            >
-              {showConfirmPassword ? <EyeOff size={20} /> : <Eye size={20} />}
-            </span>
-          </div>
-
-          {errors.ConfirmPassword && (
-            <span className="text-danger">{errors.ConfirmPassword[0]}</span>
-          )}
-        </div>
-
-        <button type="submit" className="btn-auth">
-          Зареєструватися
-        </button>
-      </form>
-      <div className="separator">
-        <span></span>
-        або
-        <span></span>
       </div>
-
-      <a className="btn-auth-google">
-        <img
-          src="https://upload.wikimedia.org/wikipedia/commons/c/c1/Google_%22G%22_logo.svg"
-          width="18"
-          height="18"
-        />
-        через Google
-      </a>
-
-      <div className="auth-footer">
-        Вже маєте акаунт? <Link to="/login">Увійти</Link>
-      </div>
-    </div>
+    </>
   );
 }

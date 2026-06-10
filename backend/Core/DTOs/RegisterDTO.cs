@@ -8,11 +8,13 @@ namespace Core.DTOs
         public required string UserName { get; set; }
 
         [Required(ErrorMessage = "Email обов'язковий")]
-        [EmailAddress]
+        [EmailAddress(ErrorMessage = "Невірний формат email")]
         public required string Email { get; set; }
 
         [Required(ErrorMessage = "Пароль обов'язковий")]
         [MinLength(6, ErrorMessage = "Пароль має бути не менше 6 символів")]
+        [RegularExpression(@"^(?=.*\d).+$",
+            ErrorMessage = "Пароль має містити хоча б одну цифру")]
         public required string Password { get; set; }
     }
 }
