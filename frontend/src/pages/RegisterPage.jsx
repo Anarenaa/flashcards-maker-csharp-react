@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
 import Alert from "../components/Alert";
+import api from "../services/api";
 import "./RegisterPage.scss";
 
 export default function RegisterPage() {
@@ -56,37 +57,36 @@ export default function RegisterPage() {
     try {
       setIsLoading(true);
 
-      const response = await fetch("/api/auth/register", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ userName: name, email, password }),
+      // Instead of fetch we use axios through the services/api.js 
+      const response = await api.post("/auth/register", { 
+        userName: name, 
+        email, 
+        password 
       });
+      
+      navigate("/");
 
-      const data = await response.json();
+      setName("");
+      setEmail("");
+      setPassword("");
+      setConfirmPassword("");
 
-      if (response.ok) {
-        navigate("/");
+    } catch (error) {
 
-        setName("");
-        setEmail("");
-        setPassword("");
-        setConfirmPassword("");
-      } else {
-        console.log(data);
+      if (error.globalMessage) {
+        setErrors({ global: error.globalMessage });
+      } 
+      else if (error.response && error.response.data) {
+        const responseData = error.response.data;
 
-        if (data.errors) {
-          setErrors(data.errors);
-        } else if (typeof data === "string") {
-          setErrors({ global: data });
-        } else if (data) {
-          setErrors(data);
+        if (responseData.errors) {
+          setErrors(responseData.errors);
+        } 
+        else {
+          setErrors(responseData);
         }
       }
-    } catch (error) {
-      setErrors({
-        global: "Не вдалося з'єднатися з сервером. Спробуйте пізніше.",
-      });
-      console.log(error);
+      
     } finally {
       setIsLoading(false);
     }

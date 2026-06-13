@@ -22,7 +22,7 @@ using Services.Practice;
 
 using IDictionaryService = Services.Interfaces.IDictionaryService;
 
-// Дозволяємо .NET працювати з датами Postgres без проблем із часовими поясами
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ .NET пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅ Postgres пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,7 +38,7 @@ builder.Services.AddSwaggerGen(c =>
     {
         Title = "Flashcards Maker API",
         Version = "v1",
-        Description = "REST API для управління флеш-картками."
+        Description = "REST API пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ."
     });
 });
 
@@ -48,12 +48,12 @@ builder.Services.AddDbContext<DataContext>(options =>
 
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
-    options.Password.RequireDigit = true;              // Обов'язково хоча б одна цифра
-    options.Password.RequiredLength = 6;               // Мінімальна довжина пароля 
-    options.Password.RequireNonAlphanumeric = false;   // Чи обов'язкові спецсимволи (!, @, #, $)?
-    options.Password.RequireUppercase = false;         // Чи обов'язкова велика літера?
-    options.Password.RequireLowercase = false;         // Чи обов'язкова мала літера?
-    options.Password.RequiredUniqueChars = 1;          // Кількість унікальних символів
+    options.Password.RequireDigit = true;              // пїЅпїЅпїЅпїЅ'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
+    options.Password.RequiredLength = 6;               // МіпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ 
+    options.Password.RequireNonAlphanumeric = false;   // пїЅпїЅ пїЅпїЅпїЅпїЅ'пїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ (!, @, #, $)?
+    options.Password.RequireUppercase = false;         // пїЅпїЅ пїЅпїЅпїЅпїЅ'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ?
+    options.Password.RequireLowercase = false;         // пїЅпїЅ пїЅпїЅпїЅпїЅ'пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ?
+    options.Password.RequiredUniqueChars = 1;          // КіпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ
 })
 .AddEntityFrameworkStores<DataContext>()
 .AddDefaultTokenProviders()
@@ -75,7 +75,7 @@ builder.Services.Configure<ApiClientOptions>("Gemini", geminiSection);
 var geminiApiKey = builder.Configuration["Gemini:ApiKey"]
                    ?? throw new Exception("Gemini API Key is missing!");
 
-// Реєструємо Typed HttpClient з конвеєром Polly
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Typed HttpClient пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ Polly
 var httpClientBuilder = builder.Services.AddHttpClient<IGeminiService, GeminiService>(client =>
 {
     client.BaseAddress = new Uri(geminiOpts.BaseUrl);
@@ -110,7 +110,7 @@ httpClientBuilder.AddResilienceHandler("gemini-pipeline", pipelineBuilder =>
 httpClientBuilder.AddTypedClient<IGeminiService>((httpClient, sp) =>
     new GeminiService(httpClient, geminiApiKey, sp.GetRequiredService<ILogger<GeminiService>>(), sp.GetRequiredService<IUnitOfWork>()));
 
-// --- НАЛАШТУВАННЯ WIKIPEDIA ---
+// --- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ WIKIPEDIA ---
 var wikiConfig = builder.Configuration.GetSection("Wikipedia");
 var wikiUserAgent = wikiConfig["UserAgent"];
 var wikiTimeout = double.Parse(wikiConfig["TimeoutSeconds"]);
@@ -148,7 +148,7 @@ wikiBuilder.AddResilienceHandler("wikipedia-pipeline", pipelineBuilder =>
     pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(wikiTimeout));
 });
 
-// --- НАЛАШТУВАННЯ MYMEMORY ---
+// --- пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ MYMEMORY ---
 var myMemoryConfig = builder.Configuration.GetSection("MyMemory");
 var myMemoryBaseUrl = myMemoryConfig["BaseUrl"];
 var myMemoryTimeout = double.Parse(myMemoryConfig["TimeoutSeconds"]);
@@ -186,7 +186,7 @@ myMemoryBuilder.AddResilienceHandler("mymemory-pipeline", pipelineBuilder =>
     pipelineBuilder.AddTimeout(TimeSpan.FromSeconds(myMemoryTimeout));
 });
 
-// АУТЕНТИФІКАЦІЯ І АВТОРИЗАЦІЯ
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅФІпїЅпїЅЦІпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅЦІпїЅ
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -259,7 +259,7 @@ builder.Services.AddAuthentication(options =>
         OnChallenge = context =>
         {
             context.HandleResponse();
-            context.Response.Redirect("/login");
+            context.Response.StatusCode = 401;
             return Task.CompletedTask;
         },
         OnForbidden = context =>
@@ -284,7 +284,7 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-// РЕЄСТРАЦІЯ СЕРВІСІВ І РЕПОЗИТОРІЇВ
+// пїЅЕЄпїЅпїЅпїЅпїЅЦІпїЅ пїЅпїЅпїЅВІСІпїЅ пїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅРІпїЅпїЅ
 builder.Services.Configure<EmailSettingsDTO>(builder.Configuration.GetSection("EmailSettings"));
 
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
@@ -308,7 +308,7 @@ builder.Services.AddScoped<IHintService, HintService>();
 
 var app = builder.Build();
 
-// Автоматичний запуск міграцій при старті
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅпїЅ пїЅпїЅпїЅпїЅпїЅ
 using (var scope = app.Services.CreateScope())
 {
     var services = scope.ServiceProvider;
@@ -324,7 +324,7 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
-// Зчитування HTTPS заголовків від проксі-сервера Render
+// пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ HTTPS пїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅпїЅ пїЅпїЅ пїЅпїЅпїЅпїЅпїЅ-пїЅпїЅпїЅпїЅпїЅпїЅпїЅ Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = Microsoft.AspNetCore.HttpOverrides.ForwardedHeaders.XForwardedFor |
@@ -340,7 +340,16 @@ app.Use(async (context, next) =>
     catch (KeyNotFoundException)
     {
         context.Response.StatusCode = 404;
-        context.Response.Redirect($"/Home/NotFoundPage/404");
+    
+        // РЇРєС‰Рѕ Р·Р°РїРёС‚ РІС–Рґ React вЂ” РїРѕРІРµСЂС‚Р°С”РјРѕ JSON, Р° РЅРµ СЂРµРґРёСЂРµРєС‚
+        if (context.Request.Path.Value!.StartsWith("/api/"))
+        {
+            await context.Response.WriteAsJsonAsync(new { error = "Р РµСЃСѓСЂСЃ РЅРµ Р·РЅР°Р№РґРµРЅРѕ (404)." });
+        }
+        else
+        {
+            context.Response.Redirect($"/not-found");
+        }
     }
     catch (DbException)
     {
@@ -371,7 +380,10 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseStatusCodePagesWithReExecute("/Home/NotFoundPage/{0}");
+app.UseWhen(context => !context.Request.Path.Value!.StartsWith("/api/"), appBuilder =>
+{
+    appBuilder.UseStatusCodePagesWithReExecute("/not-found");
+});
 app.UseRouting();
 
 app.UseAuthentication();
