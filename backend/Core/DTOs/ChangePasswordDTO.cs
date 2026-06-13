@@ -9,16 +9,18 @@ namespace Core.DTOs
         public required string Email { get; set; }
 
         [Required]
-        public string Token { get; set; }
+        public required string Token { get; set; }
 
         [Required(ErrorMessage = "Введіть новий пароль")]
         [MinLength(6, ErrorMessage = "Пароль повинен містити не менше 6 символів")]
+        [RegularExpression(@"^(?=.*\d).+$",
+            ErrorMessage = "Пароль має містити хоча б одну цифру")]
         [DataType(DataType.Password)]
-        [Compare("ConfirmPassword", ErrorMessage = "Паролі не співпадають")]
         public required string NewPassword { get; set; }
 
         [Required(ErrorMessage = "Підтвердіть новий пароль")]
         [DataType(DataType.Password)]
+        [Compare("NewPassword", ErrorMessage = "Паролі не співпадають")]
         public required string ConfirmPassword { get; set; }
     }
 }

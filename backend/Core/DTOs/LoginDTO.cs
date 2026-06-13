@@ -4,10 +4,10 @@ namespace Core.DTOs
 {
     public class LoginDto
     {
-        [Required()]
+        [Required(ErrorMessage = "Поле обов'язкове")]
         public required string UserNameOrEmail { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "Пароль обов'язковий")]
         public required string Password { get; set; }
     }
 }

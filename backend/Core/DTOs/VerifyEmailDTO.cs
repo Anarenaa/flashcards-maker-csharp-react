@@ -1,13 +1,11 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.ComponentModel.DataAnnotations;
 
 namespace Core.DTOs
 {
     public class VerifyEmailDTO
     {
-        public string Email { get; set; }
+        [Required(ErrorMessage = "Введіть вашу пошту")]
+        [EmailAddress(ErrorMessage = "Невірний формат пошти")]
+        public required string Email { get; set; }
     }
 }
