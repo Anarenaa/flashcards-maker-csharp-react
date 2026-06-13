@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router";
 import { Eye, EyeOff } from "lucide-react";
+import Alert from "../components/Alert";
 import "./RegisterPage.scss";
 
 export default function RegisterPage() {
@@ -95,7 +96,11 @@ export default function RegisterPage() {
 
   return (
     <>
-      {errors.global && <div className="text-danger">{errors.global}</div>}
+      <Alert 
+        type="error" 
+        message={errors.global} 
+        onClose={() => setErrors(prev => ({ ...prev, global: null }))} 
+      />
       <div className="auth-card">
         <h1 className="title">Реєстрація</h1>
 
