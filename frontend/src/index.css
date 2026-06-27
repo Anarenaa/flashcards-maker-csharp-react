@@ -2,10 +2,12 @@
   --bg-color: #141b25;
   --accent-purple: #2c1335;
   --accent-color: #6b8789;
+  --accent-white: #f0ffff;
   --square-color-2: #818375;
   --text-color: #dee4c7;
 
-  --error-color: #ff8080;
+  --error-color: #ff6464;
+  --error-text: #ff8080;
 }
 
 * {
@@ -89,4 +91,11 @@ h5,
 h6 {
   font-size: inherit;
   font-weight: 400;
+}
+
+/*---------------------------*/
+body {
+  background: linear-gradient(var(--bg-color), var(--accent-purple));
+  font-family: system-ui, sans-serif;
+  color: var(--text-color);
 }

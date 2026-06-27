@@ -16,5 +16,10 @@ namespace Core.DTOs
         [RegularExpression(@"^(?=.*\d).+$",
             ErrorMessage = "Пароль має містити хоча б одну цифру")]
         public required string Password { get; set; }
+
+        [Required(ErrorMessage = "Підтвердіть пароль")]
+        [DataType(DataType.Password)]
+        [Compare("Password", ErrorMessage = "Паролі не співпадають")]
+        public required string ConfirmPassword { get; set; }
     }
 }
