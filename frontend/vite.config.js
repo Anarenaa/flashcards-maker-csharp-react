@@ -1,3 +1,4 @@
+/// <reference types="vitest" />
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
@@ -13,5 +14,14 @@ export default defineConfig({
         secure: false
       }
     }
+  },
+  test: {
+    globals: true,
+    environment: 'jsdom',
+    setupFiles: './src/setupTests.js',
+    include: ['src/**/*.{test,spec}.{js,jsx}'],
+    
+    reporters: ['default', 'html'], 
+    outputFile: './html-report/index.html', // Шлях, куди Vitest збереже красиву сторінку з результатами
   }
 })

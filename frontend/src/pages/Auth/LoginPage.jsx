@@ -33,7 +33,7 @@ export default function LoginPage() {
     const validationErrors = {};
 
     if (!formData.userNameOrEmail.trim()) {
-      validationErrors.UserNameOrEmail = ["Введіть ім'я користувача"];
+      validationErrors.UserNameOrEmail = ["Введіть ім'я користувача або email"];
     }
 
     if (!formData.password.trim()) {
