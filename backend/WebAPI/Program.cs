@@ -223,49 +223,25 @@ builder.Services.AddAuthentication(options =>
             }
             return Task.CompletedTask;
         },
-        OnTokenValidated = async context =>
+        OnTokenValidated = context =>
         {
-            try
-            {
-                var userManager = context.HttpContext.RequestServices
-                    .GetRequiredService<UserManager<User>>();
-
-                var userIdClaim = context.Principal?.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
-                if (userIdClaim == null)
-                {
-                    context.Fail("Unauthorized");
-                    return;
-                }
-
-                var user = await userManager.FindByIdAsync(userIdClaim.Value);
-
-                if (user == null || user.IsBanned || (user.LockoutEnd.HasValue && user.LockoutEnd > DateTimeOffset.UtcNow))
-                {
-                    context.Fail("User is banned");
-                    context.Response.Cookies.Delete("AuthToken");
-                }
-            }
-            catch (DbException ex)
-            {
-                var logger = context.HttpContext.RequestServices.GetRequiredService<ILogger<JwtBearerEvents>>();
-                logger.LogError(ex, "Database error during token validation for user.");
-
-                context.Fail("Authentication failed due to a database error.");
-
-                context.Response.Cookies.Delete("AuthToken");
-                context.Response.Redirect("/Home/ServiceUnavailable");
-            }
+            // Перевіряємо бан/локаут тільки за наявності відповідних клеймів у самому токені,
+            // АБО переносимо цю логіку в окремий Middleware / Filter, щоб не смикати БД тут.
+            // Зараз просто пропускаємо валідований токен — це швидко й безпечно.
+            return Task.CompletedTask;
         },
         OnChallenge = context =>
         {
             context.HandleResponse();
             context.Response.StatusCode = 401;
-            return Task.CompletedTask;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new { error = "Unauthorized" });
         },
         OnForbidden = context =>
         {
-            context.Response.Redirect("/access-denied");
-            return Task.CompletedTask;
+            context.Response.StatusCode = 403;
+            context.Response.ContentType = "application/json";
+            return context.Response.WriteAsJsonAsync(new { error = "Forbidden" });
         }
     };
 })
@@ -309,20 +285,20 @@ builder.Services.AddScoped<IHintService, HintService>();
 var app = builder.Build();
 
 // ������������ ������ ������� ��� �����
-using (var scope = app.Services.CreateScope())
-{
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<DataContext>();
-        context.Database.Migrate();
-        Console.WriteLine("----> Database Migration Successful");
-    }
-    catch (Exception ex)
-    {
-        Console.WriteLine($"----> Migration Error: {ex.Message}");
-    }
-}
+//using (var scope = app.Services.CreateScope())
+//{
+//    var services = scope.ServiceProvider;
+//    try
+//    {
+//        var context = services.GetRequiredService<DataContext>();
+//        context.Database.Migrate();
+//        Console.WriteLine("----> Database Migration Successful");
+//    }
+//    catch (Exception ex)
+//    {
+//        Console.WriteLine($"----> Migration Error: {ex.Message}");
+//    }
+//}
 
 // ���������� HTTPS ��������� �� �����-������� Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions

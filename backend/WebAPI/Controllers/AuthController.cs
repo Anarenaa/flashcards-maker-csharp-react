@@ -1,13 +1,12 @@
-﻿using Core.DTOs;
+﻿using System.Security.Claims;
+using Core.DTOs;
 using Core.Models;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Services;
 using Services.Interfaces;
-using System.Security.Claims;
 
 namespace WebAPI.Controllers
 {
@@ -17,18 +16,21 @@ namespace WebAPI.Controllers
     {
         private readonly IAuthService _authService;
         private readonly UserManager<User> _userManager;
+        private readonly SignInManager<User> _signInManager;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
 
         public AuthController(
             IAuthService authService,
             UserManager<User> userManager,
+            SignInManager<User> signInManager,
             IEmailService emailService,
             IConfiguration configuration
         )
         {
             _authService = authService;
             _userManager = userManager;
+            _signInManager = signInManager;
             _emailService = emailService;
             _configuration = configuration;
         }
@@ -74,6 +76,7 @@ namespace WebAPI.Controllers
                     {
                         HttpOnly = true,
                         Secure = true,
+                        SameSite = SameSiteMode.Lax,
                         Expires = DateTime.UtcNow.AddDays(7)
                     });
 
@@ -144,6 +147,51 @@ namespace WebAPI.Controllers
 
                 return BadRequest(ModelState);
             }
+        }
+
+        [HttpPost("logout")]
+        public async Task<IActionResult> Logout()
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/"
+            };
+
+            Response.Cookies.Delete("AuthToken", cookieOptions);
+            Response.Cookies.Delete(".AspNetCore.Identity.Application", cookieOptions);
+            Response.Cookies.Delete(".AspNetCore.Identity.External", cookieOptions);
+
+            // Очищаємо серверні сесії Identity
+            await _signInManager.SignOutAsync();
+
+            return Ok(new { message = "Вихід успішний" });
+        }
+        
+        [HttpGet("me")]
+        [Authorize] 
+        public async Task<IActionResult> GetCurrentUser()
+        {
+            var userIdClaim = User.FindFirst(ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return Unauthorized();
+            }
+
+            var user = await _userManager.FindByIdAsync(userIdClaim.Value);
+            if (user == null)
+            {
+                return NotFound(new { message = "Користувача не знайдено" });
+            }
+
+            return Ok(new
+            {
+                avatarUrl = user.AvatarUrl,
+                username = user.UserName,
+                email = user.Email
+            });
         }
 
         [HttpGet("google-login")]

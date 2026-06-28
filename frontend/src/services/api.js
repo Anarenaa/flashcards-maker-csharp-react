@@ -18,7 +18,13 @@ api.interceptors.response.use(
     } else {
       const status = error.response.status;
 
-      if (status === 429) {
+      const isAuthCheck = error.config?.url?.includes('/auth/me');
+
+      if (status === 401 && !isAuthCheck) {
+        window.location.href = '/login';
+      } else if (status === 404) {
+        window.location.href = '/not-found'
+      } else if (status === 429) {
         error.globalMessage = "Занадто багато запитів! Будь ласка, зачекайте хвилину перед наступною спробою.";
       } else if (status >= 500) {
         error.globalMessage = "Не вдалося з'єднатися з сервером. Спробуйте пізніше.";
