@@ -1,0 +1,113 @@
+import { render, fireEvent, waitFor } from "@testing-library/react";
+import { BrowserRouter } from "react-router";
+import { http, HttpResponse } from "msw";
+import { server } from "../setupTests";
+import Header from "./Header";
+
+describe("Base Interaction and API (Logout/Routing)", () => {
+  let container;
+  let burgerButton;
+
+  beforeEach(() => {
+    const mockUser = { role: "User", username: "Anastasiia" };
+    const rendered = render(
+      <BrowserRouter>
+        <Header currentUser={mockUser} />
+      </BrowserRouter>
+    );
+    container = rendered.container;
+    burgerButton = container.querySelector(".header__hamburger-menu");
+  });
+
+  it("should successfully render application title", () => {
+    const title = container.querySelector(".header__title");
+    expect(title).not.toBeNull();
+    expect(title.textContent).toBe("Flashcards Maker");
+  });
+
+  it("should toggle active class on hamburger menu when clicked", () => {
+    expect(burgerButton).not.toHaveClass("active");
+
+    fireEvent.click(burgerButton);
+    expect(burgerButton).toHaveClass("active");
+
+    fireEvent.click(burgerButton);
+    expect(burgerButton).not.toHaveClass("active");
+  });
+
+  it("should successfully call logout API and handle window reload on submit", async () => {
+    let apiCalled = false;
+
+    server.use(
+      http.post("*/api/auth/logout", () => {
+        apiCalled = true;
+        return HttpResponse.json({ message: "Вихід успішний" });
+      })
+    );
+
+    const fakeLocation = { href: "http://localhost:5173" };
+    vi.stubGlobal("location", fakeLocation);
+
+    const logoutForm = container.querySelector(".header__logout-form");
+    
+    // Trigger submit and wait for the async execution
+    fireEvent.submit(logoutForm);
+
+    await waitFor(() => {
+      expect(apiCalled).toBe(true);
+      expect(fakeLocation.href).toBe("/");
+    });
+
+    // Clean up global mock after the test
+    vi.unstubAllGlobals();
+  });
+});
+
+describe("User Role Navigation and Profile", () => {
+  it("should render links and a custom avatar specifically for the User role", () => {
+    const mockUser = {
+      role: "User",
+      username: "Anastasiia",
+      avatarUrl: "https://example.com/avatar.jpg"
+    };
+
+    const { container } = render(
+      <BrowserRouter>
+        <Header currentUser={mockUser} />
+      </BrowserRouter>
+    );
+
+    const links = container.querySelectorAll(".header__link");
+    const linksText = Array.from(links).map(link => link.textContent.trim());
+    
+    expect(linksText).toContain("Головна");
+    expect(linksText).toContain("Мої сети");
+    expect(linksText).toContain("Мої колекції");
+    expect(linksText).toContain("Профіль");
+    expect(linksText).toContain("Налаштування");
+    
+    // Check if the admin links are not here
+    expect(linksText).not.toContain("Скарги");
+    
+    // Check avatar
+    const avatarImg = container.querySelector(".header__nav-avatar-mini img");
+    expect(avatarImg).not.toBeNull();
+    expect(avatarImg.getAttribute("src")).toBe(mockUser.avatarUrl);
+  });
+
+  it("should fall back to default profile icon if avatarUrl is missing", () => {
+    const userWithoutAvatar = { role: "User", username: "Anastasiia" };
+    
+    const { container } = render(
+      <BrowserRouter>
+        <Header currentUser={userWithoutAvatar} />
+      </BrowserRouter>
+    );
+    
+    const fallbackAvatar = container.querySelector(".header__nav-avatar-mini span");
+    expect(fallbackAvatar).not.toBeNull();
+    expect(fallbackAvatar.textContent).toBe("👤");
+  });
+
+  //Add admin panel testing
+});
