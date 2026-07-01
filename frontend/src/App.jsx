@@ -34,7 +34,7 @@ function App() {
 
     checkUser();
   }, []);
-  
+
   if (isAuth === null) {
     //заглушка, змінити на красивий компонент прогрузки
     return (
@@ -43,18 +43,30 @@ function App() {
       </div>
     );
   }
-  
+
   return (
     <Routes>
-      <Route path="/" element={<HomePage />} />
+      <Route path="/" element={isAuth ? <MainPage /> : <HomePage />} />
       <Route path="register" element={<RegisterPage />} />
       <Route path="login" element={<LoginPage />} />
 
       <Route path="main" element={<MainPage currentUser={currentUser} />} />
-      <Route path="my-sets" element={<MySetsPage currentUser={currentUser} />} />
-      <Route path="my-collections" element={<MyCollectionsPage currentUser={currentUser} />} />
-      <Route path="my-profile" element={<MyProfilePage currentUser={currentUser} />} />
-      <Route path="settings" element={<SettingsPage currentUser={currentUser} />} />
+      <Route
+        path="my-sets"
+        element={<MySetsPage currentUser={currentUser} />}
+      />
+      <Route
+        path="my-collections"
+        element={<MyCollectionsPage currentUser={currentUser} />}
+      />
+      <Route
+        path="my-profile"
+        element={<MyProfilePage currentUser={currentUser} />}
+      />
+      <Route
+        path="settings"
+        element={<SettingsPage currentUser={currentUser} />}
+      />
     </Routes>
   );
 }
