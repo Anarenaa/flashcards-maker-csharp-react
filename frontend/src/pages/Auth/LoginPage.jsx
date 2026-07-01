@@ -54,7 +54,7 @@ export default function LoginPage() {
         : "/auth/login";
       const response = await api.post(url, formData);
 
-      navigate(response.data.redirectTo);
+      window.location.href = returnUrl ? returnUrl : "/main";
     } catch (err) {
         if (err.globalMessage) {
           setErrors({ global: err.globalMessage });

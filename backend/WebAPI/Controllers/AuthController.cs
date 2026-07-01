@@ -185,9 +185,12 @@ namespace WebAPI.Controllers
             {
                 return NotFound(new { message = "Користувача не знайдено" });
             }
+            var userRoles = await _userManager.GetRolesAsync(user);
 
             return Ok(new
             {
+                id = user.Id,
+                role = userRoles.FirstOrDefault() ?? "User",
                 avatarUrl = user.AvatarUrl,
                 username = user.UserName,
                 email = user.Email
