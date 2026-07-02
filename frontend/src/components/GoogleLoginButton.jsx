@@ -1,4 +1,5 @@
 import React from "react";
+import './GoogleLoginButton.scss';
 
 export default function GoogleLoginButton({ returnUrl }) {
   const googleUrl = `/api/auth/google-login${
