@@ -3,6 +3,7 @@ import { BrowserRouter } from "react-router";
 import { http, HttpResponse } from "msw";
 import { server } from "../../setupTests";
 import RegisterPage from "./RegisterPage";
+import { describe } from "vitest";
 
 describe("Form and local validation", () => {
   let container;
@@ -244,6 +245,45 @@ describe("API interaction (MSW)", () => {
     await waitFor(() => {
       const errorText = container.querySelector(".text-danger");
       expect(errorText.textContent).toContain("хоча б одну цифру");
+    });
+  });
+
+  //services/api.js
+  describe("edge tests", () => {
+    it("should catch network errors through Axios interceptor and display global message", async () => {
+        server.use(
+        http.post("*/api/auth/register", () => {
+            return HttpResponse.error(); // ERR_NETWORK
+        })
+        );
+
+        fireEvent.change(usernameInput, { target: { value: "ananas" } });
+        fireEvent.change(emailInput, { target: { value: "ananas@gmail.com" } });
+        fireEvent.change(passwordInput, { target: { value: "Password123!" } });
+        fireEvent.change(confirmPasswordInput, { target: { value: "Password123!" } });
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+        expect(container.textContent).toContain("Здається, у вас зник інтернет");
+        });
+    });
+
+    it("should display server down message when status code is 500", async () => {
+        server.use(
+        http.post("*/api/auth/register", () => {
+            return new HttpResponse(null, { status: 503 });
+        })
+        );
+
+        fireEvent.change(usernameInput, { target: { value: "ananas" } });
+        fireEvent.change(emailInput, { target: { value: "ananas@gmail.com" } });
+        fireEvent.change(passwordInput, { target: { value: "Password123!" } });
+        fireEvent.change(confirmPasswordInput, { target: { value: "Password123!" } });
+        fireEvent.click(submitButton);
+
+        await waitFor(() => {
+        expect(container.textContent).toContain("Не вдалося з'єднатися з сервером. Спробуйте пізніше.");
+        });
     });
   });
 });
