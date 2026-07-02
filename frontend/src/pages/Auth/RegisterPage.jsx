@@ -68,7 +68,7 @@ export default function RegisterPage() {
       // Instead of fetch we use axios through the services/api.js
       await api.post("/auth/register", formData);
 
-      navigate("/");
+      window.location.href = "/main";
 
       setFormData({
         userName: "",
