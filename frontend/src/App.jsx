@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router";
 import api from "./services/api";
+import Layout from "./components/Layout";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/Auth/RegisterPage";
 import LoginPage from "./pages/Auth/LoginPage";
@@ -50,23 +51,13 @@ function App() {
       <Route path="register" element={<RegisterPage />} />
       <Route path="login" element={<LoginPage />} />
 
-      <Route path="main" element={<MainPage currentUser={currentUser} />} />
-      <Route
-        path="my-sets"
-        element={<MySetsPage currentUser={currentUser} />}
-      />
-      <Route
-        path="my-collections"
-        element={<MyCollectionsPage currentUser={currentUser} />}
-      />
-      <Route
-        path="my-profile"
-        element={<MyProfilePage currentUser={currentUser} />}
-      />
-      <Route
-        path="settings"
-        element={<SettingsPage currentUser={currentUser} />}
-      />
+      <Route element={<Layout currentUser={currentUser} />}>
+        <Route path="main" element={<MainPage />} />
+        <Route path="my-sets" element={<MySetsPage />} />
+        <Route path="my-collections" element={<MyCollectionsPage />} />
+        <Route path="my-profile" element={<MyProfilePage />} />
+        <Route path="settings" element={<SettingsPage />} />
+      </Route>
     </Routes>
   );
 }

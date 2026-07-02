@@ -1,0 +1,21 @@
+.container {
+    display: grid;
+    grid-template-columns: 18.5rem 1fr;
+    grid-template-rows: 1fr;
+    height: 100vh;
+
+    @media (max-width: 1024px) {
+        grid-template-columns: 29% 1fr;
+    }
+    @media (max-width: 878px) {
+        display: block;
+    }
+
+    .content-area {
+        padding: 2.5rem;
+
+        @media (max-width: 950px) {
+            padding: 1.25rem;
+        }
+    }
+}

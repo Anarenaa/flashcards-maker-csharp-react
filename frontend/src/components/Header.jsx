@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { NavLink, useNavigate } from "react-router";
+import { useEffect, useState } from "react";
+import { NavLink, useLocation, useNavigate } from "react-router";
 import { Menu, X } from "lucide-react";
 import api from "../services/api";
 import "./Header.scss";
@@ -7,6 +7,11 @@ import "./Header.scss";
 export default function Header({ currentUser }) {
   const [isHamburgerMenuActive, setIsHamburgerMenuActive] = useState(false);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    setIsHamburgerMenuActive(false);
+  }, [location.pathname]);
   
   const handleLogout = async (e) => {
     e.preventDefault();
@@ -23,10 +28,10 @@ export default function Header({ currentUser }) {
   }
 
   return (
-    <header className="header">
+    <header className={`header ${isHamburgerMenuActive ? "header--open" : ""}`}>
       <div className="header__flex-container">
         <h1 className="header__title">Flashcards Maker</h1>
-        <button className={isHamburgerMenuActive ? "header__hamburger-menu active" : "header__hamburger-menu"} 
+        <button className={`header__hamburger-menu ${isHamburgerMenuActive ? "active" : ""}`} 
           onClick={handleHamburgerMenuToggle}
         >
           {isHamburgerMenuActive ?

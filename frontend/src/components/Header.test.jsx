@@ -3,9 +3,11 @@ import { BrowserRouter } from "react-router";
 import { http, HttpResponse } from "msw";
 import { server } from "../setupTests";
 import Header from "./Header";
+import { expect } from "vitest";
 
 describe("Base Interaction and API (Logout/Routing)", () => {
   let container;
+  let headerElement;
   let burgerButton;
 
   beforeEach(() => {
@@ -16,6 +18,7 @@ describe("Base Interaction and API (Logout/Routing)", () => {
       </BrowserRouter>
     );
     container = rendered.container;
+    headerElement = container.querySelector(".header");
     burgerButton = container.querySelector(".header__hamburger-menu");
   });
 
@@ -35,6 +38,21 @@ describe("Base Interaction and API (Logout/Routing)", () => {
     expect(burgerButton).not.toHaveClass("active");
   });
 
+  it("should automatically close the hamburger menu when a navigation link is clicked", async () => {
+    expect(headerElement).not.toHaveClass("header--open");
+
+    fireEvent.click(burgerButton);
+    expect(headerElement).toHaveClass("header--open");
+
+    const link = container.querySelector('.header__link[href="/my-sets"]');
+    expect(link).not.toBeNull();
+    fireEvent.click(link);
+
+    await waitFor(() => {
+      expect(headerElement).not.toHaveClass("header--open");
+    });
+  });
+  
   it("should successfully call logout API and handle window reload on submit", async () => {
     let apiCalled = false;
 

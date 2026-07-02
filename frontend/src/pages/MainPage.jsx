@@ -15,9 +15,6 @@ export default function MainPage({currentUser}){
     // if (!currentUser) return null;
 
     return(
-        <div className='container'>
-            <Header currentUser={currentUser}/>
-            <main className='content-area'><h1>Main Page</h1></main>
-        </div>
+        <h1>Main Page</h1>
     );
 }

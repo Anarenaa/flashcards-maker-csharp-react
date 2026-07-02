@@ -18,14 +18,17 @@
       display: none;
     }
 
-    &:has(&__hamburger-menu.active) {
+    &--open {
       position: absolute;
+      top: 0;
+      left: 0;
+      z-index: 1000;
       overflow-y: scroll;
       height: 100vh;
       width: 100%;
       background-color: var(--bg-color);
       
-      .header__nav-btn,
+      .header__nav-btn:not(:has(.header__link.active)),
       .header__logout-form {
         display: block;
       }
