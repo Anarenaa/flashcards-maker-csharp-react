@@ -16,12 +16,13 @@ html{
   background: #ffffff08;
   backdrop-filter: blur(15px);
   border: 1px solid #f0ffff1a;
-  padding: 1.75rem 2.25rem;
+  padding: 2rem 2.25rem;
   margin: 0 1rem;
   border-radius: 1.6rem;
   width: 100%;
   max-width: 25rem;
   box-shadow: 0 1.25rem 3.125rem rgba(0, 0, 0, 0.5);
+  text-align: center;
 
   @media (max-width: 425px) {
     padding-left: 1.25rem;
@@ -29,9 +30,8 @@ html{
   }
 
   .title {
-    color: #F0FFFF;
-    text-align: center;
-    margin-bottom: 1.6rem;
+    color: var(--accent-white);
+    margin-bottom: 1.3rem;
     font-size: 1.6rem;
     font-weight: 700;
   }
@@ -111,6 +111,7 @@ html{
   font-size: 0.75rem;
   margin-top: 0.35rem;
   display: block;
+  text-align: left;
 }
 
 .auth-footer {
