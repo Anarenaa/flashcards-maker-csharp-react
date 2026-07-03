@@ -23,7 +23,7 @@ export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
 
   const returnUrl = searchParams.get("returnUrl") || "";
-  useGoogleAuthError(returnUrl);
+  useGoogleAuthError(returnUrl, setErrors);
 
   const handleInputChange = createInputChangeHandler(setFormData);
 

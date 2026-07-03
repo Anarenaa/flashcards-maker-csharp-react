@@ -21,7 +21,7 @@ export default function LoginPage() {
   const [errors, setErrors] = useState({});
 
   const returnUrl = searchParams.get("returnUrl") || "";
-  useGoogleAuthError(returnUrl);
+  useGoogleAuthError(returnUrl, setErrors);
   
   const handleInputChange = createInputChangeHandler(setFormData);
 
