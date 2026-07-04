@@ -10,7 +10,7 @@ import MySetsPage from "./pages/MySetsPage";
 import MyCollectionsPage from "./pages/MyCollectionsPage";
 import MyProfilePage from "./pages/MyProfilePage";
 import SettingsPage from "./pages/SettingsPage";
-import VerifyEmailPage from "./pages/Auth/Reset Password/VerifyEmailPage";
+import VerifyEmailPage from "./pages/Auth/ResetPassword/VerifyEmailPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);

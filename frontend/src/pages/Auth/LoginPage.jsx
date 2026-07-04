@@ -1,130 +1,97 @@
-import { useState } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { userNameOrEmailRule, passwordRule } from "../../utils/validationRules";
+import { useSearchParams, Link } from "react-router";
 import { useGoogleAuthError } from "../../hooks/useGoogleAuthError";
-import { createInputChangeHandler } from "../../utils/formHandlers";
+import { handleServerErrors } from "../../utils/formHandlers";
 import GoogleLoginButton from "../../components/GoogleLoginButton";
 import PasswordField from "../../components/PasswordField";
 import Alert from "../../components/Alert";
 import api from "../../services/api";
 import "./LoginPage.scss";
 
+const loginSchema = z.object({
+  userNameOrEmail: userNameOrEmailRule,
+  password: passwordRule,
+});
+
 export default function LoginPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
-
-  const [formData, setFormData] = useState({
-    userNameOrEmail: "",
-    password: "",
-  });
-  const [showPassword, setShowPassword] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
-  const [errors, setErrors] = useState({});
-
   const returnUrl = searchParams.get("returnUrl") || "";
-  useGoogleAuthError(returnUrl, setErrors);
-  
-  const handleInputChange = createInputChangeHandler(setFormData);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrors({});
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors, isSubmitting },
+  } = useForm({
+    resolver: zodResolver(loginSchema) // for parsing data between react hook form and zod
+  });
 
-    // Validation -----------
-    const validationErrors = {};
+  useGoogleAuthError(returnUrl, setError);
 
-    if (!formData.userNameOrEmail.trim()) {
-      validationErrors.UserNameOrEmail = ["Введіть ім'я користувача або email"];
-    }
-
-    if (!formData.password.trim()) {
-      validationErrors.Password = ["Введіть пароль"];
-    }
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-    // ---------------------
-
+  const onSubmit = async (data) => {
     try {
-      setIsLoading(true);
-
       const url = returnUrl
         ? `/auth/login?returnUrl=${encodeURIComponent(returnUrl)}`
         : "/auth/login";
-      const response = await api.post(url, formData);
+      const response = await api.post(url, data);
 
       window.location.href = returnUrl ? returnUrl : "/main";
     } catch (err) {
-        if (err.globalMessage) {
-          setErrors({ global: err.globalMessage });
-        }
-        else if (err.response && err.response.data) {
-          const serverErrors = err.response.data.errors || err.response.data;
-          setErrors(serverErrors);
-        }
-    } finally {
-      setIsLoading(false);
+      handleServerErrors(err, setError);
     }
   };
-
-  const hasError = (field) => !!errors[field];
 
   return (
     <>
       <Alert
         type="error"
-        message={errors.global}
-        onClose={() => setErrors((prev) => ({ ...prev, global: null }))}
+        message={errors.root?.serverError?.message}
+        onClose={() => setError("root.serverError", {message: null})}
       />
       <div className="auth-body">
         <div className="auth-card">
           <h2 className="title">Вхід</h2>
 
-          <form onSubmit={handleSubmit}>
+          <form onSubmit={handleSubmit(onSubmit)}>
             <div className="form-group">
               <input
                 type="text"
-                placeholder="Введіть логін або email"
-                className={hasError("UserNameOrEmail") ? "error-input" : ""}
-                value={formData.userNameOrEmail}
-                name="userNameOrEmail"
-                onChange={handleInputChange}
+                placeholder="Введіть нікнейм або email"
+                className={errors.userNameOrEmail ? "error-input" : ""}
+                {...register("userNameOrEmail")}
               />
-              {errors.UserNameOrEmail && (
-                <span className="text-danger">{errors.UserNameOrEmail[0]}</span>
+              {errors.userNameOrEmail && (
+                <span className="text-danger">{errors.userNameOrEmail.message}</span>
               )}
             </div>
 
             <div className="form-group">
               <PasswordField
                 placeholder="Пароль"
-                inputClassName={hasError("Password") ? "error-input" : ""}
-                value={formData.password}
+                inputClassName={errors.password ? "error-input" : ""}
                 name="password"
-                onChange={handleInputChange}
+                register={register}
               />
-              
-              {errors.Password && (
-                <span className="text-danger">{errors.Password[0]}</span>
+
+              {errors.password && (
+                <span className="text-danger">{errors.password.message}</span>
               )}
-              <Link
-                to="/verify-email"
-                className="link-reser-password"
-              >
+              <Link to="/verify-email" className="link-reser-password">
                 Забули пароль?
               </Link>
             </div>
 
-
-            <button type="submit" className="btn-auth">
-              {isLoading ? "Вхід..." : "Увійти"}
+            <button type="submit" className="btn-auth" disabled={isSubmitting}>
+              {isSubmitting ? "Вхід..." : "Увійти"}
             </button>
           </form>
 
           <div className="separator">або</div>
 
-          <GoogleLoginButton/>
+          <GoogleLoginButton />
 
           <div className="auth-footer">
             Ще не маєте акаунта? <Link to="/register">Зареєструватися</Link>

@@ -41,22 +41,25 @@ describe("Form and local validation", () => {
     expect(passwordInput.value).toBe("super-password-123");
   });
 
-  it("should highlight fields and display validation errors when submitting an empty form", () => {
+  it("should highlight fields and display validation errors when submitting an empty form", async () => {
     const submitButton = container.querySelector('button[type="submit"]');
 
-    fireEvent.change(usernameInput, { target: { value: " " } });
-    fireEvent.change(passwordInput, { target: { value: " " } });
+    fireEvent.change(usernameInput, { target: { value: "" } });
+    fireEvent.change(passwordInput, { target: { value: "" } });
 
     fireEvent.click(submitButton);
 
-    const errorMessages = container.querySelectorAll(".text-danger");
-    expect(errorMessages).toHaveLength(2);
+    await waitFor(() => {
+      const errorMessages = container.querySelectorAll(".text-danger");
+      expect(errorMessages).toHaveLength(2);
 
-    expect(usernameInput).toHaveClass("error-input");
-    expect(passwordInput).toHaveClass("error-input");
+      expect(usernameInput).toHaveClass("error-input");
+      expect(passwordInput).toHaveClass("error-input");
 
-    expect(errorMessages[0].textContent).toContain("ім'я");
-    expect(errorMessages[1].textContent).toContain("пароль");
+      expect(errorMessages[0].textContent).toContain("ім'я");
+      expect(errorMessages[1].textContent).toContain("пароль");
+    });
+    
   });
 });
 
@@ -123,7 +126,7 @@ describe("API interaction (MSW)", () => {
 
     await waitFor(() => {
       const errorText = container.querySelector(".text-danger");
-      expect(errorText.textContent).toContain("не знайдено");
+      expect(errorText.textContent).toContain("Користувача з таким логіном або email не знайдено");
     });
   });
 

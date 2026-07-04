@@ -1,164 +1,124 @@
-import { useState } from "react";
-import { useSearchParams, useNavigate, Link } from "react-router";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { 
+  userNameRule, 
+  emailRule, 
+  passwordRule, 
+  confirmPasswordRule, 
+  withConfirmPassword 
+} from "../../utils/validationRules";
+import { useSearchParams, Link } from "react-router";
 import { useGoogleAuthError } from "../../hooks/useGoogleAuthError";
-import { createInputChangeHandler } from "../../utils/formHandlers";
+import { handleServerErrors } from "../../utils/formHandlers";
 import GoogleLoginButton from "../../components/GoogleLoginButton";
 import PasswordField from "../../components/PasswordField";
 import Alert from "../../components/Alert";
 import api from "../../services/api";
 import "./RegisterPage.scss";
 
+const registerSchema = withConfirmPassword(
+  z.object({
+    userName: userNameRule,
+    email: emailRule,
+    password: passwordRule,
+    confirmPassword: confirmPasswordRule,
+  })
+);
+
 export default function RegisterPage() {
   const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
+  const returnUrl = searchParams.get("returnUrl") || "";
 
-  const [formData, setFormData] = useState({
-    userName: "",
-    email: "",
-    password: "",
-    confirmPassword: "",
+  // React Hook Form
+  const { 
+    register, 
+    handleSubmit, 
+    setError, 
+    formState: { errors, isSubmitting } 
+  } = useForm({
+    resolver: zodResolver(registerSchema) // for parsing data between react hook form and zod
   });
 
-  const [errors, setErrors] = useState({});
-  const [isLoading, setIsLoading] = useState(false);
+  useGoogleAuthError(returnUrl, setError);
 
-  const returnUrl = searchParams.get("returnUrl") || "";
-  useGoogleAuthError(returnUrl, setErrors);
-
-  const handleInputChange = createInputChangeHandler(setFormData);
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    setErrors({});
-
-    // Validation -----------
-    const validationErrors = {};
-
-    if (!formData.userName.trim()) {
-      validationErrors.UserName = ["Введіть ім'я користувача"];
-    }
-
-    if (!formData.email.trim()) {
-      validationErrors.Email = ["Введіть email"];
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email.trim())) {
-      validationErrors.Email = ["Невірний формат email"];
-    }
-
-    if (!formData.password.trim()) {
-      validationErrors.Password = ["Введіть пароль"];
-    }
-
-    if (!formData.confirmPassword.trim()) {
-      validationErrors.ConfirmPassword = ["Підтвердіть пароль"];
-    }
-
-    if (Object.keys(validationErrors).length > 0) {
-      setErrors(validationErrors);
-      return;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      setErrors({ ConfirmPassword: ["Паролі не збігаються"] });
-      return;
-    }
-    // ---------------------
-
+  const onSubmit = async (data) => {
     try {
-      setIsLoading(true);
-      // Instead of fetch we use axios through the services/api.js
-      await api.post("/auth/register", formData);
+      // data — { userName, email, password, confirmPassword } with successfull validation
+      await api.post("/auth/register", data);
 
       window.location.href = "/main";
-
-      setFormData({
-        userName: "",
-        email: "",
-        password: "",
-        confirmPassword: "",
-      });
     } catch (err) {
-      if (err.globalMessage) {
-        setErrors({ global: err.globalMessage });
-      } else if (err.response && err.response.data) {
-        const serverErrors = err.response.data.errors || err.response.data;
-        setErrors(serverErrors);
-      }
-    } finally {
-      setIsLoading(false);
+      handleServerErrors(err, setError);
     }
   };
-
-  const hasError = (field) => !!errors[field];
 
   return (
     <>
       <Alert
         type="error"
-        message={errors.global}
-        onClose={() => setErrors((prev) => ({ ...prev, global: null }))}
+        message={errors.root?.serverError?.message}
+        onClose={() => setError("root.serverError", { message: null })}
       />
+
       <div className="auth-body">
         <div className="auth-card">
           <h2 className="title">Реєстрація</h2>
 
-          <form onSubmit={handleSubmit} autoComplete="off">
+          <form onSubmit={handleSubmit(onSubmit)}>
+            
             <div className="form-group">
               <input
                 placeholder="Вигадайте нікнейм"
-                className={hasError("UserName") ? "error-input" : ""}
+                className={errors.userName ? "error-input" : ""}
                 type="text"
-                value={formData.userName}
-                name="userName"
-                onChange={handleInputChange}
+                {...register("userName")}
               />
-              {errors.UserName && (
-                <span className="text-danger">{errors.UserName[0]}</span>
-              )}
-            </div>
-            <div className="form-group">
-              <input
-                type="text"
-                className={hasError("Email") ? "error-input" : ""}
-                placeholder="example@mail.com"
-                value={formData.email}
-                name="email"
-                onChange={handleInputChange}
-              />
-              {errors.Email && (
-                <span className="text-danger">{errors.Email[0]}</span>
+              {errors.userName && (
+                <span className="text-danger">{errors.userName.message}</span>
               )}
             </div>
 
-              <hr/>
+            <div className="form-group">
+              <input
+                type="text"
+                placeholder="example@mail.com"
+                className={errors.email ? "error-input" : ""}
+                {...register("email")}
+              />
+              {errors.email && (
+                <span className="text-danger">{errors.email.message}</span>
+              )}
+            </div>
+
+            <hr />
 
             <div className="form-group">
               <PasswordField
                 placeholder="Пароль"
-                inputClassName={hasError("Password") ? "error-input" : ""}
-                value={formData.password}
+                inputClassName={errors.password ? "error-input" : ""}
                 name="password"
-                onChange={handleInputChange}
+                register={register}
               />
-              {errors.Password && (
-                <span className="text-danger">{errors.Password[0]}</span>
+              {errors.password && (
+                <span className="text-danger">{errors.password.message}</span>
               )}
             </div>
+
             <div className="form-group">
               <PasswordField
                 placeholder="Повторіть пароль"
-                inputClassName={hasError("ConfirmPassword") ? "error-input" : ""}
-                value={formData.confirmPassword}
+                inputClassName={errors.confirmPassword ? "error-input" : ""}
                 name="confirmPassword"
-                onChange={handleInputChange}
+                register={register}
               />
-
-              {errors.ConfirmPassword && (
-                <span className="text-danger">{errors.ConfirmPassword[0]}</span>
+              {errors.confirmPassword && (
+                <span className="text-danger">{errors.confirmPassword.message}</span>
               )}
             </div>
 
-            <button type="submit" className="btn-auth" disabled={isLoading}>
-              {isLoading ? "Реєстрація..." : "Зареєструватися"}
+            <button type="submit" className="btn-auth" disabled={isSubmitting}>
+              {isSubmitting ? "Реєстрація..." : "Зареєструватися"}
             </button>
           </form>
 

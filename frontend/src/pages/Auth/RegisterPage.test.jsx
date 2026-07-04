@@ -3,7 +3,6 @@ import { BrowserRouter } from "react-router";
 import { http, HttpResponse } from "msw";
 import { server } from "../../setupTests";
 import RegisterPage from "./RegisterPage";
-import { describe } from "vitest";
 
 describe("Form and local validation", () => {
   let container;
@@ -51,20 +50,39 @@ describe("Form and local validation", () => {
     expect(confirmPasswordInput.value).toBe("Password123!");
   });
 
-  it("should display errors for all empty fields on submit", () => {
+  it("should display errors for all empty fields on submit", async () => {
     fireEvent.click(submitButton);
 
-    const errorMessages = container.querySelectorAll(".text-danger");
-    expect(errorMessages.length).toBeGreaterThanOrEqual(4);
-
-    const errorTexts = Array.from(errorMessages).map(el => el.textContent);
-    expect(errorTexts).toContain("Введіть ім'я користувача");
-    expect(errorTexts).toContain("Введіть email");
-    expect(errorTexts).toContain("Введіть пароль");
-    expect(errorTexts).toContain("Підтвердіть пароль");
+    await waitFor(() => {
+      const errorMessages = container.querySelectorAll(".text-danger");
+      expect(errorMessages.length).toBeGreaterThanOrEqual(4);
+      
+      const errorTexts = Array.from(errorMessages).map(el => el.textContent);
+      expect(errorTexts).toContain("Введіть ім'я користувача");
+      expect(errorTexts).toContain("Введіть email");
+      expect(errorTexts).toContain("Введіть пароль");
+      expect(errorTexts).toContain("Підтвердіть пароль");
+    });
   });
 
-  it("should display invalid email format error", () => {
+  it("should display error message when user name contains invalid characters", async () => {
+    fireEvent.change(usernameInput, { target: { value: "ананас" } });
+    fireEvent.change(emailInput, { target: { value: "ananas@gmail.com" } });
+    
+    fireEvent.change(passwordInput, { target: { value: "Password123!" } });
+    fireEvent.change(confirmPasswordInput, { target: { value: "Password123!" } });
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      const errorMessages = container.querySelectorAll(".text-danger");
+      const errorTexts = Array.from(errorMessages).map(el => el.textContent);
+      
+      expect(errorTexts).toContain("Ім'я користувача може містити лише латинські літери, цифри, крапки та підкреслення");
+    });
+  });
+
+  it("should display invalid email format error", async () => {
     fireEvent.change(usernameInput, { target: { value: "ananas" } });
     fireEvent.change(emailInput, { target: { value: "invalid-email-format" } });
     fireEvent.change(passwordInput, { target: { value: "Password123!" } });
@@ -72,10 +90,11 @@ describe("Form and local validation", () => {
 
     fireEvent.click(submitButton);
 
-    const errorMessages = container.querySelectorAll(".text-danger");
-    const errorTexts = Array.from(errorMessages).map(el => el.textContent);
-    
-    expect(errorTexts).toContain("Невірний формат email");
+    await waitFor(() => {
+      const errorMessages = container.querySelectorAll(".text-danger");
+      const errorTexts = Array.from(errorMessages).map(el => el.textContent);
+      expect(errorTexts).toContain("Невірний формат email");
+    });
   });
 
   it("should display error message when passwords do not match", async () => {
@@ -86,10 +105,27 @@ describe("Form and local validation", () => {
 
     fireEvent.click(submitButton);
 
-    const errorMessages = container.querySelectorAll(".text-danger");
-    const errorTexts = Array.from(errorMessages).map(el => el.textContent);
+    await waitFor(() => {
+      const errorMessages = container.querySelectorAll(".text-danger");
+      const errorTexts = Array.from(errorMessages).map(el => el.textContent);
+      expect(errorTexts).toContain("Паролі не збігаються");
+    });
+  });
+  it("should display error message when password consists only of spaces", async () => {
+    fireEvent.change(usernameInput, { target: { value: "ananas" } });
+    fireEvent.change(emailInput, { target: { value: "ananas@gmail.com" } });
     
-    expect(errorTexts).toContain("Паролі не збігаються");
+    fireEvent.change(passwordInput, { target: { value: "      " } });
+    fireEvent.change(confirmPasswordInput, { target: { value: "      " } });
+
+    fireEvent.click(submitButton);
+
+    await waitFor(() => {
+      const errorMessages = container.querySelectorAll(".text-danger");
+      const errorTexts = Array.from(errorMessages).map(el => el.textContent);
+      
+      expect(errorTexts).toContain("Пароль не може складатися лише з пробілів");
+    });
   });
 });
 
@@ -158,7 +194,7 @@ describe("API interaction (MSW)", () => {
 
     await waitFor(() => {
       const errorText = container.querySelector(".text-danger");
-      expect(errorText.textContent).toContain("іменем вже існує");
+      expect(errorText.textContent).toContain("Користувач з таким іменем вже існує");
     });
   });
 
@@ -182,37 +218,7 @@ describe("API interaction (MSW)", () => {
 
     await waitFor(() => {
       const errorText = container.querySelector(".text-danger");
-      expect(errorText.textContent).toContain("email вже існує");
-    });
-  });
-
-  it("should display error message when password is less than 6 characters", async () => {
-    server.use(
-      http.post("*/api/auth/register", () => {
-        return HttpResponse.json(
-          {
-            type: "https://tools.ietf.org/html/rfc9110#section-15.5.1",
-            title: "One or more validation errors occurred.",
-            status: 400,
-            errors: {
-              Password: ["Пароль має бути не менше 6 символів"]
-            },
-            traceId: "00-2fc0b32a057b5c5b0ca76845cf07bb99-725d4d16b82b5b5f-00"
-          },
-          { status: 400 }
-        );
-      })
-    );
-
-    fireEvent.change(usernameInput, { target: { value: "ananas" } });
-    fireEvent.change(emailInput, { target: { value: "ananas@gmail.com" } });
-    fireEvent.change(passwordInput, { target: { value: "123" } });
-    fireEvent.change(confirmPasswordInput, { target: { value: "123" } });
-    fireEvent.click(submitButton);
-
-    await waitFor(() => {
-      const errorText = container.querySelector(".text-danger");
-      expect(errorText.textContent).toContain("не менше 6 символів");
+      expect(errorText.textContent).toContain("Користувач з таким email вже існує");
     });
   });
 
@@ -244,7 +250,7 @@ describe("API interaction (MSW)", () => {
 
     await waitFor(() => {
       const errorText = container.querySelector(".text-danger");
-      expect(errorText.textContent).toContain("хоча б одну цифру");
+      expect(errorText.textContent).toContain("Пароль має містити хоча б одну цифру");
     });
   });
 

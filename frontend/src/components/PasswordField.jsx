@@ -4,10 +4,9 @@ import "./PasswordField.scss";
 
 export default function PasswordField({
   placeholder,
-  value,
-  onChange,
-  name,
   inputClassName,
+  name,
+  register
 }) {
   const [showPassword, setShowPassword] = useState(false);
 
@@ -16,10 +15,9 @@ export default function PasswordField({
       <input
         type={showPassword ? "text" : "password"}
         placeholder={placeholder}
-        className={inputClassName}
-        value={value}
-        name={name}
-        onChange={onChange}
+        className={inputClassName} 
+        // name, value and onChange into register
+        {...(register ? register(name) : {})} 
       />
 
       <span
