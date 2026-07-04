@@ -27,7 +27,7 @@ export default function VerifyEmailPage() {
     try {
       await api.post("/auth/verify-email", data);
 
-      window.location.href = "/main";
+      window.location.href = "/email-sent";
     } catch (err) {
       handleServerErrors(err, setError);
     }
