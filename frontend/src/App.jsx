@@ -12,6 +12,7 @@ import MyProfilePage from "./pages/MyProfilePage";
 import SettingsPage from "./pages/SettingsPage";
 import VerifyEmailPage from "./pages/Auth/ResetPassword/VerifyEmailPage";
 import EmailSentPage from "./pages/Auth/ResetPassword/EmailSentPage";
+import ChangePassword from "./pages/Auth/ResetPassword/ChangePassword";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
@@ -54,6 +55,7 @@ function App() {
       <Route path="login" element={<LoginPage />} />
       <Route path="verify-email" element={<VerifyEmailPage />} />
       <Route path="email-sent" element={<EmailSentPage />} />
+      <Route path="change-password" element={<ChangePassword />} />
 
       <Route element={<Layout currentUser={currentUser} />}>
         <Route path="main" element={<MainPage />} />

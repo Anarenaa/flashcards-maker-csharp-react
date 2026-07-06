@@ -312,6 +312,14 @@ namespace WebAPI.Controllers
                 return BadRequest(ModelState);
             }
 
+            var verificationResult = _userManager.PasswordHasher.VerifyHashedPassword(user, user.PasswordHash!, model.NewPassword);
+
+            if (verificationResult == PasswordVerificationResult.Success)
+            {
+                ModelState.AddModelError("NewPassword", "Новий пароль не може бути таким самим, як старий");
+                return BadRequest(ModelState);
+            }
+
             var resetResult = await _userManager.ResetPasswordAsync(user, model.Token, model.NewPassword);
 
             if (!resetResult.Succeeded)

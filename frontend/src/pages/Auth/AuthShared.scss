@@ -51,6 +51,11 @@ html{
     &:focus {
       border-color: var(--accent-white);
     }
+    &[readonly] {
+        opacity: 0.5;
+        cursor: not-allowed;
+        border-style: dashed;
+    }
     &.error-input {
       border-color: var(--error-color);
     }

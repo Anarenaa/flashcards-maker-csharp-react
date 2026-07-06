@@ -6,9 +6,13 @@ export const handleServerErrors = (err, setError) => {
     const serverErrors = err.response.data.errors || err.response.data;
 
     Object.keys(serverErrors).forEach((key) => {
-      // (UserName -> userName)
-      const fieldName = key.charAt(0).toLowerCase() + key.slice(1);
-      setError(fieldName, { message: serverErrors[key][0] });
+      if (key.toLowerCase() === "global") {
+        setError("root.serverError", { message: serverErrors[key][0] });
+      } else {
+        // (UserName -> userName)
+        const fieldName = key.charAt(0).toLowerCase() + key.slice(1);
+        setError(fieldName, { message: serverErrors[key][0] });
+      }
     });
   }
 };
