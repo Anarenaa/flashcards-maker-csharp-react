@@ -6,6 +6,9 @@
   --square-color-2: #818375;
   --text-color: #dee4c7;
 
+  --progress-bar-start: #6e8efb;
+  --progress-bar-end: #a777e3;
+
   --error-color: #ff6464;
   --error-text: #ff8080;
 }

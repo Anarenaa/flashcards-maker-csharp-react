@@ -94,7 +94,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <footer>
+      <footer className='footer'>
         <p>&copy; 2026 Flashcards Maker. Створено для твого успіху.</p>
       </footer>
     </div>
