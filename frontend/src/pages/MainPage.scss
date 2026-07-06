@@ -2,3 +2,10 @@ h1{
     font-size: 2rem;
     color: white;
 }
+.sets-grid {
+  display: grid;
+  // Автоматично створює колонки від 280px. Якщо місце є — їх буде 3-4 в ряд.
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 25px;
+  width: 100%;
+}
