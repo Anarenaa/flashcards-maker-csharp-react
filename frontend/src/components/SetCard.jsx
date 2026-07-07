@@ -1,4 +1,3 @@
-import { useState, useEffect, useRef } from "react";
 import { NavLink } from "react-router";
 import { getCardsCountLabel } from "../utils/getCardsCountLabel";
 import "./SetCard.scss";
