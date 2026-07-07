@@ -2,6 +2,7 @@
 using Core.Exceptions;
 using Core.Models;
 using Microsoft.AspNetCore.Identity;
+using Repositories;
 using Repositories.Interfaces;
 
 namespace Services
@@ -15,51 +16,15 @@ namespace Services
             _unitOfWork = unitOfWork;
             _userManager = userManager;
         }
-        public async Task<List<SetDTO>> GetAllSetsAsync(int currentUserId, List<int>? categoryIds, string? searchText = null)
+        private async Task<List<SetDTO>> mapToSetDtosAsync(IEnumerable<Set> items, int userId)
         {
-            var sets = await _unitOfWork.Sets.GetAllAsync(
-                    filter: s => s.IsPublic
-                    && s.UserId != currentUserId
-                    && (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
-                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
-                    includeProperties: "User"
-            );
+            var setIds = items.Select(s => s.Id).ToList();
+            if (!setIds.Any()) return new List<SetDTO>();
 
-            var setIds = sets.Select(s => s.Id).ToList();
-            var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
-            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(currentUserId, setIds);
-
-            var setDtos = sets.Select(s => new SetDTO
-            {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                Type = s.Type,
-                FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
-                AvatarUrl = s.User?.AvatarUrl ?? null,
-                UserName = s.User?.UserName ?? null,
-                IsPublic = s.IsPublic,
-                IsGenerated = s.IsGenerated,
-                CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt,
-                OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
-            }).ToList();
-
-            return setDtos;
-        }
-        public async Task<List<SetDTO>> GetAllUserSetsAsync(int userId, List<int>? categoryIds, string? searchText = null)
-        {
-            var sets = await _unitOfWork.Sets.GetAllAsync(
-                    filter: s => s.UserId == userId &&
-                    (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
-                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
-            );
-
-            var setIds = sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
             var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
 
-            var setDtos = sets.Select(s => new SetDTO
+            return items.Select(s => new SetDTO
             {
                 Id = s.Id,
                 Name = s.Name,
@@ -68,14 +33,59 @@ namespace Services
                 FromLang = s.FromLang,
                 ToLang = s.ToLang,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                AvatarUrl = s.User?.AvatarUrl,
+                UserName = s.User?.UserName,
                 IsPublic = s.IsPublic,
                 IsGenerated = s.IsGenerated,
                 CreatedAt = s.CreatedAt,
                 LastUpdatedAt = s.UpdatedAt,
                 OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
             }).ToList();
+        }
+        public async Task<PagedResult<SetDTO>> GetAllSetsAsync(
+            int page,
+            int perPage,
+            int currentUserId,
+            int? categoryId,
+            SetType? setType,
+            string? fromLangCode,
+            string? searchText = null)
+        {
+            var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
+                    page: page,
+                    perPage: perPage,
+                    filter: s => s.IsPublic
+                    && s.UserId != currentUserId
+                    && s.Flashcards.Count > 0
+                    && (categoryId == null || s.Categories.Any(c => c.Id == categoryId))
+                    && (setType == null || s.Type == setType)
+                    && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
+                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
+                    includeProperties: "User"
+            );
 
-            return setDtos;
+            var dtos = await mapToSetDtosAsync(setsPagedResult.Items, currentUserId);
+            return new PagedResult<SetDTO>(dtos, setsPagedResult.TotalItems, page, perPage);
+        }
+        public async Task<PagedResult<SetDTO>> GetAllUserSetsAsync(
+            int page,
+            int perPage,
+            int userId,
+            IEnumerable<int>? categoryIds,
+            IEnumerable<SetType>? setType,
+            IEnumerable<string>? fromLangCode,
+            string? searchText = null)
+        {
+            var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
+                    page: page,
+                    perPage: perPage,
+                    filter: s => s.UserId == userId &&
+                    (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
+                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
+            );
+
+            var dtos = await mapToSetDtosAsync(setsPagedResult.Items, userId);
+            return new PagedResult<SetDTO>(dtos, setsPagedResult.TotalItems, page, perPage);
         }
         public async Task<List<SetDTO>> GetSetsByCollectionIdAsync(int collectionId, int userId)
         {
@@ -83,28 +93,8 @@ namespace Services
                     filter: s => s.Collections.Any(c => c.Id == collectionId),
                     includeProperties: "User"
             );
-            var setIds = sets.Select(s => s.Id).ToList();
-            var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
-            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
 
-            var setDtos = sets.Select(s => new SetDTO
-            {
-                Id = s.Id,
-                Name = s.Name,
-                Description = s.Description,
-                Type = s.Type,
-                FromLang = s.FromLang,
-                ToLang = s.ToLang,
-                FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
-                AvatarUrl = s.User?.AvatarUrl ?? null,
-                UserName = s.User?.UserName ?? null,
-                IsPublic = s.IsPublic,
-                IsGenerated = s.IsGenerated,
-                CreatedAt = s.CreatedAt,
-                LastUpdatedAt = s.UpdatedAt,
-                OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
-            }).ToList();
-            return setDtos;
+            return await mapToSetDtosAsync(sets, userId);
         }
         public async Task ResetSetProgressAsync(int userId, int setId)
         {

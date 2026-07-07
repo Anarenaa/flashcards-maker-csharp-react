@@ -29,7 +29,7 @@ public class SessionService : ISessionService
 
             if (cardProgresses == null || !cardProgresses.Any())
             {
-                var rawCards = await _unitOfWork.Flashcards.GetAllAsync(f => f.SetId == setId);
+                var rawCards = await _unitOfWork.Flashcards.GetAllAsync(filter: f => f.SetId == setId);
                 if (!rawCards.Any()) return null;
 
                 cardProgresses = rawCards.Select(f => new CardProgress

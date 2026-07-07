@@ -23,8 +23,10 @@ namespace Services
         }
         public async Task<IEnumerable<CategoryDTO>> GetMySetsCategoriesAsync(int userId)
         {
-            var categories = await _unitOfWork.Categories.GetAllAsync(c => c.Sets.Any(s => s.UserId == userId), includeProperties: "Sets");
-            return categories.OrderBy(c => c.Name).Select(c => new CategoryDTO
+            var categoriesPagedResult = await _unitOfWork.Categories.GetAllAsync(
+                filter: c => c.Sets.Any(s => s.UserId == userId), 
+                includeProperties: "Sets");
+            return categoriesPagedResult.OrderBy(c => c.Name).Select(c => new CategoryDTO
             {
                 Id = c.Id,
                 Name = c.Name

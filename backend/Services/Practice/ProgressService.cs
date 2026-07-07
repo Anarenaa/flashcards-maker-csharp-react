@@ -17,7 +17,7 @@ namespace Services.Practice
 
         public async Task<SetProgressDTO> GetSetProgressAsync(int setId, int userId)
         {
-            var allFlashcards = await _unitOfWork.Flashcards.GetAllAsync(f => f.SetId == setId);
+            var allFlashcards = await _unitOfWork.Flashcards.GetAllAsync(filter: f => f.SetId == setId);
             if (!allFlashcards.Any())
                 return new SetProgressDTO { SetId = setId, TotalCards = 0, OverallProgress = 0f };
 

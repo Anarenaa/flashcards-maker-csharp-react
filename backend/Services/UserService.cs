@@ -325,7 +325,7 @@ namespace Services
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null) throw new NotFoundException("Користувача не знайдено");
 
-            var sets = await _unitOfWork.Sets.GetAllAsync(s => s.IsPublic && s.UserId == user.Id);
+            var sets = await _unitOfWork.Sets.GetAllAsync(filter: s => s.IsPublic && s.UserId == user.Id);
             var setIds = sets.Select(s => s.Id).ToList();
 
             var flashcardsCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);

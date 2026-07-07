@@ -1,6 +1,7 @@
 ﻿using Core.DTOs;
 using Core.Models;
 using Microsoft.AspNetCore.Identity;
+using Repositories;
 using Repositories.Interfaces;
 
 namespace Services
@@ -14,9 +15,11 @@ namespace Services
             _unitOfWork = unitOfWork;
             _userManager = userManager;
         }
+        //Замінити Report на ReportDTO
         public async Task<IEnumerable<Report>> GetAllReports()
         {
-            return await _unitOfWork.Reports.GetAllAsync(r => r.IsResolved == false);
+            var reports = await _unitOfWork.Reports.GetAllAsync(filter: r => r.IsResolved == false);
+            return reports;
         }
         public async Task<Report?> GetReportByIdAsync(int reportId)
         {
