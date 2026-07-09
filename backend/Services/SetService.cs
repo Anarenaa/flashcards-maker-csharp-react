@@ -1,4 +1,6 @@
-﻿using Core.DTOs;
+﻿using System.ComponentModel.DataAnnotations;
+using System.Reflection;
+using Core.DTOs;
 using Core.Exceptions;
 using Core.Models;
 using Microsoft.AspNetCore.Identity;
@@ -49,14 +51,22 @@ namespace Services
             int? categoryId,
             SetType? setType,
             string? fromLangCode,
-            string? searchText = null)
+            string? searchText = null,
+            string? progress = null)
         {
+            List<int>? filteredSetIds = null;
+
+            if (!string.IsNullOrEmpty(progress))
+            {
+                filteredSetIds = await _unitOfWork.Sets.FilterSetIdsByProgressAsync(currentUserId, progress, withMySets: false);
+            }
             var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
                     page: page,
                     perPage: perPage,
                     filter: s => s.IsPublic
                     && s.UserId != currentUserId
                     && s.Flashcards.Count > 0
+                    && (filteredSetIds == null || filteredSetIds.Contains(s.Id))
                     && (categoryId == null || s.Categories.Any(c => c.Id == categoryId))
                     && (setType == null || s.Type == setType)
                     && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
@@ -279,6 +289,19 @@ namespace Services
             var set = await _unitOfWork.Sets.GetByIdAsync(setId);
             if (set == null) throw new NotFoundException("Сет не знайдено");
             return set.UserId == userId;
+        }
+        public IEnumerable<object> GetSetTypes()
+        {
+            return Enum.GetValues(typeof(SetType))
+                .Cast<SetType>()
+                .Select(t => new
+                {
+                    Id = (int)t,
+                    Name = t.GetType()
+                            .GetField(t.ToString())?
+                            .GetCustomAttribute<DisplayAttribute>()?
+                            .GetName() ?? t.ToString()
+                });
         }
     }
 }

@@ -12,8 +12,8 @@ export default function SetCard({ set, isMine }) {
       ) : (
         <div className="author-wrapper">
           <div className="author-avatar-mini">
-            {set.authorAvatar ? (
-              <img src={set.authorAvatar} alt={set.userName} />
+            {set.avatarUrl ? (
+              <img src={set.avatarUrl} alt={set.userName} />
             ) : (
               <span>👤</span>
             )}

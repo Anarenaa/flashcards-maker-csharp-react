@@ -4,7 +4,10 @@ namespace Core.Models
 {
     public enum SetType
     {
+        [Display(Name = "Мова")]
         Language,
+
+        [Display(Name = "Предмет")]
         Subject
     }
     public class Set : BaseModel

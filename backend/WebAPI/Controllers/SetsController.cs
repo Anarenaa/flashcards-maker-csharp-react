@@ -21,7 +21,8 @@ namespace WebAPI.Controllers
             [FromQuery] int? categoryId = null,
             [FromQuery] SetType? setType = null,
             [FromQuery] string? fromLangCode = null,
-            [FromQuery] string? searchText = null)
+            [FromQuery] string? searchText = null,
+            [FromQuery] string? progress = null)
         {
             var pagedResult = await _setService.GetAllSetsAsync(
                 page: page,
@@ -30,10 +31,17 @@ namespace WebAPI.Controllers
                 categoryId: categoryId,
                 setType: setType,
                 fromLangCode: fromLangCode,
-                searchText: searchText
+                searchText: searchText,
+                progress: progress
             );
 
             return Ok(pagedResult);
+        }
+        [HttpGet("types")]
+        public IActionResult GetSetTypes()
+        {
+            var setTypes = _setService.GetSetTypes();
+            return Ok(setTypes);
         }
     }
 }

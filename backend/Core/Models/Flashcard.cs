@@ -15,5 +15,7 @@ namespace Core.Models
         [Required]
         public int SetId { get; set; }
         public Set Set { get; set; }
+
+        public ICollection<CardProgress> CardProgresses { get; set; } = new List<CardProgress>();
     }
 }

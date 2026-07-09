@@ -59,7 +59,7 @@ namespace Core.Context
                 .OnDelete(DeleteBehavior.Restrict);
             modelBuilder.Entity<CardProgress>()
                 .HasOne(cp => cp.Flashcard)
-                .WithMany()
+                .WithMany(f => f.CardProgresses)
                 .HasForeignKey(cp => cp.FlashcardId)
                 .OnDelete(DeleteBehavior.Cascade);
 
