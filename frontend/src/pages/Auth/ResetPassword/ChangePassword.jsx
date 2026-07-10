@@ -8,9 +8,9 @@ import {
 } from "../../../utils/validationRules";
 import { NavLink, useSearchParams, Navigate } from "react-router";
 import { handleServerErrors } from "../../../utils/formHandlers";
+import Alert from "../../../components/Shared/Alert";
+import PasswordField from "../../../components/Auth/PasswordField";
 import api from "../../../services/api";
-import Alert from "../../../components/Alert";
-import PasswordField from "../../../components/PasswordField";
 import "../AuthShared.scss";
 import "./ChangePassword.scss";
 

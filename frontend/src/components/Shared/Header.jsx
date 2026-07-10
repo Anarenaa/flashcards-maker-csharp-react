@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { Menu, X } from "lucide-react";
-import api from "../services/api";
+import api from "../../services/api";
 import "./Header.scss";
 
 export default function Header({ currentUser }) {
@@ -43,7 +43,9 @@ export default function Header({ currentUser }) {
   }
 
   return (
-    <header className={`header ${isHamburgerMenuActive ? "header--open" : ""} ${isScrolled ? "header--scrolled" : ""}`}>
+    <header
+      className={`header ${isHamburgerMenuActive ? "header--open" : ""} ${isScrolled ? "header--scrolled" : ""}`}
+    >
       <div className="header__flex-container">
         <h1 className="header__title">Flashcards Maker</h1>
         <button

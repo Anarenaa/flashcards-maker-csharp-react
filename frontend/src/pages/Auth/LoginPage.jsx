@@ -5,9 +5,9 @@ import { userNameOrEmailRule, passwordRule } from "../../utils/validationRules";
 import { useSearchParams, Link } from "react-router";
 import { useGoogleAuthError } from "../../hooks/useGoogleAuthError";
 import { handleServerErrors } from "../../utils/formHandlers";
-import GoogleLoginButton from "../../components/GoogleLoginButton";
-import PasswordField from "../../components/PasswordField";
-import Alert from "../../components/Alert";
+import GoogleLoginButton from "../../components/Auth/GoogleLoginButton";
+import PasswordField from "../../components/Auth/PasswordField";
+import Alert from "../../components/Shared/Alert";
 import api from "../../services/api";
 import "./LoginPage.scss";
 

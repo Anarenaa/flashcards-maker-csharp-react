@@ -1,7 +1,7 @@
 import { render, fireEvent, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import { http, HttpResponse } from "msw";
-import { server } from "../setupTests";
+import { server } from "../../setupTests";
 import Header from "./Header";
 import { expect } from "vitest";
 

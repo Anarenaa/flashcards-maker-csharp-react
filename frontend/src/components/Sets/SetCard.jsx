@@ -1,13 +1,15 @@
 import { NavLink } from "react-router";
-import { getCardsCountLabel } from "../utils/getCardsCountLabel";
+import { getCardsCountLabel } from "../../utils/getCardsCountLabel";
 import "./SetCard.scss";
 
 export default function SetCard({ set, isMine }) {
   return (
     <NavLink className="set-card" to={`/sets/${set.id}`}>
       {isMine ? (
-        <span className={`privacy-status ${set.isPublic ? "public" : "private"}`}>
-            {set.isPublic ? "🌐 Публічний" : "🔒 Приватний"}
+        <span
+          className={`privacy-status ${set.isPublic ? "public" : "private"}`}
+        >
+          {set.isPublic ? "🌐 Публічний" : "🔒 Приватний"}
         </span>
       ) : (
         <div className="author-wrapper">
@@ -38,7 +40,9 @@ export default function SetCard({ set, isMine }) {
       </div>
 
       <footer className="set-card__footer">
-        <span className="flashcards-count">{set.flashcardsCount} {getCardsCountLabel(set.flashcardsCount)}</span>
+        <span className="flashcards-count">
+          {set.flashcardsCount} {getCardsCountLabel(set.flashcardsCount)}
+        </span>
         <span className="created-at">
           {new Date(set.createdAt).toLocaleDateString(undefined, {
             year: "numeric",

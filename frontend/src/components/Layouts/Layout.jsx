@@ -1,6 +1,6 @@
 import { Outlet } from "react-router";
-import Header from "./Header";
-import './Layout.scss';
+import Header from "../Shared/Header";
+import "./Layout.scss";
 
 export default function Layout({ currentUser }) {
   return (

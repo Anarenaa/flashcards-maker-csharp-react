@@ -6,13 +6,12 @@ import {
   Loader2,
   FolderSearch,
 } from "lucide-react";
-import { LANGUAGES } from "../constants/languages";
-import SetCard from "../components/SetCard";
-import api from "../services/api";
+import { LANGUAGES } from "../../constants/languages";
+import SetCard from "../../components/Sets/SetCard";
+import api from "../../services/api";
 import "./MainPage.scss";
-import "./MySetsPage.scss";
 
-export default function MySetsPage() {
+export default function MainPage() {
   const [sets, setSets] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
   const [categories, setCategories] = useState([]);
@@ -39,7 +38,7 @@ export default function MySetsPage() {
   const loadSets = async (currentFilters, page) => {
     setIsLoading(true);
     try {
-      const response = await api.get(`/my-sets`, {
+      const response = await api.get(`/sets`, {
         params: {
           page: page,
           perPage: pagination.pageSize,
@@ -231,24 +230,15 @@ export default function MySetsPage() {
         {isLoading ? (
           <div className="grid-status-message">
             <Loader2 className="spinner-icon" size={32} />
-            <p>Шукаємо твої сети...</p>
+            <p>Шукаємо сети...</p>
           </div>
+        ) : sets && sets.length > 0 ? (
+          sets.map((set) => <SetCard key={set.id} set={set} isMine={false} />)
         ) : (
-          <>
-          {filters.progress === "" &&
-            <div className="set-card add-card">+</div>
-          }
-            {sets && sets.length > 0 ? (
-              sets.map((set) => (
-                <SetCard key={set.id} set={set} isMine={true} />
-              ))
-            ) : (
-              <div className="grid-status-message empty-state">
-                <FolderSearch className="empty-icon" size={48} />
-                <p>Упс! Сетів із такими параметрами не знайдено</p>
-              </div>
-            )}
-          </>
+          <div className="grid-status-message empty-state">
+            <FolderSearch className="empty-icon" size={48} />
+            <p>Упс! Сетів із такими параметрами не знайдено</p>
+          </div>
         )}
       </div>
 

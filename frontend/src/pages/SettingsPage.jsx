@@ -1,4 +1,3 @@
-import Header from '../components/Header';
 import './SettingsPage.scss';
 
 export default function SettingsPage({currentUser}){
