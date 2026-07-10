@@ -1,0 +1,33 @@
+.main-page-footer {
+  margin: 1.25rem 0 0;
+}
+
+.action-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  background: rgba(255, 255, 255, 0.02);
+  padding: 0.75rem 1.5rem;
+  color: var(--accent-white);
+  border: 1px solid color-mix(in srgb, var(--square-color-2) 40%, transparent);
+
+  .pagination-current-label {
+    font-size: 0.95rem;
+    font-weight: 500;
+    opacity: 0.9;
+  }
+
+  .pagination-button {
+    background: transparent;
+    color: var(--accent-white);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:disabled {
+      opacity: 0.25;
+      cursor: not-allowed;
+    }
+  }
+}

@@ -1,26 +1,12 @@
-.set-card {
-  color: var(--accent-white);
-  background-color: color-mix(in srgb, var(--square-color-2) 10%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent-white) 30%, transparent);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  min-height: 240px;
-  display: flex;
-  flex-direction: column;
-  position: relative;
-  cursor: pointer;
-  transition: all 0.3s ease;
-
-  &:hover {
-    border-color: var(--accent-white);
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
-  }
-}
-
-.add-card {
+.add-new-card {
   display: flex;
   justify-content: center;
   align-items: center;
-  font-size: 3rem;
+  gap: 1rem;
+  font-weight: 500;
+  font-size: 1.2rem;
+
+  span {
+    font-size: 3rem;
+  }
 }
