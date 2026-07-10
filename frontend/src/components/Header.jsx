@@ -5,6 +5,21 @@ import api from "../services/api";
 import "./Header.scss";
 
 export default function Header({ currentUser }) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 0) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+
+    window.addEventListener("scroll", handleScroll);
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   const [isHamburgerMenuActive, setIsHamburgerMenuActive] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
@@ -12,32 +27,30 @@ export default function Header({ currentUser }) {
   useEffect(() => {
     setIsHamburgerMenuActive(false);
   }, [location.pathname]);
-  
+
   const handleLogout = async (e) => {
     e.preventDefault();
     try {
-      await api.post('/auth/logout');
+      await api.post("/auth/logout");
       window.location.href = "/";
     } catch (err) {
       console.error("Помилка при виході:", err);
     }
   };
-  
-  function handleHamburgerMenuToggle(){
+
+  function handleHamburgerMenuToggle() {
     setIsHamburgerMenuActive(!isHamburgerMenuActive);
   }
 
   return (
-    <header className={`header ${isHamburgerMenuActive ? "header--open" : ""}`}>
+    <header className={`header ${isHamburgerMenuActive ? "header--open" : ""} ${isScrolled ? "header--scrolled" : ""}`}>
       <div className="header__flex-container">
         <h1 className="header__title">Flashcards Maker</h1>
-        <button className={`header__hamburger-menu ${isHamburgerMenuActive ? "active" : ""}`} 
+        <button
+          className={`header__hamburger-menu ${isHamburgerMenuActive ? "active" : ""}`}
           onClick={handleHamburgerMenuToggle}
         >
-          {isHamburgerMenuActive ?
-            <X/>
-            : <Menu />
-          }
+          {isHamburgerMenuActive ? <X /> : <Menu />}
         </button>
       </div>
       <div className="header__line"></div>
@@ -46,16 +59,24 @@ export default function Header({ currentUser }) {
           {currentUser?.role === "Admin" && (
             <>
               <li className="header__nav-btn">
-                <NavLink to="/admin/complaints" className="header__link">Скарги</NavLink>
+                <NavLink to="/admin/complaints" className="header__link">
+                  Скарги
+                </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/admin/users" className="header__link">Користувачі</NavLink>
+                <NavLink to="/admin/users" className="header__link">
+                  Користувачі
+                </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/admin/categories" className="header__link">Категорії</NavLink>
+                <NavLink to="/admin/categories" className="header__link">
+                  Категорії
+                </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/admin/settings" className="header__link">Налаштування</NavLink>
+                <NavLink to="/admin/settings" className="header__link">
+                  Налаштування
+                </NavLink>
               </li>
             </>
           )}
@@ -63,16 +84,25 @@ export default function Header({ currentUser }) {
           {currentUser?.role === "User" && (
             <>
               <li className="header__nav-btn">
-                <NavLink to="/main" className="header__link">Головна</NavLink>
+                <NavLink to="/main" className="header__link">
+                  Головна
+                </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/my-sets" className="header__link">Мої сети</NavLink>
+                <NavLink to="/my-sets" className="header__link">
+                  Мої сети
+                </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/my-collections" className="header__link">Мої колекції</NavLink>
+                <NavLink to="/my-collections" className="header__link">
+                  Мої колекції
+                </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/my-profile" className="header__link header__link--profile">
+                <NavLink
+                  to="/my-profile"
+                  className="header__link header__link--profile"
+                >
                   <div className="header__nav-avatar-mini">
                     {currentUser?.avatarUrl ? (
                       <img src={currentUser.avatarUrl} alt="Avatar" />
@@ -84,7 +114,9 @@ export default function Header({ currentUser }) {
                 </NavLink>
               </li>
               <li className="header__nav-btn">
-                <NavLink to="/settings" className="header__link">Налаштування</NavLink>
+                <NavLink to="/settings" className="header__link">
+                  Налаштування
+                </NavLink>
               </li>
             </>
           )}

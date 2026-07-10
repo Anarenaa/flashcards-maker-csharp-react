@@ -1,17 +1,22 @@
 .header {
+  position: fixed;
+  z-index: 100;
   padding: 1.875rem;
   height: 100vh;
   display: flex;
   flex-direction: column;
+  background-color: var(--bg-color);
   border-right: 2px solid color-mix(in srgb, var(--accent-white) 10%, transparent);
 
-  @media (max-width: 950px) {
+  @media (max-width: 1024px) {
     padding: 1.25rem;
   }
-  @media (max-width: 878px) {
+  @media (max-width: 950px) {
     height: auto;
+    width: 100%;
     overflow-y: hidden;
     border-right: none;
+    border-bottom: 2px solid transparent;
 
     &__nav-btn:not(:has(.header__link.active)),
     &__logout-form {
@@ -19,11 +24,10 @@
     }
 
     &--open {
-      position: absolute;
+      position: fixed;
       top: 0;
       left: 0;
       z-index: 1000;
-      overflow-y: scroll;
       height: 100vh;
       width: 100%;
       background-color: var(--bg-color);
@@ -32,6 +36,9 @@
       .header__logout-form {
         display: block;
       }
+    }
+    &--scrolled{
+      border-bottom: 2px solid color-mix(in srgb, var(--accent-white) 10%, transparent);
     }
   }
 
@@ -58,7 +65,7 @@
     background: transparent;
     cursor: pointer;
 
-    @media (max-width: 878px) {
+    @media (max-width: 950px) {
       display: block;
     }
   }
@@ -70,7 +77,7 @@
     margin-top: 1rem;
     opacity: 0.5;
 
-    @media (max-width: 878px) {
+    @media (max-width: 950px) {
       display: none;
     }
   }
@@ -93,12 +100,12 @@
   &__nav-btn {
     width: 100%;
 
-    @media (max-width: 878px) {
+    @media (max-width: 950px) {
       order: 2;
     }
 
     &:has(.header__link.active) {
-      @media (max-width: 878px) {
+      @media (max-width: 950px) {
         order: 1;
       }
     }
@@ -161,7 +168,7 @@
       object-fit: cover;
     }
 
-    @media (max-width: 878px) {
+    @media (max-width: 950px) {
       width: 1.5rem;
       height: 1.5rem;
     }

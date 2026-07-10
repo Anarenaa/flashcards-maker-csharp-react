@@ -1,21 +1,18 @@
 .container {
-    display: grid;
-    grid-template-columns: 18.5rem 1fr;
-    grid-template-rows: 1fr;
-    height: 100vh;
+  height: 100vh;
+
+  .content-area {
+    padding: 2rem;
+    padding-left: 18.5rem; //for header
+    padding-top: 1.25rem;
 
     @media (max-width: 1024px) {
-        grid-template-columns: 29% 1fr;
-    }
-    @media (max-width: 878px) {
-        display: block;
+      padding-left: 17rem;
     }
 
-    .content-area {
-        padding: 2.5rem;
-
-        @media (max-width: 950px) {
-            padding: 1.25rem;
-        }
+    @media (max-width: 950px) {
+      padding: 1.25rem;
+      padding-top: 9rem; // for header
     }
+  }
 }
