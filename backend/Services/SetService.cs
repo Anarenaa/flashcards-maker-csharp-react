@@ -58,7 +58,7 @@ namespace Services
 
             if (!string.IsNullOrEmpty(progress))
             {
-                filteredSetIds = await _unitOfWork.Sets.FilterSetIdsByProgressAsync(currentUserId, progress, withMySets: false);
+                filteredSetIds = await _unitOfWork.Sets.FilterSetIdsByProgressAsync(currentUserId, progress, isMySets: false);
             }
             var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
                     page: page,
@@ -80,21 +80,34 @@ namespace Services
         public async Task<PagedResult<SetDTO>> GetAllUserSetsAsync(
             int page,
             int perPage,
-            int userId,
-            IEnumerable<int>? categoryIds,
-            IEnumerable<SetType>? setType,
-            IEnumerable<string>? fromLangCode,
-            string? searchText = null)
+            int currentUserId,
+            int? categoryId,
+            SetType? setType,
+            string? fromLangCode,
+            string? searchText = null,
+            string? progress = null)
         {
+            List<int>? filteredSetIds = null;
+
+            if (!string.IsNullOrEmpty(progress))
+            {
+                filteredSetIds = await _unitOfWork.Sets.FilterSetIdsByProgressAsync(currentUserId, progress, isMySets: true);
+            }
             var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
                     page: page,
                     perPage: perPage,
-                    filter: s => s.UserId == userId &&
-                    (categoryIds == null || !categoryIds.Any() || s.Categories.Any(c => categoryIds.Contains(c.Id)))
-                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText))
+                    filter: s => s.IsPublic
+                    && s.UserId == currentUserId
+                    && s.Flashcards.Count > 0
+                    && (filteredSetIds == null || filteredSetIds.Contains(s.Id))
+                    && (categoryId == null || s.Categories.Any(c => c.Id == categoryId))
+                    && (setType == null || s.Type == setType)
+                    && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
+                    && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
+                    includeProperties: "User"
             );
 
-            var dtos = await mapToSetDtosAsync(setsPagedResult.Items, userId);
+            var dtos = await mapToSetDtosAsync(setsPagedResult.Items, currentUserId);
             return new PagedResult<SetDTO>(dtos, setsPagedResult.TotalItems, page, perPage);
         }
         public async Task<List<SetDTO>> GetSetsByCollectionIdAsync(int collectionId, int userId)

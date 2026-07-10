@@ -21,17 +21,6 @@ namespace Services
                 Name = c.Name
             });
         }
-        public async Task<IEnumerable<CategoryDTO>> GetMySetsCategoriesAsync(int userId)
-        {
-            var categoriesPagedResult = await _unitOfWork.Categories.GetAllAsync(
-                filter: c => c.Sets.Any(s => s.UserId == userId), 
-                includeProperties: "Sets");
-            return categoriesPagedResult.OrderBy(c => c.Name).Select(c => new CategoryDTO
-            {
-                Id = c.Id,
-                Name = c.Name
-            });
-        }
         public async Task<CategoryDTO> CreateCategoryAsync(CategoryDTO categoryDto)
         {
             var category = new Category

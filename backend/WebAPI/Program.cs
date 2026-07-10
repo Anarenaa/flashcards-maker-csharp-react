@@ -356,10 +356,6 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseHttpsRedirection();
-app.UseWhen(context => !context.Request.Path.Value!.StartsWith("/api/"), appBuilder =>
-{
-    appBuilder.UseStatusCodePagesWithReExecute("/not-found");
-});
 app.UseRouting();
 
 app.UseAuthentication();

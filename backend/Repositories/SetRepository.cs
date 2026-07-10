@@ -40,10 +40,10 @@ namespace Repositories
                     : 0f
             );
         }
-        public async Task<List<int>> FilterSetIdsByProgressAsync(int userId, string progress, bool withMySets = false)
+        public async Task<List<int>> FilterSetIdsByProgressAsync(int userId, string progress, bool isMySets = false)
         {
             var totalCardsQuery = _context.Flashcards
-                .Where(f => withMySets
+                .Where(f => isMySets
                     ? f.Set.UserId == userId 
                     : f.Set.IsPublic && f.Set.UserId != userId)
                 .GroupBy(f => f.SetId)

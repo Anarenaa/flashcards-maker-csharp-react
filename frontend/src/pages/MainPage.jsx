@@ -230,7 +230,7 @@ export default function MainPage() {
         {isLoading ? (
           <div className="grid-status-message">
             <Loader2 className="spinner-icon" size={32} />
-            <p>Шукаємо твої сети...</p>
+            <p>Шукаємо сети...</p>
           </div>
         ) : sets && sets.length > 0 ? (
           sets.map((set) => <SetCard key={set.id} set={set} isMine={false} />)
