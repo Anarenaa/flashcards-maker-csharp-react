@@ -1,4 +1,4 @@
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
 
@@ -11,61 +11,46 @@ export function useSetsList(endpoint) {
     progress: "",
   });
 
+  // searchText, який реально пішов у запит. Оновлюється тільки
+  // при submit чи очищенні — на відміну від filters.searchText,
+  // що міняється на кожен keystroke. Це і використовується в queryKey.
+  const [appliedSearchText, setAppliedSearchText] = useState("");
+
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  // ─────────────────────────────────────────────────────────
-  // ДОВІДНИКИ (categories, types)
-  //
-  // БУЛО (services/dictionariesCache.js, ~25 рядків):
-  //   ручний модульний кеш + TTL-таймстемп для categories,
-  //   вічний проміс-кеш для types, окрема функція invalidateCategories().
-  //
-  // СТАЛО: useQuery сам кешує за queryKey. staleTime замінює
-  // наш ручний TTL. Інвалідація — queryClient.invalidateQueries(),
-  // без ручного скидання таймстемпа.
-  // ─────────────────────────────────────────────────────────
   const { data: categories = [] } = useQuery({
     queryKey: ["categories"],
     queryFn: () => api.get("/categories").then((res) => res.data),
-    staleTime: 5 * 60 * 1000, // 5 хв — те саме, що CATEGORIES_TTL раніше
+    staleTime: 5 * 60 * 1000,
   });
 
   const { data: types = [] } = useQuery({
     queryKey: ["setTypes"],
     queryFn: () => api.get("/sets/types").then((res) => res.data),
-    staleTime: Infinity, // "вічний" кеш — те саме, що typesPromise раніше
+    staleTime: Infinity,
   });
 
-  // ─────────────────────────────────────────────────────────
-  // СПИСОК СЕТІВ
-  //
-  // БУЛО (useSetsList.js, ~90 рядків):
-  //   useState для sets/isLoading, useRef для AbortController,
-  //   ручний try/catch/finally, ручна перевірка error.name === "CanceledError".
-  //
-  // СТАЛО: useQuery сам робить AbortController і скасування застарілих
-  // запитів — signal передається в queryFn автоматично, скасування
-  // відбувається під капотом при зміні queryKey чи розмонтуванні.
-  // isLoading/error теж дає з коробки.
-  // ─────────────────────────────────────────────────────────
+  // Ключ запиту: усі фільтри, КРІМ searchText, беруться напряму з filters
+  // (вони й так змінюються "миттєво" — select одразу тригерить запит).
+  // searchText свідомо береться з appliedSearchText, а не з filters,
+  // щоб keystroke НЕ впливав на queryKey і НЕ тригерив автофетч.
+  const queryFilters = { ...filters, searchText: appliedSearchText };
+
   const { data, isLoading, isFetching } = useQuery({
-    // queryKey — це "адреса" кешу. Зміна filters/page/endpoint
-    // автоматично означає новий запит (і скасування попереднього,
-    // якщо він ще летить) — так само, як робив наш AbortController.
-    queryKey: ["sets", endpoint, filters, page],
+    queryKey: ["sets", endpoint, queryFilters, page],
     queryFn: ({ signal }) =>
       api
         .get(endpoint, {
-          signal, // React Query сама скасовує застарілі запити через це
+          signal,
           params: {
             page,
             perPage: pageSize,
-            searchText: filters.searchText || null,
-            categoryId: filters.categoryId || null,
-            setType: filters.setType || null,
-            fromLangCode: filters.fromLangCode || null,
-            progress: filters.progress || null,
+            searchText: queryFilters.searchText || null,
+            categoryId: queryFilters.categoryId || null,
+            setType: queryFilters.setType || null,
+            fromLangCode: queryFilters.fromLangCode || null,
+            progress: queryFilters.progress || null,
           },
         })
         .then((res) => res.data),
@@ -86,41 +71,42 @@ export function useSetsList(endpoint) {
     hasNext: data?.hasNextPage ?? false,
   };
 
-  // ─────────────────────────────────────────────────────────
-  // Все, що нижче, — та сама логіка керування UI-станом,
-  // яка не змінюється залежно від того, руками ви фетчите
-  // дані чи бібліотекою. React Query відповідає тільки
-  // за ЗАПИТИ, не за те, як ви оновлюєте filters/page.
-  // ─────────────────────────────────────────────────────────
-
-  const lastSearchedTextRef = useRef("");
-
+  // patch без searchText (селекти/таби) -> одразу оновлює filters,
+  // і оскільки ці поля напряму йдуть у queryFilters — запит летить
+  // автоматично через зміну queryKey. Це замінює колишній
+  // "reload: true за замовчуванням".
+  //
+  // patch з searchText і reload:false (keystroke) -> оновлює тільки
+  // filters (те, що бачить юзер в інпуті), НЕ чіпає appliedSearchText,
+  // тому queryKey не змінюється і запит не летить.
   const updateFilters = useCallback((patch, opts = {}) => {
-    setFilters((prev) => {
-      const updated = { ...prev, ...patch };
-      if (opts.reload !== false) {
-        lastSearchedTextRef.current = updated.searchText;
-        setPage(1);
-      }
-      return updated;
-    });
+    setFilters((prev) => ({ ...prev, ...patch }));
+
+    if (opts.reload !== false) {
+      setPage(1);
+    }
   }, []);
+
+  const handleSubmit = useCallback(
+    (e) => {
+      e.preventDefault();
+      setAppliedSearchText(filters.searchText); // ось тут пошук реально "застосовується"
+      setPage(1);
+    },
+    [filters.searchText]
+  );
 
   const clearSearch = useCallback(() => {
-    updateFilters(
-      { searchText: "" },
-      { reload: lastSearchedTextRef.current !== "" }
-    );
-  }, [updateFilters]);
+    setFilters((prev) => ({ ...prev, searchText: "" }));
 
-  const handleSubmit = useCallback((e) => {
-    e.preventDefault();
-    setFilters((prev) => {
-      lastSearchedTextRef.current = prev.searchText;
-      return prev;
-    });
-    setPage(1);
-  }, []);
+    // Запит летить, тільки якщо до цього був реально застосований
+    // непорожній пошук — той самий фікс, що й раніше, тільки без
+    // useRef: appliedSearchText вже є станом, порівнюємо напряму.
+    if (appliedSearchText !== "") {
+      setAppliedSearchText("");
+      setPage(1);
+    }
+  }, [appliedSearchText]);
 
   const handlePageChange = useCallback(
     (direction) => {
@@ -136,8 +122,8 @@ export function useSetsList(endpoint) {
 
   return {
     sets,
-    isLoading,      // тільки для першого завантаження без даних
-    isFetching,      // фоновий рефетч — окремий прапорець для subtle-індикатора
+    isLoading,
+    isFetching,
     categories,
     types,
     filters,
