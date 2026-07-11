@@ -1,7 +1,7 @@
+import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import './PaginationFooter.scss';
 
-export default function PaginationFooter({ pagination, onPageChange }) {
+function PaginationFooter({ pagination, onPageChange }) {
   if (pagination.totalItems <= pagination.pageSize) return null;
 
   return (
@@ -11,7 +11,7 @@ export default function PaginationFooter({ pagination, onPageChange }) {
           className="pagination-button"
           type="button"
           disabled={!pagination.hasPrev}
-          onClick={() => onPageChange("prev")} // useSetsList (використається в SetsPageLayout) повертає також функцію handlePageChange, яка керує стейтами попередньої та наступної сторінки а також викликає функцію оновлення списку сетів. Тут вказується лише за який напрямок відповідає кнопка
+          onClick={() => onPageChange("prev")}
         >
           <ChevronLeft size={24} />
         </button>
@@ -30,3 +30,5 @@ export default function PaginationFooter({ pagination, onPageChange }) {
     </footer>
   );
 }
+
+export default React.memo(PaginationFooter);

@@ -15,6 +15,10 @@ wwwroot/node_modules/
 .env.*
 appsettings.Development.json
 secrets.json
-# Publishpublish/
+# Publish
+publish/
 # OS
 .DS_StoreThumbs.db
+# Performance and test reports
+html-report/
+optimization-traces/

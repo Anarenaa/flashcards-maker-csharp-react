@@ -8,7 +8,7 @@ export default function SetsPageLayout({
   isMine = false,
   loadingText,
   emptyText,
-  extraCard
+  extraCard,
 }) {
   const {
     sets,
@@ -18,14 +18,17 @@ export default function SetsPageLayout({
     filters,
     pagination,
     updateFilters,
+    clearSearch,
     handleSubmit,
     handlePageChange,
   } = useSetsList(endpoint);
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
-
   const isEmpty = !sets || sets.length === 0;
-  const shouldShowSets = !(isMine && isEmpty && !hasActiveFilters); // не показує повідомлення "Сети не знайдено" (emptyText) у випадку нового юзера
+
+  // Новий юзер на "Мої сети" без фільтрів і без сетів — не показуємо
+  // "не знайдено", лишаємо тільки кнопку "+"
+  const shouldShowEmptyText = !(isMine && isEmpty && !hasActiveFilters);
 
   return (
     <div className="main-page-container">
@@ -35,6 +38,7 @@ export default function SetsPageLayout({
         types={types}
         pagination={pagination}
         onChange={updateFilters}
+        onClearSearch={clearSearch}
         onSubmit={handleSubmit}
       />
 
@@ -43,8 +47,8 @@ export default function SetsPageLayout({
         isLoading={isLoading}
         isMine={isMine}
         loadingText={loadingText}
-        emptyText={shouldShowSets ? emptyText : null}
-        extraCard={isMine && !hasActiveFilters ? extraCard : null}
+        emptyText={shouldShowEmptyText ? emptyText : null}
+        extraCard={isMine && filters.progress === "" ? extraCard : null}
       />
 
       {!isLoading && (

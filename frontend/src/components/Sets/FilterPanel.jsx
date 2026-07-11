@@ -15,16 +15,17 @@ export default function FilterPanel({
   types,
   pagination,
   onChange,
+  onClearSearch,
   onSubmit,
 }) {
   return (
     <>
-      <div className="tabs-nav">
+      <div className="tabs">
         {TABS.map(({ value, label }) => (
           <button
             key={value}
             className={`tab-item ${filters.progress === value ? "active" : ""}`}
-            onClick={() => onChange({ progress: value })} // useSetsList (використається в SetsPageLayout) повертає також функцію updateFilters , яка виконує всю роботу з оновленням стейтів фільтрів, а в параметри бере лише змінну для оновлення (та опшини по типу reload за бажанням)
+            onClick={() => onChange({ progress: value })}
           >
             {label}
           </button>
@@ -41,17 +42,18 @@ export default function FilterPanel({
                 value={filters.searchText}
                 onChange={(e) => {
                   const value = e.target.value;
-                  onChange(
-                    { searchText: value },
-                    { reload: value.trim() === "" },
-                  );
+                  if (value.trim() === "") {
+                    onClearSearch();
+                  } else {
+                    onChange({ searchText: value }, { reload: false });
+                  }
                 }}
               />
               {filters.searchText && (
                 <button
                   type="button"
                   className="search-clear-icon"
-                  onClick={() => onChange({ searchText: "" })}
+                  onClick={onClearSearch}
                 >
                   <X size={20} />
                 </button>
