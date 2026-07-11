@@ -1,13 +1,8 @@
-import { useEffect, useRef, useState, useCallback } from "react";
+import { useState, useCallback, useRef } from "react";
+import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
-import { getCategories, getTypes } from "../services/dictionariesCache";
 
 export function useSetsList(endpoint) {
-  const [sets, setSets] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState([]);
-  const [types, setTypes] = useState([]);
-
   const [filters, setFilters] = useState({
     searchText: "",
     categoryId: "",
@@ -16,107 +11,101 @@ export function useSetsList(endpoint) {
     progress: "",
   });
 
-  const [pagination, setPagination] = useState({
-    currentPage: 1,
-    pageSize: 20,
-    totalItems: 0,
-    startItem: 0,
-    endItem: 0,
-    hasPrev: false,
-    hasNext: false,
+  const [page, setPage] = useState(1);
+  const pageSize = 20;
+
+  // ─────────────────────────────────────────────────────────
+  // ДОВІДНИКИ (categories, types)
+  //
+  // БУЛО (services/dictionariesCache.js, ~25 рядків):
+  //   ручний модульний кеш + TTL-таймстемп для categories,
+  //   вічний проміс-кеш для types, окрема функція invalidateCategories().
+  //
+  // СТАЛО: useQuery сам кешує за queryKey. staleTime замінює
+  // наш ручний TTL. Інвалідація — queryClient.invalidateQueries(),
+  // без ручного скидання таймстемпа.
+  // ─────────────────────────────────────────────────────────
+  const { data: categories = [] } = useQuery({
+    queryKey: ["categories"],
+    queryFn: () => api.get("/categories").then((res) => res.data),
+    staleTime: 5 * 60 * 1000, // 5 хв — те саме, що CATEGORIES_TTL раніше
   });
 
-  // Контролер останнього запиту — потрібен, щоб скасовувати
-  // застарілі запити при швидкій зміні фільтрів (race condition).
-  const abortRef = useRef(null);
+  const { data: types = [] } = useQuery({
+    queryKey: ["setTypes"],
+    queryFn: () => api.get("/sets/types").then((res) => res.data),
+    staleTime: Infinity, // "вічний" кеш — те саме, що typesPromise раніше
+  });
 
-  // Пошуковий текст, з яким був реально відправлений останній запит
-  // (а не те, що зараз в інпуті). Потрібен, щоб не робити зайвий
-  // запит, коли юзер щось надрукував, не шукав, і стер назад.
-  const lastSearchedTextRef = useRef("");
-
-  const loadSets = useCallback(
-    async (currentFilters, page) => {
-      lastSearchedTextRef.current = currentFilters.searchText;
-
-      abortRef.current?.abort();
-      const controller = new AbortController();
-      abortRef.current = controller;
-
-      setIsLoading(true);
-      try {
-        const response = await api.get(endpoint, {
-          signal: controller.signal,
+  // ─────────────────────────────────────────────────────────
+  // СПИСОК СЕТІВ
+  //
+  // БУЛО (useSetsList.js, ~90 рядків):
+  //   useState для sets/isLoading, useRef для AbortController,
+  //   ручний try/catch/finally, ручна перевірка error.name === "CanceledError".
+  //
+  // СТАЛО: useQuery сам робить AbortController і скасування застарілих
+  // запитів — signal передається в queryFn автоматично, скасування
+  // відбувається під капотом при зміні queryKey чи розмонтуванні.
+  // isLoading/error теж дає з коробки.
+  // ─────────────────────────────────────────────────────────
+  const { data, isLoading, isFetching } = useQuery({
+    // queryKey — це "адреса" кешу. Зміна filters/page/endpoint
+    // автоматично означає новий запит (і скасування попереднього,
+    // якщо він ще летить) — так само, як робив наш AbortController.
+    queryKey: ["sets", endpoint, filters, page],
+    queryFn: ({ signal }) =>
+      api
+        .get(endpoint, {
+          signal, // React Query сама скасовує застарілі запити через це
           params: {
             page,
-            perPage: pagination.pageSize,
-            searchText: currentFilters.searchText || null,
-            categoryId: currentFilters.categoryId || null,
-            setType: currentFilters.setType || null,
-            fromLangCode: currentFilters.fromLangCode || null,
-            progress: currentFilters.progress || null,
+            perPage: pageSize,
+            searchText: filters.searchText || null,
+            categoryId: filters.categoryId || null,
+            setType: filters.setType || null,
+            fromLangCode: filters.fromLangCode || null,
+            progress: filters.progress || null,
           },
-        });
+        })
+        .then((res) => res.data),
+    // Поки вантажиться нова сторінка/фільтр, не показуємо порожній
+    // стан — лишаємо попередні дані на екрані. Це заміна ручного
+    // "не блимати" підходу.
+    placeholderData: keepPreviousData,
+  });
 
-        setSets(response.data.items);
-        setPagination((prev) => ({
-          ...prev,
-          currentPage: response.data.currentPage,
-          totalItems: response.data.totalItems,
-          startItem: response.data.startItem,
-          endItem: response.data.endItem,
-          hasPrev: response.data.hasPreviousPage,
-          hasNext: response.data.hasNextPage,
-        }));
-      } catch (error) {
-        // Скасований запит — очікувана поведінка, не помилка.
-        if (error.name === "CanceledError" || error.name === "AbortError") {
-          return;
-        }
-        console.error(error);
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsLoading(false);
-        }
+  const sets = data?.items ?? [];
+  const pagination = {
+    currentPage: data?.currentPage ?? 1,
+    pageSize,
+    totalItems: data?.totalItems ?? 0,
+    startItem: data?.startItem ?? 0,
+    endItem: data?.endItem ?? 0,
+    hasPrev: data?.hasPreviousPage ?? false,
+    hasNext: data?.hasNextPage ?? false,
+  };
+
+  // ─────────────────────────────────────────────────────────
+  // Все, що нижче, — та сама логіка керування UI-станом,
+  // яка не змінюється залежно від того, руками ви фетчите
+  // дані чи бібліотекою. React Query відповідає тільки
+  // за ЗАПИТИ, не за те, як ви оновлюєте filters/page.
+  // ─────────────────────────────────────────────────────────
+
+  const lastSearchedTextRef = useRef("");
+
+  const updateFilters = useCallback((patch, opts = {}) => {
+    setFilters((prev) => {
+      const updated = { ...prev, ...patch };
+      if (opts.reload !== false) {
+        lastSearchedTextRef.current = updated.searchText;
+        setPage(1);
       }
-    },
-    [endpoint, pagination.pageSize]
-  );
-
-  useEffect(() => {
-    const loadInitialData = async () => {
-      try {
-        const [cats, typesData] = await Promise.all([
-          getCategories(),
-          getTypes(),
-        ]);
-        setCategories(cats);
-        setTypes(typesData);
-      } catch (error) {
-        console.error(error);
-      }
-    };
-
-    loadInitialData();
-    loadSets(filters, 1);
-
-    return () => abortRef.current?.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+      return updated;
+    });
   }, []);
 
-  const updateFilters = useCallback(
-    (patch, opts = {}) => {
-      setFilters((prev) => {
-        const updated = { ...prev, ...patch };
-        if (opts.reload !== false) loadSets(updated, 1);
-        return updated;
-      });
-    },
-    [loadSets]
-  );
-
-  // Очищення пошуку. Робить запит тільки якщо востаннє
-  // реально шукали щось непорожнє — інакше просто чистить інпут.
   const clearSearch = useCallback(() => {
     updateFilters(
       { searchText: "" },
@@ -124,39 +113,31 @@ export function useSetsList(endpoint) {
     );
   }, [updateFilters]);
 
-  const handleSubmit = useCallback(
-    (e) => {
-      e.preventDefault();
-      loadSets(filters, 1);
-    },
-    [filters, loadSets]
-  );
+  const handleSubmit = useCallback((e) => {
+    e.preventDefault();
+    setFilters((prev) => {
+      lastSearchedTextRef.current = prev.searchText;
+      return prev;
+    });
+    setPage(1);
+  }, []);
 
   const handlePageChange = useCallback(
     (direction) => {
-      setPagination((prevPagination) => {
-        let nextPage = prevPagination.currentPage;
-
-        if (direction === "prev" && prevPagination.hasPrev) {
-          nextPage -= 1;
-        } else if (direction === "next" && prevPagination.hasNext) {
-          nextPage += 1;
-        }
-
-        if (nextPage !== prevPagination.currentPage) {
-          loadSets(filters, nextPage);
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }
-
-        return prevPagination;
+      setPage((prevPage) => {
+        if (direction === "prev" && pagination.hasPrev) return prevPage - 1;
+        if (direction === "next" && pagination.hasNext) return prevPage + 1;
+        return prevPage;
       });
+      window.scrollTo({ top: 0, behavior: "smooth" });
     },
-    [filters, loadSets]
+    [pagination.hasPrev, pagination.hasNext]
   );
 
   return {
     sets,
-    isLoading,
+    isLoading,      // тільки для першого завантаження без даних
+    isFetching,      // фоновий рефетч — окремий прапорець для subtle-індикатора
     categories,
     types,
     filters,

@@ -6,6 +6,7 @@ import "./SetsGrid.scss";
 function SetsGrid({
   sets,
   isLoading,
+  isFetching = false,
   isMine = false,
   loadingText = "Шукаємо сети...",
   emptyText = "Упс! Сетів із такими параметрами не знайдено",
@@ -25,7 +26,9 @@ function SetsGrid({
   const isEmpty = !sets || sets.length === 0;
 
   return (
-    <div className="sets-grid">
+    // Легка прозорість під час фонового рефетчу — старі картки видно,
+    // але зрозуміло, що йде оновлення. Клас можна стилізувати як завгодно.
+    <div className={`sets-grid ${isFetching ? "sets-grid--fetching" : ""}`}>
       {extraCard}
       {isEmpty ? (
         emptyText && (

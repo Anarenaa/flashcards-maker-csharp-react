@@ -13,6 +13,7 @@ export default function SetsPageLayout({
   const {
     sets,
     isLoading,
+    isFetching,
     categories,
     types,
     filters,
@@ -44,7 +45,8 @@ export default function SetsPageLayout({
 
       <SetsGrid
         sets={sets}
-        isLoading={isLoading}
+        isLoading={isLoading} // грід ховається тільки коли даних взагалі нема
+        isFetching={isFetching} // новий проп — для легкого індикатора поверх
         isMine={isMine}
         loadingText={loadingText}
         emptyText={shouldShowEmptyText ? emptyText : null}

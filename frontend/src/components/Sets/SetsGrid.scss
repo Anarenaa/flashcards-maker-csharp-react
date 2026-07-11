@@ -4,6 +4,12 @@
   gap: 1.625rem;
   width: 100%;
   margin-bottom: 2.5rem;
+  
+  &--fetching {
+  opacity: 0.6;
+  pointer-events: none;
+  transition: opacity 0.15s ease;
+}
 }
 .grid-status-message {
   grid-column: 1 / -1;
