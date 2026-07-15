@@ -1,8 +1,9 @@
 import React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
+import './PaginationFooter.scss';
 
 function PaginationFooter({ pagination, onPageChange }) {
-  if (pagination.totalItems <= pagination.pageSize) return null;
+  if (pagination.pageSize === "all" || pagination.totalItems <= pagination.pageSize) return null;
 
   return (
     <footer className="main-page-footer">

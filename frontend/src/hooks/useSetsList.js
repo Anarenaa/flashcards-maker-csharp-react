@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
 
@@ -108,14 +108,23 @@ export function useSetsList(endpoint) {
     }
   }, [appliedSearchText]);
 
+  const isFirstRender = useRef(true);
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
+  
   const handlePageChange = useCallback(
     (direction) => {
+      document.activeElement?.blur(); //зняли фокус з кнопки (- конфлікт скрола і рендера)
       setPage((prevPage) => {
         if (direction === "prev" && pagination.hasPrev) return prevPage - 1;
         if (direction === "next" && pagination.hasNext) return prevPage + 1;
         return prevPage;
       });
-      window.scrollTo({ top: 0, behavior: "smooth" });
     },
     [pagination.hasPrev, pagination.hasNext]
   );
