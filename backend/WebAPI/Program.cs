@@ -316,16 +316,6 @@ app.Use(async (context, next) =>
     catch (KeyNotFoundException)
     {
         context.Response.StatusCode = 404;
-    
-        // Якщо запит від React — повертаємо JSON, а не редирект
-        if (context.Request.Path.Value!.StartsWith("/api/"))
-        {
-            await context.Response.WriteAsJsonAsync(new { error = "Ресурс не знайдено (404)." });
-        }
-        else
-        {
-            context.Response.Redirect($"/not-found");
-        }
     }
     catch (DbException)
     {

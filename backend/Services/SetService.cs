@@ -129,11 +129,12 @@ namespace Services
                 await _unitOfWork.SaveChangesAsync();
             }
         }
-        public async Task<SetDetailDTO> GetSetByIdAsync(int setId)
+        public async Task<SetDetailDTO> GetSetByIdAsync(int setId, int? currentUserId = null)
         {
-            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Flashcards,Categories");
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Categories");
 
-            if (set == null) throw new NotFoundException("Сет не знайдено");
+            if (set == null) throw new KeyNotFoundException("Сет не знайдено");
+            if (currentUserId != null && set.UserId != currentUserId) throw new UnauthorizedAccessException();
 
             return new SetDetailDTO
             {
@@ -143,22 +144,11 @@ namespace Services
                 Type = set.Type,
                 FromLang = set.FromLang,
                 ToLang = set.ToLang,
-                FlashcardsCount = set.Flashcards.Count(),
                 IsPublic = set.IsPublic,
                 IsGenerated = set.IsGenerated,
                 CreatedAt = set.CreatedAt,
                 LastUpdatedAt = set.UpdatedAt,
-                Flashcards = set.Flashcards
-                .OrderByDescending(f => f.CreatedAt)
-                .Select(f => new FlashcardDTO
-                {
-                    Id = f.Id,
-                    Term = f.Term,
-                    Definition = f.Definition
-                }).ToList(),
-                Categories = set.Categories
-                .OrderByDescending(f => f.CreatedAt)
-                .Select(c => new CategoryDTO
+                Categories = set.Categories.Select(c => new CategoryDTO
                 {
                     Id = c.Id,
                     Name = c.Name

@@ -9,9 +9,11 @@ namespace WebAPI.Controllers
     public class SetsController : BaseApiController
     {
         private readonly SetService _setService;
-        public SetsController(SetService setService)
+        private readonly FlashcardService _flashcardService;
+        public SetsController(SetService setService, FlashcardService flashcardService)
         {
             _setService = setService;
+            _flashcardService = flashcardService;
         }
 
         [HttpGet]
@@ -37,11 +39,27 @@ namespace WebAPI.Controllers
 
             return Ok(pagedResult);
         }
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetSetById(int id)
+        {
+            var set = await _setService.GetSetByIdAsync(id);
+            if (set == null)
+            {
+                return NotFound();
+            }
+            return Ok(set);
+        }
         [HttpGet("types")]
         public IActionResult GetSetTypes()
         {
             var setTypes = _setService.GetSetTypes();
             return Ok(setTypes);
+        }
+        [HttpGet("{setId}/flashcards")]
+        public async Task<IActionResult> GetFlashcards(int setId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
+        {
+            var pagedCards = await _flashcardService.GetPagedFlashcardsBySetIdAsync(setId, page, pageSize);
+            return Ok(pagedCards);
         }
     }
 }

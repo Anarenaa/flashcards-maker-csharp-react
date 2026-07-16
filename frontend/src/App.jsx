@@ -13,6 +13,8 @@ import SettingsPage from "./pages/SettingsPage";
 import VerifyEmailPage from "./pages/Auth/ResetPassword/VerifyEmailPage";
 import EmailSentPage from "./pages/Auth/ResetPassword/EmailSentPage";
 import ChangePassword from "./pages/Auth/ResetPassword/ChangePassword";
+import SetDetailsPage from "./pages/UserPanel/Sets/SetDetailsPage";
+import MySetDetailsPage from "./pages/UserPanel/Sets/MySetDetailsPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
@@ -64,6 +66,9 @@ function App() {
         <Route path="my-profile" element={<MyProfilePage />} />
         <Route path="settings" element={<SettingsPage />} />
       </Route>
+
+      <Route path="sets/:id" element={<SetDetailsPage />} />
+      <Route path="my-sets/:id" element={<MySetDetailsPage />} />
     </Routes>
   );
 }

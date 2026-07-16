@@ -4,7 +4,7 @@ import "./SetCard.scss";
 
 export default function SetCard({ set, isMine }) {
   return (
-    <NavLink className="set-card" to={`/sets/${set.id}`}>
+    <NavLink className="set-card" to={isMine ? `/my-sets/${set.id}` : `/sets/${set.id}`}>
       {isMine ? (
         <span
           className={`privacy-status ${set.isPublic ? "public" : "private"}`}

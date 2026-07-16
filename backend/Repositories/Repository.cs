@@ -58,7 +58,7 @@ namespace Repositories
 
             List<T> items;
 
-            if (page == 0)
+            if (page == 0 || pageSize == 0)
             {
                 items = await query.ToListAsync();
                 pageSize = totalCount;
@@ -109,7 +109,7 @@ namespace Repositories
         public int TotalPages => (int)Math.Ceiling((double)TotalItems / PageSize);
 
         public int StartItem => TotalItems == 0 ? 0 : (CurrentPage - 1) * PageSize + 1;
-        public int EndItem => Math.Min(CurrentPage * PageSize, TotalItems);
+        public int EndItem => PageSize == 0 ? TotalItems : Math.Min(CurrentPage * PageSize, TotalItems);
 
         public bool HasPreviousPage => CurrentPage > 1;
         public bool HasNextPage => CurrentPage < TotalPages;

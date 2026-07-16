@@ -1,6 +1,7 @@
 ﻿using Core.DTOs;
 using Core.Exceptions;
 using Core.Models;
+using Repositories;
 using Repositories.Interfaces;
 
 namespace Services
@@ -23,6 +24,28 @@ namespace Services
                 Term = f.Term,
                 Definition = f.Definition
             });
+        }
+        public async Task<PagedResult<FlashcardDTO>> GetPagedFlashcardsBySetIdAsync(int setId, int page, int pageSize)
+        {
+            var pagedResult = await _unitOfWork.Flashcards.GetAllPagedAsync(
+                page,
+                pageSize,
+                filter: f => f.SetId == setId
+            );
+
+            var mappedItems = pagedResult.Items.Select(f => new FlashcardDTO
+            {
+                Id = f.Id,
+                Term = f.Term,
+                Definition = f.Definition
+            }).ToList();
+
+            return new PagedResult<FlashcardDTO>(
+                mappedItems,
+                pagedResult.TotalItems,
+                page,
+                pageSize
+            );
         }
         public async Task<FlashcardDTO> GetFlashcardByIdAsync(int id)
         {
