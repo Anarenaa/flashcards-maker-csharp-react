@@ -9,5 +9,6 @@ namespace Services.Interfaces
         Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int count, byte[]? imageBytes = null, string? mimeType = null);
         Task<string?> GenerateSimpleHintAsync(string term, string targetLang, SetType type);
         Task MarkSetIsGenerated(int setId);
+        Task<List<FlashcardContextDTO>?> GenerateContextsForFlashcardAsync(int cardId);
     }
 }

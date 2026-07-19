@@ -4,6 +4,7 @@
     {
         ISetRepository Sets { get; }
         IFlashcardRepository Flashcards { get; }
+        IFlashcardContextRepository FlashcardContexts { get; }
         ICategoryRepository Categories { get; }
         ICollectionRepository Collections { get; }
         IReportRepository Reports { get; }

@@ -1,11 +1,19 @@
-﻿namespace Core.Models
+﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Core.Models
 {
-    public class FlashcardContext
+    public class FlashcardContext : IHasCreationDate
     {
-        public int? Id { get; set; }
+        [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
+        public int Id { get; set; }
         public int FlashcardId { get; set; }
-        public required Flashcard Flashcard { get; set; }
+        public Flashcard Flashcard { get; set; }
         public required string Sentence { get; set; }
         public required string Translation { get; set; }
+        public bool IsGenerated { get; set; } = false;
+
+        public DateTime CreatedAt { get; set; }
     }
 }

@@ -1,11 +1,14 @@
-﻿using System.Net.Http.Json;
+﻿using System.Collections;
+using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using CloudinaryDotNet;
 using Core.DTOs;
 using Core.Models;
 using Microsoft.Extensions.Logging;
 using Repositories.Interfaces;
 using Services.Interfaces;
+using HttpMethod = System.Net.Http.HttpMethod;
 
 namespace Services
 {
@@ -142,6 +145,67 @@ namespace Services
             {
                 set.IsGenerated = true;
                 await _unitOfWork.SaveChangesAsync();
+            }
+        }
+        
+        public async Task<List<FlashcardContextDTO>?> GenerateContextsForFlashcardAsync(int cardId)
+        {
+            var url = "interactions";
+
+            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(cardId);
+            if (flashcard == null) throw new Exception("Flashcard not found");
+
+            var set = await _unitOfWork.Sets.GetByIdAsync(flashcard.SetId);
+            if (flashcard == null) throw new Exception("Set not found");
+
+            string prompt = $"Provide 3 natural example sentences in the original language for the term '{flashcard.Term}' " +
+                            $"with their translations in {set?.ToLang} language. " +
+                            "Return ONLY a JSON array of objects: [{'sentence': '...', 'translation': '...'}].";
+
+            var requestBody = new
+            {
+                model = "gemini-2.5-flash",
+                input = prompt
+            };
+
+            try
+            {
+                var request = new HttpRequestMessage(HttpMethod.Post, url)
+                {
+                    Content = JsonContent.Create(requestBody)
+                };
+                request.Headers.Add("x-goog-api-key", _apiKey);
+
+                var response = await _client.SendAsync(request);
+
+                if (!response.IsSuccessStatusCode)
+                {
+                    _logger.LogWarning("Gemini API returned status code: {StatusCode} during simple hint generation for '{Term}'", response.StatusCode, flashcard.Term);
+                    return null;
+                }
+
+                var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
+                Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
+
+                var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
+
+                var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+                var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
+
+                if (string.IsNullOrEmpty(rawJson)) return new List<FlashcardContextDTO>();
+
+                if (rawJson.Contains("```"))
+                {
+                    rawJson = rawJson.Replace("```json", "").Replace("```", "").Trim();
+                }
+
+                var contextDtos = JsonSerializer.Deserialize<List<FlashcardContextDTO>>(rawJson, _jsonOptions);
+                return contextDtos;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error occurred while generating Gemini hint for term: '{Term}'", flashcard.Term);
+                return null;
             }
         }
     }

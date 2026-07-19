@@ -342,8 +342,14 @@ namespace Core.Migrations.SqlServer
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
                     b.Property<int>("FlashcardId")
                         .HasColumnType("int");
+
+                    b.Property<bool>("IsGenerated")
+                        .HasColumnType("bit");
 
                     b.Property<string>("Sentence")
                         .IsRequired()

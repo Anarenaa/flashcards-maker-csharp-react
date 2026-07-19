@@ -282,6 +282,7 @@ builder.Services.Configure<EmailSettingsDTO>(builder.Configuration.GetSection("E
 builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
 builder.Services.AddScoped<SetService>();
 builder.Services.AddScoped<FlashcardService>();
+builder.Services.AddScoped<FlashcardContextService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
 builder.Services.AddScoped<ReportService>();
