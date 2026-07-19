@@ -9,10 +9,10 @@ namespace Repositories
 {
     public class PracticeRepository : IPracticeRepository
     {
-        private readonly DataContext _context;
+        private readonly BaseDataContext _context;
         private DbSet<CardProgress> _dbSet;
 
-        public PracticeRepository(DataContext context)
+        public PracticeRepository(BaseDataContext context)
         {
             _context = context;
             _dbSet = _context.Set<CardProgress>();

@@ -7,7 +7,7 @@ namespace Repositories
 {
     public class FlashcardRepository : Repository<Flashcard>, IFlashcardRepository
     {
-        public FlashcardRepository(DataContext context) : base(context) { }
+        public FlashcardRepository(BaseDataContext context) : base(context) { }
         public async Task<int> GetCountBySetIdAsync(int setId)
         {
             return await _dbSet.CountAsync(f => f.SetId == setId);

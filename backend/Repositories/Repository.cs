@@ -7,9 +7,9 @@ namespace Repositories
 {
     public class Repository<T> where T : class, IHasCreationDate
     {
-        protected readonly DataContext _context;
+        protected readonly BaseDataContext _context;
         protected readonly DbSet<T> _dbSet;
-        public Repository(DataContext context)
+        public Repository(BaseDataContext context)
         {
             _context = context;
             _dbSet = _context.Set<T>();

@@ -42,9 +42,25 @@ builder.Services.AddSwaggerGen(c =>
     });
 });
 
-builder.Services.AddDbContext<DataContext>(options =>
-    options.UseSqlServer(
-        builder.Configuration.GetConnectionString("DefaultConnection")));
+// DB settings
+var provider = builder.Configuration["DatabaseProvider"] ?? "PostgreSql";
+
+if (provider == "SqlServer")
+{
+    builder.Services.AddDbContext<SqlServerDataContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("SqlServerConnection")));
+
+    // When BaseDataContext is called in the constructor, an SqlServerDataContext will be created
+    builder.Services.AddScoped<BaseDataContext, SqlServerDataContext>();
+}
+else
+{
+    builder.Services.AddDbContext<PostgreSqlDataContext>(options =>
+        options.UseNpgsql(builder.Configuration.GetConnectionString("PostgreSqlConnection")));
+
+    // When BaseDataContext is called in the constructor, an PostgreSqlDataContext will be created
+    builder.Services.AddScoped<BaseDataContext, PostgreSqlDataContext>();
+}
 
 builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
 {
@@ -55,7 +71,7 @@ builder.Services.AddIdentity<User, IdentityRole<int>>(options =>
     options.Password.RequireLowercase = false;         // �� ����'������ ���� �����?
     options.Password.RequiredUniqueChars = 1;          // ʳ������ ���������� �������
 })
-.AddEntityFrameworkStores<DataContext>()
+.AddEntityFrameworkStores<BaseDataContext>()
 .AddDefaultTokenProviders()
 .AddRoles<IdentityRole<int>>();
 

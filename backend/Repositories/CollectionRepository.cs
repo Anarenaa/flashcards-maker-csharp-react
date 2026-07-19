@@ -7,7 +7,7 @@ namespace Repositories
 {
     public class CollectionRepository : Repository<Collection>, ICollectionRepository
     {
-        public CollectionRepository(DataContext context) : base(context) { }
+        public CollectionRepository(BaseDataContext context) : base(context) { }
         public async Task<bool> AnySetInCollectionAsync(int collectionId, int setId)
         {
             return await _dbSet

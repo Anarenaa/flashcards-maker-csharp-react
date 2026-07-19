@@ -7,7 +7,7 @@ namespace Repositories
 {
     public class ReportRepository : Repository<Report>, IReportRepository
     {
-        public ReportRepository(DataContext context) : base(context) { }
+        public ReportRepository(BaseDataContext context) : base(context) { }
 
         public async Task DeleteUserReports(int userId)
         {

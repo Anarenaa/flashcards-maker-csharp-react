@@ -7,7 +7,7 @@ namespace Repositories
 {
     public class SetRepository : Repository<Set>, ISetRepository
     {
-        public SetRepository(DataContext context) : base(context) { }
+        public SetRepository(BaseDataContext context) : base(context) { }
         public async Task<int> GetUserSetsCount(int userId)
         {
             return await _dbSet.CountAsync(s => s.UserId == userId);

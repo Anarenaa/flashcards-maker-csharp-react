@@ -6,18 +6,36 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Core.Context
 {
-    public class DataContext : IdentityDbContext<User, IdentityRole<int>, int>
+    public abstract class BaseDataContext : IdentityDbContext<User, IdentityRole<int>, int>
     {
         public DbSet<Collection> Collections { get; set; }
         public DbSet<Set> Sets { get; set; }
         public DbSet<Category> Categories { get; set; }
         public DbSet<Flashcard> Flashcards { get; set; }
+        public DbSet<FlashcardContext> FlashcardContexts { get; set; }
         public DbSet<Report> Reports { get; set; }
         public DbSet<CardProgress> CardProgresses { get; set; }
 
-        public DataContext(DbContextOptions<DataContext> options)
+        protected BaseDataContext(DbContextOptions options)
            : base(options)
         {
+        }
+        protected void ConfigureDateTypeForBaseModels(ModelBuilder modelBuilder, string dateSql)
+        {
+            foreach (var entity in modelBuilder.Model.GetEntityTypes())
+            {
+                if (typeof(BaseModel).IsAssignableFrom(entity.ClrType))
+                {
+                    modelBuilder.Entity(entity.ClrType).Property(nameof(BaseModel.CreatedAt)).HasDefaultValueSql(dateSql);
+                    modelBuilder.Entity(entity.ClrType).Property(nameof(BaseModel.UpdatedAt)).HasDefaultValueSql(dateSql);
+                }
+            }
+
+            modelBuilder.Entity<User>().Property(u => u.CreatedAt).HasDefaultValueSql(dateSql);
+            modelBuilder.Entity<User>().Property(u => u.UpdatedAt).HasDefaultValueSql(dateSql);
+
+            modelBuilder.Entity<CardProgress>().Property(cp => cp.LastReview).HasDefaultValueSql(dateSql);
+            modelBuilder.Entity<CardProgress>().Property(cp => cp.NextReview).HasDefaultValueSql(dateSql);
         }
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -26,20 +44,6 @@ namespace Core.Context
             modelBuilder.Entity<CardProgress>()
                 .HasKey(cp => new { cp.UserId, cp.FlashcardId });
 
-
-            // Шукаємо всі сутності, які наслідують BaseModel, і налаштовуємо їхні поля
-            foreach (var entity in modelBuilder.Model.GetEntityTypes())
-            {
-                if (typeof(BaseModel).IsAssignableFrom(entity.ClrType))
-                {
-                    modelBuilder.Entity(entity.ClrType)
-                        .Property(nameof(BaseModel.CreatedAt))
-                        .HasDefaultValueSql("now() at time zone 'utc'");
-                    modelBuilder.Entity(entity.ClrType)
-                        .Property(nameof(BaseModel.UpdatedAt))
-                        .HasDefaultValueSql("now() at time zone 'utc'");
-                }
-            }
             
             modelBuilder.Entity<Set>()
                 .HasOne(s => s.User)
@@ -62,20 +66,6 @@ namespace Core.Context
                 .WithMany(f => f.CardProgresses)
                 .HasForeignKey(cp => cp.FlashcardId)
                 .OnDelete(DeleteBehavior.Cascade);
-
-
-            modelBuilder.Entity<User>()
-                .Property(u => u.CreatedAt)
-                .HasDefaultValueSql("now() at time zone 'utc'");
-            modelBuilder.Entity<User>()
-                .Property(u => u.UpdatedAt)
-                .HasDefaultValueSql("now() at time zone 'utc'");
-            modelBuilder.Entity<CardProgress>()
-                .Property(cp => cp.LastReview)
-                .HasDefaultValueSql("now() at time zone 'utc'");
-            modelBuilder.Entity<CardProgress>()
-                .Property(cp => cp.NextReview)
-                .HasDefaultValueSql("now() at time zone 'utc'");
 
             ModelBuilderSeedExtension.SeedAll(modelBuilder);
         }

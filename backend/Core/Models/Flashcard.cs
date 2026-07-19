@@ -1,5 +1,4 @@
 ﻿using System.ComponentModel.DataAnnotations;
-using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Core.Models
 {
@@ -17,5 +16,6 @@ namespace Core.Models
         public Set Set { get; set; }
 
         public ICollection<CardProgress> CardProgresses { get; set; } = new List<CardProgress>();
+        public ICollection<FlashcardContext> FlashcardContexts { get; set; } = new List<FlashcardContext>();
     }
 }

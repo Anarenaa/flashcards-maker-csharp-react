@@ -11,6 +11,6 @@ namespace Repositories
 {
     public class CategoryRepository : Repository<Category>, ICategoryRepository
     {
-        public CategoryRepository(DataContext context) : base(context) { }
+        public CategoryRepository(BaseDataContext context) : base(context) { }
     }
 }
