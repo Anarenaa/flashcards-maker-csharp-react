@@ -66,6 +66,22 @@ namespace Core.Context
                 .WithMany(f => f.CardProgresses)
                 .HasForeignKey(cp => cp.FlashcardId)
                 .OnDelete(DeleteBehavior.Cascade);
+            
+            modelBuilder.Entity<FlashcardContext>()
+                .Property(e => e.CreatedAt)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<FlashcardContext>()
+                .Property(e => e.UpdatedAt)
+                .ValueGeneratedOnAddOrUpdate();
+
+            modelBuilder.Entity<Category>()
+                .Property(e => e.CreatedAt)
+                .ValueGeneratedOnAdd();
+
+            modelBuilder.Entity<Category>()
+                .Property(e => e.UpdatedAt)
+                .ValueGeneratedOnAddOrUpdate();
 
             ModelBuilderSeedExtension.SeedAll(modelBuilder);
         }

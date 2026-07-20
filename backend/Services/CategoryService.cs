@@ -40,6 +40,7 @@ namespace Services
                 throw new NotFoundException("Категорія не знайдена");
             }
             category.Name = categoryDto.Name;
+            category.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteCategoryAsync(int categoryId)

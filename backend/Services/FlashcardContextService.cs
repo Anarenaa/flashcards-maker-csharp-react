@@ -60,6 +60,7 @@ namespace Services
 
             flashcardContextToUpdate.Sentence = dto.Sentence;
             flashcardContextToUpdate.Translation = dto.Translation;
+            flashcardContextToUpdate.UpdatedAt = DateTime.UtcNow;
             await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteFlashcardContextAsync(int flashcardContextId)
