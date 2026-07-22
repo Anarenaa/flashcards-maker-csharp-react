@@ -1,4 +1,6 @@
+import { useState } from "react";
 import { MoreVertical, Volume2, BookOpen } from "lucide-react";
+import FlashcardContextsPanel from "../../../features/flashcards/FlashcardContextsPanel";
 import "./CardTile.scss";
 
 function formatDate(dateString) {
@@ -10,13 +12,15 @@ function formatDate(dateString) {
   });
 }
 export default function CardTile({ card, isMine, isLanguageType, lang }) {
-  const handleSpeak = (e) => {
+  const [isContextModalOpen, setIsContextModalOpen] = useState(false);
+
+  const handleSpeak = (e, term) => {
     e.stopPropagation(); // щоб клік по озвучці не зачепив можливий onClick картки в майбутньому
 
     // Захист для браузерів/середовищ без підтримки Web Speech API
     if (!window.speechSynthesis) return;
 
-    const utterance = new SpeechSynthesisUtterance(card.term);
+    const utterance = new SpeechSynthesisUtterance(term);
     if (lang) utterance.lang = lang; // напр. "de-DE", "en-US"
 
     window.speechSynthesis
@@ -27,37 +31,45 @@ export default function CardTile({ card, isMine, isLanguageType, lang }) {
   };
 
   return (
-    <div className="card-tile">
-      {isMine && (
-        <button type="button" className="card-tile__menu card-tile__icon">
-          <MoreVertical size={18} />
-        </button>
-      )}
-      <div className="card-tile__term-row">
-        <h3>{card.term}</h3>
-        <button
-          type="button"
-          className="card-tile__speak card-tile__icon"
-          onClick={handleSpeak}
-          aria-label="Прослухати вимову"
-        >
-          <Volume2 size={18} />
-        </button>
-        {isLanguageType && (
-          <button type="button" className="card-tile__context card-tile__icon">
-            <BookOpen size={18} />
+    <>
+      <div className="card-tile">
+        {isMine && (
+          <button type="button" className="card-tile__menu card-tile__icon">
+            <MoreVertical size={18} />
           </button>
         )}
+        <div className="card-tile__term-row">
+          <h3>{card.term}</h3>
+          <button
+            type="button"
+            className="card-tile__speak card-tile__icon"
+            onClick={(e) => handleSpeak(e, card.term)}
+            aria-label="Прослухати вимову"
+          >
+            <Volume2 size={18} />
+          </button>
+          {isLanguageType && (
+            <button
+              type="button"
+              className="card-tile__context card-tile__icon"
+              onClick={() => setIsContextModalOpen(true)}
+            >
+              <BookOpen size={18} />
+            </button>
+          )}
+        </div>
+        <hr className="card-tile__divider" />
+        <p>{card.definition}</p>
       </div>
-      <hr class="card-tile__divider" />
-      <p>{card.definition}</p>
 
-      {/* Додати в дто поле і парсити */}
-      {card.updatedAt && (
-        <span className="card-tile__updated">
-          Оновлено: {formatDate(card.updatedAt)}
-        </span>
+      {isContextModalOpen && (
+        <FlashcardContextsPanel
+          isOpen={isContextModalOpen}
+          onClose={() => setIsContextModalOpen(false)}
+          card={card}
+          handleSpeak={handleSpeak}
+        />
       )}
-    </div>
+    </>
   );
 }

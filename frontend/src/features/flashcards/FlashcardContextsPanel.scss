@@ -1,0 +1,46 @@
+.add-new-button {
+  color: var(--accent-white);
+  border: 1px solid color-mix(in srgb, var(--square-color-2), transparent 50%);
+  padding: 0.75rem 0.5rem 0.55rem;
+  transition: background-color 0.3s;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: color-mix(
+        in srgb,
+        var(--accent-color) 30%,
+        transparent
+      );
+    }
+  }
+}
+.contexts-wrapper {
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.75rem;
+}
+.context-block {
+  display: flex;
+  column-gap: 0.5rem;
+  justify-content: space-between;
+  border: 1px solid color-mix(in srgb, var(--square-color-2), transparent 80%);
+  padding: 0.75rem 1rem;
+
+  line-height: 1.35rem;
+
+  hr {
+    display: block;
+    width: 1px;
+    background-color: color-mix(
+      in srgb,
+      var(--square-color-2),
+      transparent 80%
+    );
+  }
+  div {
+    flex-basis: 50%;
+  }
+}
+.card-tile__speak {
+    align-self: self-start;
+}

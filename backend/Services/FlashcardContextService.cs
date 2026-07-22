@@ -23,7 +23,8 @@ namespace Services
             {
                 Id = fc.Id,
                 Sentence = fc.Sentence,
-                Translation = fc.Translation
+                Translation = fc.Translation,
+                IsGenerated = fc.IsGenerated
             }).ToList();
         }
         public async Task<FlashcardContextDTO?> GetFlashcardContextByIdAsync(int id)
@@ -36,7 +37,8 @@ namespace Services
             {
                 Id = context.Id,
                 Sentence = context.Sentence,
-                Translation = context.Translation
+                Translation = context.Translation,
+                IsGenerated = context.IsGenerated
             };
         }
         public async Task CreateFlashcardContextAsync(int flashcardId, FlashcardContextDTO dto)

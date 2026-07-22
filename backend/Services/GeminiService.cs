@@ -1,10 +1,9 @@
-﻿using System.Collections;
-using System.Net.Http.Json;
+﻿using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
-using CloudinaryDotNet;
 using Core.DTOs;
 using Core.Models;
+using Ganss.Xss;
 using Microsoft.Extensions.Logging;
 using Repositories.Interfaces;
 using Services.Interfaces;
@@ -160,6 +159,10 @@ namespace Services
 
             string prompt = $"Provide 3 natural example sentences in the original language for the term '{flashcard.Term}' " +
                             $"with their translations in {set?.ToLang} language. " +
+                            $"In the 'sentence' field, wrap the exact word or phrase that matches '{flashcard.Term}' in <strong></strong> tags. " +
+                            $"In the 'translation' field, wrap the word or phrase that semantically corresponds to '{flashcard.Term}' in <strong></strong> tags, " +
+                            "even if it's a different grammatical form (e.g., a conjugated verb or declined noun). " +
+                            "Do not use any other HTML tags. " +
                             "Return ONLY a JSON array of objects: [{'sentence': '...', 'translation': '...'}].";
 
             var requestBody = new
@@ -200,6 +203,21 @@ namespace Services
                 }
 
                 var contextDtos = JsonSerializer.Deserialize<List<FlashcardContextDTO>>(rawJson, _jsonOptions);
+
+                if (contextDtos != null)
+                {
+                    var sanitizer = new HtmlSanitizer(); //to prevent XSS attacks, allow only <strong> tags and no other attributes
+                    sanitizer.AllowedTags.Clear();
+                    sanitizer.AllowedTags.Add("strong");
+                    sanitizer.AllowedAttributes.Clear(); // no other attributes allowed
+
+                    foreach (var dto in contextDtos)
+                    {
+                        dto.Sentence = sanitizer.Sanitize(dto.Sentence);
+                        dto.Translation = sanitizer.Sanitize(dto.Translation);
+                    }
+                }
+
                 return contextDtos;
             }
             catch (Exception ex)
