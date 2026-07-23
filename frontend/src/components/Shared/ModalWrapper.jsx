@@ -14,7 +14,7 @@ export const ModalWrapper = ({
       <div className="modal-content">
         {showCloseButton && (
           <button className="close-btn" onClick={onClose}>
-            <X size={18} />
+            <X size={20} />
           </button>
         )}
 

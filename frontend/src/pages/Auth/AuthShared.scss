@@ -111,14 +111,6 @@ html{
   &::after { margin-left: 0.5em; }
 }
 
-.text-danger {
-  color: var(--error-text);
-  font-size: 0.75rem;
-  margin-top: 0.35rem;
-  display: block;
-  text-align: left;
-}
-
 .auth-footer {
   text-align: center;
   margin-top: 1.25rem; 

@@ -1,0 +1,20 @@
+.flashcard-context-form {
+  display: flex;
+  flex-direction: column;
+  width: 40vw;
+  gap: 1rem;
+
+  label {
+    display: inline-block;
+    margin-bottom: 0.5rem;
+  }
+  .save-button {
+    margin-top: auto;
+  }
+}
+.title {
+  color: var(--accent-white);
+  margin-bottom: 1.3rem;
+  font-size: 1.4rem;
+  font-weight: 700;
+}

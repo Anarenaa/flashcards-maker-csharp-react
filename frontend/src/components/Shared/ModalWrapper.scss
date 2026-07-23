@@ -13,15 +13,18 @@
 
 .modal-content {
   background: color-mix(in srgb, var(--bg-color) 70%, black);
-  padding: 3rem 1.5rem 2.5rem;
+  padding: 3rem 1.5rem 2rem;
   border-radius: 8px;
   border: 1px solid var(--square-color-2);
-  min-width: 50%;
+  min-width: 30vw;
   min-height: 60vh;
-  max-width: 60%;
-  max-height: 90vh;
+  max-width: 60vw;
+  max-height: 95vh;
+  @media (max-width: 1024px) {
+    max-width: 75vw;
+  }
   @media (max-width: 768px) {
-    max-width: 90%;
+    max-width: 90vw;
   }
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   position: relative;
@@ -31,13 +34,12 @@
 
 .close-btn {
   position: absolute;
-  top: 0.25rem;
+  top: 1.25rem;
   right: 1.5rem;
   cursor: pointer;
   border: none;
   color: var(--square-color-2);
   background: transparent;
-  font-size: 1.8rem;
 }
 
 @keyframes fadeIn {

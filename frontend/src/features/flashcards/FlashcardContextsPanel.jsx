@@ -1,10 +1,11 @@
+import { Pencil, Trash2, Volume2, Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { ModalWrapper } from "../../components/Shared/ModalWrapper";
+import FlashcardContextsForm from "./FlashcardContextForm";
 import api from "../../services/api";
 import "./FlashcardContextsPanel.scss";
-import { Volume2, Plus } from "lucide-react";
 
 export default function FlashcardContextsPanel({
   isOpen,
@@ -14,6 +15,8 @@ export default function FlashcardContextsPanel({
 }) {
   const { id: setId } = useParams();
   const queryClient = useQueryClient();
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [editingContext, setEditingContext] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["flashcardContexts", setId, card.id],
@@ -24,7 +27,7 @@ export default function FlashcardContextsPanel({
     enabled: !!card.id && isOpen,
   });
 
-  // useMutation is Post version of useQuery
+  // useMutation is Post/Delete version of useQuery
   const generateMutation = useMutation({
     mutationFn: () =>
       api
@@ -40,6 +43,14 @@ export default function FlashcardContextsPanel({
         ["flashcardContexts", setId, card.id],
         newContexts,
       );
+    },
+  });
+
+  const deleteMutation = useMutation({
+    mutationFn: (contextId) =>
+      api.delete(`/sets/${setId}/flashcards/${card.id}/contexts/${contextId}`),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["flashcardContexts", setId, card.id]);
     },
   });
 
@@ -67,43 +78,91 @@ export default function FlashcardContextsPanel({
     return htmlString.replace(/<\/?[^>]+(>|$)/g, "");
   };
 
-  return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose} showCloseButton={true}>
-      <div className="contexts-wrapper">
-        <button className="add-new-button">
-          <Plus size={24} />
-        </button>
+  const sortedData = data
+    ? [...data].sort((a, b) => a.id - b.id) // Якщо є createdAt, можна замінити на new Date(a.createdAt) - new Date(b.createdAt)
+    : [];
 
-        {isLoading || generateMutation.isPending ? (
-          <p>Завантаження...</p>
-        ) : isEmpty ? (
-          <p>Не вдалося знайти або згенерувати контексти. Додайте новий.</p>
-        ) : (
-          <div className="contexts-scroll-container">
-            {data?.map((context) => (
-              <div key={context.id} className="context-block">
-                {/* we get html string in response from backend (only <strong> tag allowed) */}
-                <div dangerouslySetInnerHTML={{ __html: context.sentence }} />
-                <button
-                  type="button"
-                  className="card-tile__speak card-tile__icon"
-                  onClick={(e) =>
-                    handleSpeak(e, cleanHtmlForSpeech(context.sentence))
-                  }
-                  aria-label="Прослухати вимову"
-                >
-                  <Volume2 size={18} />
-                </button>
-                <hr />
-                {/* we get html string in response from backend (only <strong> tag allowed) */}
-                <div
-                  dangerouslySetInnerHTML={{ __html: context.translation }}
-                />
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
-    </ModalWrapper>
+  const handleEditClick = (context) => {
+    setEditingContext(context);
+    setIsFormOpen(true);
+  };
+
+  const handleAddClick = () => {
+    setEditingContext(null);
+    setIsFormOpen(true);
+  };
+
+  return (
+    <>
+      <ModalWrapper isOpen={isOpen} onClose={onClose} showCloseButton={true}>
+        <div className="contexts-wrapper">
+          <button className="add-new-button" onClick={handleAddClick}>
+            <Plus size={24} />
+          </button>
+
+          {isLoading || generateMutation.isPending ? (
+            <p>Завантаження...</p>
+          ) : isEmpty ? (
+            <p>Не вдалося знайти або згенерувати контексти. Додайте новий.</p>
+          ) : (
+            <div className="contexts-scroll-container">
+              {sortedData.map((context) => (
+                <div key={context.id} className="context-block">
+                  <div className="top-panel">
+                    {/* we get html string in response from backend (only <strong> tag allowed) */}
+                    <div
+                      dangerouslySetInnerHTML={{ __html: context.sentence }}
+                    />
+                    <button
+                      type="button"
+                      className="card-tile__speak icon"
+                      onClick={(e) =>
+                        handleSpeak(e, cleanHtmlForSpeech(context.sentence))
+                      }
+                      aria-label="Прослухати вимову"
+                    >
+                      <Volume2 size={20} />
+                    </button>
+                    <hr />
+                    {/* we get html string in response from backend (only <strong> tag allowed) */}
+                    <div
+                      dangerouslySetInnerHTML={{ __html: context.translation }}
+                    />
+                  </div>
+                  {!context.isGenerated && (
+                    <div className="actions">
+                      <button
+                        aria-label="Редагувати"
+                        onClick={() => handleEditClick(context)}
+                      >
+                        <Pencil size={15} className="icon" />
+                      </button>
+                      <button
+                        aria-label="Видалити"
+                        onClick={() => deleteMutation.mutate(context.id)}
+                        disabled={deleteMutation.isPending}
+                      >
+                        <Trash2 size={15} className="icon" />
+                      </button>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </ModalWrapper>
+      {isFormOpen && (
+        <FlashcardContextsForm
+          isOpen={isFormOpen}
+          onClose={() => {
+            setIsFormOpen(false);
+            setEditingContext(null);
+          }}
+          card={card}
+          initialData={editingContext}
+        />
+      )}
+    </>
   );
 }

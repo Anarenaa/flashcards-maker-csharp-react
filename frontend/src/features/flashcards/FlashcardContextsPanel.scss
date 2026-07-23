@@ -19,15 +19,21 @@
   flex-direction: column;
   row-gap: 0.75rem;
 }
-.context-block {
+.contexts-scroll-container {
   display: flex;
-  column-gap: 0.5rem;
-  justify-content: space-between;
+  flex-direction: column;
+  row-gap: 0.5rem;
+}
+.context-block {
   border: 1px solid color-mix(in srgb, var(--square-color-2), transparent 80%);
   padding: 0.75rem 1rem;
-
-  line-height: 1.35rem;
-
+  display: flex;
+  flex-direction: column;
+  row-gap: 0.5rem;
+  
+  div {
+    flex-basis: 50%;
+  }
   hr {
     display: block;
     width: 1px;
@@ -37,10 +43,22 @@
       transparent 80%
     );
   }
-  div {
-    flex-basis: 50%;
+  .actions {
+    align-self: end;
+    display: flex;
+    gap: 0.5rem;
   }
 }
+.top-panel {
+  display: flex;
+  column-gap: 0.5rem;
+  justify-content: space-between;
+
+  line-height: 1.35rem;
+}
 .card-tile__speak {
-    align-self: self-start;
+  align-self: self-start;
+}
+.icon {
+  color: var(--text-color);
 }
