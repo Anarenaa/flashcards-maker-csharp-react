@@ -7,6 +7,7 @@ namespace Repositories.Interfaces
     {
         // Progress Retrieval
         Task<Dictionary<int, float>> GetBatchCardProgressMapAsync(int userId, List<int> flashcardIds);
+        Task<float> GetSingleSetProgressAsync(int userId, int setId);
         Task<Dictionary<int, float>> GetOverallProgressForSetsAsync(int userId, List<int> setIds);
         Task<List<CardProgress>> GetAllUserProgressAsync(int userId);
 

@@ -1,6 +1,8 @@
-﻿using Core.Models;
+﻿using System.Threading.Tasks;
+using Core.Models;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Practice;
 
 namespace WebAPI.Controllers
 {
@@ -10,10 +12,12 @@ namespace WebAPI.Controllers
     {
         private readonly SetService _setService;
         private readonly FlashcardService _flashcardService;
-        public SetsController(SetService setService, FlashcardService flashcardService)
+        private readonly IPracticeService _practiceService;
+        public SetsController(SetService setService, FlashcardService flashcardService, IPracticeService practiceService)
         {
             _setService = setService;
             _flashcardService = flashcardService;
+            _practiceService = practiceService;
         }
 
         [HttpGet]
@@ -60,6 +64,14 @@ namespace WebAPI.Controllers
         {
             var pagedCards = await _flashcardService.GetPagedFlashcardsBySetIdAsync(setId, page, pageSize);
             return Ok(pagedCards);
+        }
+
+        [HttpGet("{setId}/get-progress")]
+        public async Task<IActionResult> GetSetProgress(int setId)
+        {
+            return await _practiceService.GetSingleSetProgressAsync(UserId, setId) is float progress
+                ? Ok(new { progress })
+                : NotFound();
         }
     }
 }

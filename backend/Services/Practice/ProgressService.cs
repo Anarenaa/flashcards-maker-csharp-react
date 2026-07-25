@@ -20,6 +20,10 @@ namespace Services.Practice
         {
             await _unitOfWork.Practice.ResetSetProgressAsync(userId, setId);
         }
+        public async Task<float> GetSingleSetProgressAsync(int userId, int setId)
+        {
+            return await _unitOfWork.Practice.GetSingleSetProgressAsync(userId, setId);
+        }
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());

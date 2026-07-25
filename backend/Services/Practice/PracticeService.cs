@@ -24,7 +24,10 @@ namespace Services.Practice
         {
             return await _sessionService.GetPracticeSessionAsync(flashcards, setId, userId, requestedMode, isReversed);
         }
-
+        public async Task<float> GetSingleSetProgressAsync(int userId, int setId)
+        {
+            return await _progressService.GetSingleSetProgressAsync(userId, setId);
+        }
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {
             return await _progressService.GetUserProgressAsync(userId);

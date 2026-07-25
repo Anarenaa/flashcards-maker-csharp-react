@@ -27,7 +27,19 @@ namespace Repositories
                 .Where(cp => cp.UserId == userId && flashcardIds.Contains(cp.FlashcardId))
                 .ToDictionaryAsync(cp => cp.FlashcardId, cp => cp.Progress);
         }
+        public async Task<float> GetSingleSetProgressAsync(int userId, int setId)
+        {
+            var totalCards = await _context.Flashcards
+                .CountAsync(f => f.SetId == setId);
 
+            if (totalCards == 0) return 0f;
+
+            var progressSum = await _context.CardProgresses
+                .Where(p => p.UserId == userId && p.Flashcard.SetId == setId)
+                .SumAsync(p => (float?)p.Progress) ?? 0f;
+
+            return progressSum / totalCards;
+        }
         public async Task<Dictionary<int, float>> GetOverallProgressForSetsAsync(int userId, List<int> setIds)
         {
             var totalCards = await _context.Flashcards
@@ -186,41 +198,19 @@ namespace Repositories
         {
             var result = new Dictionary<int, List<string>>();
 
-            if (isReversed)
-            {
-                // all distractors will be terms
-                var allTerms = await _context.Flashcards
-                    .Where(c => c.SetId == setId && !excludeCardIds.Contains(c.Id))
-                    .Select(c => new { c.Id, Value = c.Term })
-                    .ToListAsync();
+            var allCards = await _context.Flashcards
+                .Where(c => c.SetId == setId)
+                .Select(c => new { c.Id, Value = isReversed ? c.Term : c.Definition })
+                .ToListAsync();
 
-                foreach (var excludeCardId in excludeCardIds)
-                {
-                    result[excludeCardId] = allTerms
-                        .Where(d => d.Id != excludeCardId)
-                        .OrderBy(_ => Guid.NewGuid())
-                        .Take(count)
-                        .Select(d => d.Value)
-                        .ToList();
-                }
-            }
-            else
+            foreach (var excludeCardId in excludeCardIds)
             {
-                // all distractors will be definitions
-                var allDefinitions = await _context.Flashcards
-                    .Where(c => c.SetId == setId && !excludeCardIds.Contains(c.Id))
-                    .Select(c => new { c.Id, Value = c.Definition })
-                    .ToListAsync();
-
-                foreach (var excludeCardId in excludeCardIds)
-                {
-                    result[excludeCardId] = allDefinitions
-                        .Where(d => d.Id != excludeCardId)
-                        .OrderBy(_ => Guid.NewGuid())
-                        .Take(count)
-                        .Select(d => d.Value)
-                        .ToList();
-                }
+                result[excludeCardId] = allCards
+                    .Where(d => d.Id != excludeCardId)
+                    .OrderBy(_ => Guid.NewGuid())
+                    .Take(count)
+                    .Select(d => d.Value)
+                    .ToList();
             }
 
             return result;

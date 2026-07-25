@@ -5,7 +5,7 @@ namespace Services.Practice.Interfaces
 {
     public interface ISessionService
     {
-        Task<PracticeSessionDTO> GetPracticeSessionAsync(
+        Task<PracticeSessionDTO?> GetPracticeSessionAsync(
             List<FlashcardDTO> flashcards, 
             int setId, 
             int userId, 
