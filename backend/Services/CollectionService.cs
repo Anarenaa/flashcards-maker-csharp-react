@@ -41,7 +41,7 @@ namespace Services
 
             var setIds = collection.Sets.Select(s => s.Id).ToList();
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
-            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
+            var progressMap = await _unitOfWork.Practice.GetOverallProgressForSetsAsync(userId, setIds);
 
             return new CollectionDetailDTO
             {

@@ -1,6 +1,5 @@
-﻿using System.Linq;
-using System.Linq.Expressions;
-using Core.Context;
+﻿using Core.Context;
+using Core.DTOs;
 using Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
@@ -17,97 +16,40 @@ namespace Repositories
             _context = context;
             _dbSet = _context.Set<CardProgress>();
         }
-        public async Task<IEnumerable<CardProgress>> GetAllAsync(
-            Expression<Func<CardProgress, bool>>? filter = null,
-            string includeProperties = "")
+
+        // =====================================================================
+        // PROGRESS RETRIEVAL METHODS
+        // Methods responsible for fetching tracking data and user progress statistics.
+        // =====================================================================
+        public async Task<Dictionary<int, float>> GetBatchCardProgressMapAsync(int userId, List<int> flashcardIds)
         {
-            IQueryable<CardProgress> query = _dbSet;
-
-            foreach (var includeProperty in includeProperties.Split(',', StringSplitOptions.RemoveEmptyEntries))
-            {
-                query = query.Include(includeProperty);
-            }
-
-            if (filter != null)
-            {
-                query = query.Where(filter);
-            }
-
-            return await query.ToListAsync();
+            return await _context.CardProgresses
+                .Where(cp => cp.UserId == userId && flashcardIds.Contains(cp.FlashcardId))
+                .ToDictionaryAsync(cp => cp.FlashcardId, cp => cp.Progress);
         }
-        public async Task<List<CardProgress>> GetNewBatchForPracticeAsync(int setId, int userId, int limit)
+
+        public async Task<Dictionary<int, float>> GetOverallProgressForSetsAsync(int userId, List<int> setIds)
         {
-            var allCardsInSet = await _context.Flashcards
-                .Where(f => f.SetId == setId)
+            var totalCards = await _context.Flashcards
+                .Where(f => setIds.Contains(f.SetId))
+                .GroupBy(f => f.SetId)
+                .Select(g => new { SetId = g.Key, Total = g.Count() })
                 .ToListAsync();
 
-            var existingProgress = await _dbSet
-                .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
-                .ToListAsync();
-
-            var missingCards = allCardsInSet.Where(f => !existingProgress.Any(cp => cp.FlashcardId == f.Id)).ToList();
-
-            if (missingCards.Any())
-            {
-                var newEntries = missingCards.Select(f => new CardProgress
-                {
-                    FlashcardId = f.Id,
-                    UserId = userId,
-                    Progress = 0.0f,
-                    LastReview = DateTime.MinValue,
-                    NextReview = DateTime.UtcNow
-                }).ToList();
-
-                await _dbSet.AddRangeAsync(newEntries);
-                await _context.SaveChangesAsync();
-
-                // Оновлюємо список прогресу після додавання
-                existingProgress.AddRange(newEntries);
-            }
-
-            return existingProgress
-                .OrderBy(cp => cp.Progress)
-                .ThenBy(cp => cp.NextReview)
-                .Take(limit)
-                .ToList();
-        }
-
-        public async Task UpdateProgressAsync(CardProgress progress)
-        {
-            progress.LastReview = DateTime.UtcNow;
-
-            // інтервальне повторення
-            int daysToAdd = (int)(14 * progress.Progress);
-            progress.NextReview = DateTime.UtcNow.AddDays(Math.Max(1, daysToAdd));
-
-            _context.CardProgresses.Update(progress);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<CardProgress> GetCardProgressAsync(int userId, int flashcardId)
-        {
-            return await _dbSet
-                .Include(cp => cp.Flashcard)
-                .FirstOrDefaultAsync(cp => cp.UserId == userId && cp.FlashcardId == flashcardId);
-        }
-        public async Task<List<CardProgress>> GetSetProgressAsync(int userId, int setId)
-        {
-            return await _dbSet
-                .Include(cp => cp.Flashcard)
-                .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
-                .ToListAsync();
-        }
-        public async Task<List<CardProgress>> GetProgressForSetsAsync(int userId, List<int> setIds)
-        {
-            return await _dbSet
-                .Include(p => p.Flashcard)
+            var progressSums = await _context.CardProgresses
                 .Where(p => p.UserId == userId && setIds.Contains(p.Flashcard.SetId))
+                .GroupBy(p => p.Flashcard.SetId)
+                .Select(g => new { SetId = g.Key, ProgressSum = g.Sum(p => p.Progress) })
                 .ToListAsync();
-        }
-        public async Task CreateProgressAsync(CardProgress progress)
-        {
-            await _context.CardProgresses.AddAsync(progress);
-            await _context.SaveChangesAsync();
+
+            var progressMap = progressSums.ToDictionary(x => x.SetId, x => x.ProgressSum);
+
+            return totalCards.ToDictionary(
+                x => x.SetId,
+                x => x.Total > 0
+                    ? (progressMap.GetValueOrDefault(x.SetId, 0f) / x.Total)
+                    : 0f
+            );
         }
 
         public async Task<List<CardProgress>> GetAllUserProgressAsync(int userId)
@@ -118,45 +60,170 @@ namespace Repositories
                 .Where(cp => cp.UserId == userId)
                 .ToListAsync();
         }
-        
-        public async Task<List<string>> GetDistractorsAsync(int setId, int excludeCardId, int count)
+
+        // =====================================================================
+        // PROGRESS MUTATION METHODS
+        // Methods handling creation, updates, batch loading, and removal of progress.
+        // =====================================================================
+
+        public async Task<List<CardProgress>> GetNewBatchForPracticeAsync(List<FlashcardDTO> flashcards, int userId)
         {
-            return await _context.Flashcards
-                .Where(c => c.SetId == setId && c.Id != excludeCardId)
-                .OrderBy(c => Guid.NewGuid())
-                .Take(count)
-                .Select(c => c.Definition)
+            var cardIds = flashcards.Select(f => f.Id).ToList();
+
+            var existingProgress = await _dbSet
+                .Where(cp => cp.UserId == userId && cardIds.Contains(cp.FlashcardId))
                 .ToListAsync();
+
+            var missingCards = flashcards.Where(f => !existingProgress.Any(cp => cp.FlashcardId == f.Id)).ToList();
+
+            if (missingCards.Any())
+            {
+                var newEntries = missingCards.Select(f => new CardProgress
+                {
+                    FlashcardId = (int)f.Id,
+                    UserId = userId,
+                    Progress = 0.0f,
+                    LastReview = DateTime.MinValue,
+                    NextReview = DateTime.UtcNow
+                }).ToList();
+
+                await _dbSet.AddRangeAsync(newEntries);
+                await _context.SaveChangesAsync();
+
+                existingProgress.AddRange(newEntries);
+            }
+
+            return existingProgress
+                .OrderBy(cp => cp.Progress)
+                .ThenBy(cp => cp.NextReview)
+                .ToList();
         }
 
-        public async Task<Dictionary<int, List<string>>> GetBatchDistractorsAsync(int setId, List<int> excludeCardIds, int count)
+        // Update + Insert for CardProgress
+        public async Task UpsertProgressAsync(int userId, int flashcardId, float newProgress)
+        {
+            var progress = await _dbSet.FirstOrDefaultAsync(cp => cp.UserId == userId && cp.FlashcardId == flashcardId);
+
+            if (progress == null)
+            {
+                progress = new CardProgress
+                {
+                    UserId = userId,
+                    FlashcardId = flashcardId,
+                    Progress = newProgress,
+                    LastReview = DateTime.UtcNow,
+                    NextReview = DateTime.UtcNow.AddDays(14 * newProgress)
+                };
+                await _dbSet.AddAsync(progress);
+            }
+            else
+            {
+                progress.Progress = newProgress;
+                progress.LastReview = DateTime.UtcNow;
+                int daysToAdd = (int)(14 * progress.Progress);
+                progress.NextReview = DateTime.UtcNow.AddDays(Math.Max(1, daysToAdd));
+                _dbSet.Update(progress);
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpsertBatchProgressAsync(int userId, Dictionary<int, float> progressUpdates)
+        {
+            if (!progressUpdates.Any()) return;
+
+            var cardIds = progressUpdates.Keys.ToList();
+
+            // one query 
+            var existingProgresses = await _context.CardProgresses
+                .Where(cp => cp.UserId == userId && cardIds.Contains(cp.FlashcardId))
+                .ToListAsync();
+
+            foreach (var pair in progressUpdates)
+            {
+                int flashcardId = pair.Key;
+                float newProgress = pair.Value;
+
+                var existing = existingProgresses.FirstOrDefault(cp => cp.FlashcardId == flashcardId);
+                if (existing != null)
+                {
+                    existing.Progress = newProgress;
+                    existing.LastReview = DateTime.UtcNow;
+                }
+                else
+                {
+                    _context.CardProgresses.Add(new CardProgress
+                    {
+                        UserId = userId,
+                        FlashcardId = flashcardId,
+                        Progress = newProgress,
+                        LastReview = DateTime.UtcNow
+                    });
+                }
+            }
+
+            await _context.SaveChangesAsync();
+        }
+        public async Task CreateProgressAsync(CardProgress progress)
+        {
+            await _context.CardProgresses.AddAsync(progress);
+            await _context.SaveChangesAsync();
+        }
+        public async Task ResetSetProgressAsync(int userId, int setId)
+        {
+            // ExecuteUpdateAsync updates the database directly with a single SQL query, 
+            // so it doesn't load entities into memory or require SaveChangesAsync()
+            await _context.CardProgresses
+                .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Progress, 0.0f));
+        }
+
+        // =====================================================================
+        // PRACTICE ASSETS & GENERATION METHODS
+        // Methods used to generate distractors and support quiz or practice logic.
+        // =====================================================================
+
+        public async Task<Dictionary<int, List<string>>> GetBatchDistractorsAsync(int setId, List<int> excludeCardIds, int count, bool isReversed)
         {
             var result = new Dictionary<int, List<string>>();
-            
-            // Отримуємо всі можливі дестрактори для сету
-            var allPossibleDistractors = await _context.Flashcards
-                .Where(c => c.SetId == setId && !excludeCardIds.Contains(c.Id))
-                .Select(c => new { c.Id, c.Definition })
-                .ToListAsync();
 
-            foreach (var excludeCardId in excludeCardIds)
+            if (isReversed)
             {
-                // Беремо випадкові дестрактори, які не є самою карткою
-                var distractors = allPossibleDistractors
-                    .Where(d => d.Id != excludeCardId)
-                    .OrderBy(d => Guid.NewGuid())
-                    .Take(count)
-                    .Select(d => d.Definition)
-                    .ToList();
-                    
-                result[excludeCardId] = distractors;
+                // all distractors will be terms
+                var allTerms = await _context.Flashcards
+                    .Where(c => c.SetId == setId && !excludeCardIds.Contains(c.Id))
+                    .Select(c => new { c.Id, Value = c.Term })
+                    .ToListAsync();
+
+                foreach (var excludeCardId in excludeCardIds)
+                {
+                    result[excludeCardId] = allTerms
+                        .Where(d => d.Id != excludeCardId)
+                        .OrderBy(_ => Guid.NewGuid())
+                        .Take(count)
+                        .Select(d => d.Value)
+                        .ToList();
+                }
             }
-            
+            else
+            {
+                // all distractors will be definitions
+                var allDefinitions = await _context.Flashcards
+                    .Where(c => c.SetId == setId && !excludeCardIds.Contains(c.Id))
+                    .Select(c => new { c.Id, Value = c.Definition })
+                    .ToListAsync();
+
+                foreach (var excludeCardId in excludeCardIds)
+                {
+                    result[excludeCardId] = allDefinitions
+                        .Where(d => d.Id != excludeCardId)
+                        .OrderBy(_ => Guid.NewGuid())
+                        .Take(count)
+                        .Select(d => d.Value)
+                        .ToList();
+                }
+            }
+
             return result;
-        }
-        public void DeleteRange(IEnumerable<CardProgress> entities)
-        {
-            _dbSet.RemoveRange(entities);
         }
     }
 }

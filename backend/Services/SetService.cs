@@ -24,7 +24,7 @@ namespace Services
             if (!setIds.Any()) return new List<SetDTO>();
 
             var flashcardCounts = await _unitOfWork.Flashcards.GetCountsBySetIdsAsync(setIds);
-            var progressMap = await _unitOfWork.Sets.GetOverallProgressForSetsAsync(userId, setIds);
+            var progressMap = await _unitOfWork.Practice.GetOverallProgressForSetsAsync(userId, setIds);
 
             return items.Select(s => new SetDTO
             {
@@ -118,16 +118,6 @@ namespace Services
             );
 
             return await mapToSetDtosAsync(sets, userId);
-        }
-        public async Task ResetSetProgressAsync(int userId, int setId)
-        {
-            var setProgress = await _unitOfWork.Practice.GetSetProgressAsync(userId, setId);
-
-            if (setProgress.Any())
-            {
-                _unitOfWork.Practice.DeleteRange(setProgress);
-                await _unitOfWork.SaveChangesAsync();
-            }
         }
         public async Task<SetDetailDTO> GetSetByIdAsync(int setId, int? currentUserId = null)
         {

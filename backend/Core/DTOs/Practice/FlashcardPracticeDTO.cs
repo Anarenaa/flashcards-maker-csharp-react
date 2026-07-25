@@ -5,8 +5,8 @@
         public int Id { get; set; }
         public string Term { get; set; }
         public string Definition { get; set; }
-        public PracticeActivityType CardType { get; set; } // Для Mixed
+        public PracticeActivityType CardType { get; set; } // For Mixed session
 
-        public List<string>? Distractors { get; set; } // Тільки для Quiz
+        public List<string>? Distractors { get; set; } // For Quiz session
     }
 }

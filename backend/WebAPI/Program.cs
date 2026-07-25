@@ -19,7 +19,7 @@ using Repositories.Interfaces;
 using Services;
 using Services.Interfaces;
 using Services.Practice;
-
+using Services.Practice.Interfaces;
 using IDictionaryService = Services.Interfaces.IDictionaryService;
 
 // ���������� .NET ��������� � ������ Postgres ��� ������� �� �������� �������
@@ -287,7 +287,6 @@ builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CollectionService>();
 builder.Services.AddScoped<ReportService>();
 builder.Services.AddScoped<IPracticeRepository, PracticeRepository>();
-builder.Services.AddScoped<IAnswerService, AnswerService>();
 builder.Services.AddScoped<IProgressService, ProgressService>();
 builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IPracticeService, PracticeService>();

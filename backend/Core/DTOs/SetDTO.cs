@@ -24,6 +24,7 @@ namespace Core.DTOs
         public float OverallProgress { get; set; } = 0.0f;
 
         public int Progress => (int)Math.Round(OverallProgress * 100);
+        public bool IsFullyMastered => OverallProgress >= 1.0f;
 
     }
 }

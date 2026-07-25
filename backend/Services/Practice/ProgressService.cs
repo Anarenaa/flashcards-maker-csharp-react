@@ -2,6 +2,7 @@ using Core.DTOs.Practice;
 using Core.Models;
 using Microsoft.AspNetCore.Identity;
 using Repositories.Interfaces;
+using Services.Practice.Interfaces;
 
 namespace Services.Practice
 {
@@ -15,54 +16,10 @@ namespace Services.Practice
             _userManager = userManager;
         }
 
-        public async Task<SetProgressDTO> GetSetProgressAsync(int setId, int userId)
+        public async Task ResetSetProgressAsync(int userId, int setId)
         {
-            var allFlashcards = await _unitOfWork.Flashcards.GetAllAsync(filter: f => f.SetId == setId);
-            if (!allFlashcards.Any())
-                return new SetProgressDTO { SetId = setId, TotalCards = 0, OverallProgress = 0f };
-
-            var existingProgress = await _unitOfWork.Practice.GetSetProgressAsync(userId, setId);
-
-            var progressMap = existingProgress.ToDictionary(p => p.FlashcardId);
-
-            var cardProgresses = new List<CardProgress>();
-
-            foreach (var flashcard in allFlashcards)
-            {
-                if (progressMap.TryGetValue(flashcard.Id, out var progress))
-                {
-                    cardProgresses.Add(progress);
-                }
-                else
-                {
-                    cardProgresses.Add(new CardProgress
-                    {
-                        FlashcardId = flashcard.Id,
-                        UserId = userId,
-                        Progress = 0.0f
-                    });
-                }
-            }
-
-            // Розраховуємо загальний прогрес
-            var overallProgress = cardProgresses.Average(cp => cp.Progress);
-
-            // Розраховуємо статистику
-            var masteredCards = cardProgresses.Count(cp => cp.Progress >= 1.0f);
-            var inProgressCards = cardProgresses.Count(cp => cp.Progress >= 0.1f && cp.Progress < 1.0f);
-            var notStartedCards = cardProgresses.Count(cp => cp.Progress < 0.1f);
-
-            return new SetProgressDTO
-            {
-                SetId = setId,
-                TotalCards = allFlashcards.Count(),
-                OverallProgress = overallProgress,
-                MasteredCards = masteredCards,
-                InProgressCards = inProgressCards,
-                NotStartedCards = notStartedCards
-            };
+            await _unitOfWork.Practice.ResetSetProgressAsync(userId, setId);
         }
-
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
@@ -119,27 +76,20 @@ namespace Services.Practice
             };
         }
 
-        public async Task<List<int>> SavePracticeResultsAsync(int userId, PracticeResultsDTO results)
+        public async Task<List<int>> SavePracticeResultsAsync(int userId, List<PracticeResultDTO> results)
         {
-            var incorrectCards = new List<int>();
+            if (results == null || !results.Any()) return new List<int>();
 
-            foreach (var result in results.Results)
+            var incorrectCards = new List<int>();
+            var flashcardIds = results.Select(r => r.FlashcardId).Distinct().ToList();
+
+            var currentProgressMap = await _unitOfWork.Practice.GetBatchCardProgressMapAsync(userId, flashcardIds);
+
+            var progressUpdates = new Dictionary<int, float>();
+
+            foreach (var result in results)
             {
-                var progress = await _unitOfWork.Practice.GetCardProgressAsync(userId, result.FlashcardId);
-                
-                if (progress == null)
-                {
-                    // Створюємо новий прогрес якщо не існує
-                    progress = new CardProgress
-                    {
-                        FlashcardId = result.FlashcardId,
-                        UserId = userId,
-                        Progress = 0.0f,
-                        LastReview = DateTime.UtcNow
-                    };
-                    
-                    await _unitOfWork.Practice.CreateProgressAsync(progress);
-                }
+                float currentProgress = currentProgressMap.GetValueOrDefault(result.FlashcardId, 0.0f);
 
                 if (result.IsCorrect)
                 {
@@ -152,24 +102,43 @@ namespace Services.Practice
                         _ => PracticeActivityLimit.MaxLimit
                     };
 
-                    // Збільшуємо прогрес
-                    if (progress.Progress < modeLimit)
+                    if (currentProgress < modeLimit)
                     {
-                        progress.Progress = Math.Min(modeLimit, progress.Progress + GetProgressIncrease(result.ReviewType));
+                        currentProgress = Math.Min(modeLimit, currentProgress + getProgressIncrease(result.ReviewType));
                     }
                 }
                 else
                 {
                     incorrectCards.Add(result.FlashcardId);
                 }
-                
-                await _unitOfWork.Practice.UpdateProgressAsync(progress);
+
+                progressUpdates[result.FlashcardId] = currentProgress;
             }
+            await _unitOfWork.Practice.UpsertBatchProgressAsync(userId, progressUpdates);
 
             return incorrectCards;
         }
 
-        private float GetProgressIncrease(PracticeActivityType type) => type switch
+        public async Task<bool> CheckAnswerAsync(int flashcardId, string userAnswer, PracticeActivityType activityType, bool isReversed = false)
+        {
+            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(flashcardId);
+            if (flashcard == null) return false;
+
+            var correctAnswer = isReversed ? flashcard.Term : flashcard.Definition;
+
+            if (string.IsNullOrEmpty(userAnswer) || string.IsNullOrEmpty(correctAnswer))
+                return false;
+
+            switch (activityType)
+            {
+                case PracticeActivityType.Review:
+                    return true;
+                default:
+                    return userAnswer.Trim().Equals(correctAnswer.Trim(), StringComparison.OrdinalIgnoreCase);
+            }
+        }
+
+        private float getProgressIncrease(PracticeActivityType type) => type switch
         {
             PracticeActivityType.Review => 0.10f,
             PracticeActivityType.Quiz => 0.20f,
