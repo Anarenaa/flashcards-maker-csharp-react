@@ -4,7 +4,11 @@
   --accent-color: #6b8789;
   --accent-white: #f0ffff;
   --square-color-2: #818375;
-  --text-color: #dee4c7;
+  --text-color: var(--accent-white);
+
+  --component-bg: color-mix(in srgb, var(--square-color-2) 10%, transparent);
+  --component-border: color-mix(in srgb, var(--accent-white) 30%, transparent);
+  --component-hover: color-mix(in srgb, var(--accent-color) 40%, transparent);
 
   --progress-bar-start: #6e8efb;
   --progress-bar-end: #a777e3;
@@ -154,5 +158,14 @@ input.error-input {
     background: var(--accent-white);
     color: var(--bg-color);
     transform: translateY(-2px);
+  }
+}
+
+@media (min-width: 1024px) {
+  .flex-center-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
   }
 }

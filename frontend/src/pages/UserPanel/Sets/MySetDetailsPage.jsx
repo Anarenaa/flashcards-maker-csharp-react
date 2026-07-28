@@ -10,6 +10,7 @@ export default function MySetDetailsPage() {
       isMine={true}
       backHref="/my-sets"
       backLabel="Назад до моїх сетів"
+      onPracticeLink={`/my-sets/${id}/practice`}
     />
   );
 }

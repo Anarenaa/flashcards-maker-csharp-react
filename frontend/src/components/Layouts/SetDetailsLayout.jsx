@@ -4,6 +4,7 @@ import PageSizeSelector from "../Sets/Details/PageSizeSelector";
 import CardsGrid from "../Sets/Details/CardsGrid";
 import PaginationFooter from "../Sets/PaginationFooter";
 import './SetDetailsLayout.scss';
+import { useNavigate } from "react-router";
 
 export default function SetDetailsLayout({
   endpoint,
@@ -11,6 +12,7 @@ export default function SetDetailsLayout({
   isMine,
   backHref,
   backLabel,
+  onPracticeLink
 }) {
   const {
     setInfo,
@@ -22,6 +24,7 @@ export default function SetDetailsLayout({
     handlePageChange,
   } = useSetDetails(endpoint, setId);
 
+  const navigate = useNavigate();
   return (
     <div className="set-details-page">
       <SetHeader
@@ -39,7 +42,7 @@ export default function SetDetailsLayout({
           /* TODO */
         }}
         onPractice={() => {
-          /* TODO: навігація на /Practice/:id */
+          navigate(onPracticeLink, { state: { name: setInfo.name } });
         }}
       />
 

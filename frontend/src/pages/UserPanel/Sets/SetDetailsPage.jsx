@@ -10,6 +10,7 @@ export default function SetDetailsPage() {
       isMine={false}
       backHref="/main"
       backLabel="Назад до головної"
+      onPracticeLink={`/sets/${id}/practice`}
     />
   );
 }

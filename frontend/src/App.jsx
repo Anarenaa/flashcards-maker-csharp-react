@@ -15,6 +15,7 @@ import EmailSentPage from "./pages/Auth/ResetPassword/EmailSentPage";
 import ChangePassword from "./pages/Auth/ResetPassword/ChangePassword";
 import SetDetailsPage from "./pages/UserPanel/Sets/SetDetailsPage";
 import MySetDetailsPage from "./pages/UserPanel/Sets/MySetDetailsPage";
+import PracticeMapPage from "./pages/UserPanel/Practice/PracticeMapPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
@@ -67,8 +68,15 @@ function App() {
         <Route path="settings" element={<SettingsPage />} />
       </Route>
 
-      <Route path="sets/:id" element={<SetDetailsPage />} />
-      <Route path="my-sets/:id" element={<MySetDetailsPage />} />
+      <Route path="sets/:id">
+        <Route index element={<SetDetailsPage />} />
+        <Route path="practice" element={<PracticeMapPage />} />
+      </Route>
+
+      <Route path="my-sets/:id">
+        <Route index element={<MySetDetailsPage />} />
+        <Route path="practice" element={<PracticeMapPage />} />
+      </Route>
     </Routes>
   );
 }
