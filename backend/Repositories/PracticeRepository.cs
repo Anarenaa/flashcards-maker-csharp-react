@@ -188,6 +188,12 @@ namespace Repositories
                 .Where(cp => cp.UserId == userId && cp.Flashcard.SetId == setId)
                 .ExecuteUpdateAsync(s => s.SetProperty(p => p.Progress, 0.0f));
         }
+        public async Task ResetBatchCardProgressAsync(int userId, List<int> flashcardIds)
+        {
+            await _context.CardProgresses
+                .Where(cp => cp.UserId == userId && flashcardIds.Contains(cp.FlashcardId))
+                .ExecuteUpdateAsync(s => s.SetProperty(p => p.Progress, 0.0f));
+        }
 
         // =====================================================================
         // PRACTICE ASSETS & GENERATION METHODS

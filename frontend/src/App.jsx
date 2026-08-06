@@ -16,6 +16,7 @@ import ChangePassword from "./pages/Auth/ResetPassword/ChangePassword";
 import SetDetailsPage from "./pages/UserPanel/Sets/SetDetailsPage";
 import MySetDetailsPage from "./pages/UserPanel/Sets/MySetDetailsPage";
 import PracticeMapPage from "./pages/UserPanel/Practice/PracticeMapPage";
+import PracticeTestPage from "./pages/UserPanel/Practice/PracticeTestPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
@@ -70,12 +71,18 @@ function App() {
 
       <Route path="sets/:id">
         <Route index element={<SetDetailsPage />} />
-        <Route path="practice" element={<PracticeMapPage />} />
+        <Route path="practice">
+          <Route index element={<PracticeMapPage />} />
+          <Route path="test" element={<PracticeTestPage />} />
+        </Route>
       </Route>
 
       <Route path="my-sets/:id">
         <Route index element={<MySetDetailsPage />} />
-        <Route path="practice" element={<PracticeMapPage />} />
+        <Route path="practice">
+          <Route index element={<PracticeMapPage />} />
+          <Route path="test" element={<PracticeTestPage />} />
+        </Route>
       </Route>
     </Routes>
   );

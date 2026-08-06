@@ -1,18 +1,14 @@
-import { Pencil, Trash2, Volume2, Plus } from "lucide-react";
+import { Pencil, Trash2, Plus } from "lucide-react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { ModalWrapper } from "../../components/Shared/ModalWrapper";
 import FlashcardContextsForm from "./FlashcardContextForm";
+import PronounceButton from "../../components/Shared/PronounceButton";
 import api from "../../services/api";
 import "./FlashcardContextsPanel.scss";
 
-export default function FlashcardContextsPanel({
-  isOpen,
-  onClose,
-  card,
-  handleSpeak,
-}) {
+export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
   const { id: setId } = useParams();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -78,9 +74,7 @@ export default function FlashcardContextsPanel({
     return htmlString.replace(/<\/?[^>]+(>|$)/g, "");
   };
 
-  const sortedData = data
-    ? [...data].sort((a, b) => a.id - b.id) // Якщо є createdAt, можна замінити на new Date(a.createdAt) - new Date(b.createdAt)
-    : [];
+  const sortedData = data ? [...data].sort((a, b) => a.id - b.id) : [];
 
   const handleEditClick = (context) => {
     setEditingContext(context);
@@ -113,16 +107,10 @@ export default function FlashcardContextsPanel({
                     <div
                       dangerouslySetInnerHTML={{ __html: context.sentence }}
                     />
-                    <button
-                      type="button"
-                      className="card-tile__speak icon"
-                      onClick={(e) =>
-                        handleSpeak(e, cleanHtmlForSpeech(context.sentence))
-                      }
-                      aria-label="Прослухати вимову"
-                    >
-                      <Volume2 size={20} />
-                    </button>
+                    <PronounceButton
+                      word={cleanHtmlForSpeech(context.sentence)}
+                      lang={card.fromLang}
+                    />
                     <hr />
                     {/* we get html string in response from backend (only <strong> tag allowed) */}
                     <div

@@ -1,5 +1,11 @@
+import { PRACTICE_MODES } from "../../../constants/practiceConstants";
 import React, { useState } from "react";
-import { useParams, useLocation, useNavigate } from "react-router";
+import {
+  useParams,
+  useSearchParams,
+  useLocation,
+  useNavigate,
+} from "react-router";
 import {
   useQuery,
   useQueryClient,
@@ -7,34 +13,63 @@ import {
   keepPreviousData,
 } from "@tanstack/react-query";
 import { ArrowLeft, RefreshCcw, Trash } from "lucide-react";
+import { useSetDetails } from "../../../hooks/useSetDetails";
+import { useUrlPagination } from "../../../hooks/useUrlPagination";
 import PracticeNode from "../../../components/Practice/PracticeNode";
+import ResetProgressModal from "../../../features/practice/ResetProgressModal";
 import api from "../../../services/api";
 import "./PracticeMapPage.scss";
 
 export default function PracticeMapPage() {
   const { id: setId } = useParams();
-  const [isReversed, setIsReversed] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
   const location = useLocation();
-  console.log(location);
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const isMySet = location.pathname.startsWith("/my-sets");
+  const endpoint = isMySet ? "/my-sets" : "/sets";
+
+  const { page, pageSize } = useUrlPagination();
+  const isReversed = searchParams.get("isReversed") === "true";
+
+  const {
+    setInfo,
+    cards: flashcards,
+    isLoading: isCardsLoading,
+    pagination,
+  } = useSetDetails(endpoint, setId, page, pageSize);
 
   const getBackNavigation = () => {
+    const params = `page=${page}&pageSize=${pageSize}`;
     if (isMySet) {
-      return { url: `/my-sets/${setId}`, text: "Назад до моїх карток" };
+      return {
+        url: `/my-sets/${setId}?${params}`,
+        text: "Назад до моїх карток",
+      };
     }
-    return { url: `/sets/${setId}`, text: "Назад до перегляду" };
+    return { url: `/sets/${setId}?${params}`, text: "Назад до перегляду" };
   };
   const backNav = getBackNavigation();
 
+  const flashcardIds = flashcards.map((f) => f.id);
+
   const { data: progressData, isLoading: isProgressLoading } = useQuery({
-    queryKey: ["set-progress", setId],
-    queryFn: () =>
-      api.get(`/sets/${setId}/get-progress`).then((res) => res.data),
+    queryKey: ["set-progress", setId, flashcardIds],
+    queryFn: () => {
+      const isAll =
+        pageSize === "all" || flashcards.length === pagination.totalItems;
+
+      return isAll
+        ? api.get(`/sets/${setId}/get-progress`).then((res) => res.data)
+        : api
+            .post(`/practice/progress-batch`, flashcardIds)
+            .then((res) => res.data);
+    },
     placeholderData: keepPreviousData,
-    enabled: !!setId,
+    enabled: !!setId && flashcards.length > 0,
   });
+  const progress = progressData?.progress ?? 0;
 
   const { data: limits, isLoading: isLimitsLoading } = useQuery({
     queryKey: ["practice-limits"],
@@ -42,12 +77,26 @@ export default function PracticeMapPage() {
     staleTime: Infinity,
   });
 
+  const handleToggleReverse = () => {
+    setSearchParams({
+      page,
+      pageSize,
+      isReversed: !isReversed,
+    });
+  };
+
   const queryClient = useQueryClient();
 
   const resetMutation = useMutation({
-    mutationFn: () => api.post(`/practice/reset`, null, { params: { setId } }),
+    mutationFn: (resetType) => {
+      return resetType === "all"
+        ? api.post(`/sets/${setId}/reset-set-progress`)
+        : api.post(`/practice/reset-batch-progress`, flashcardIds);
+    },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["set-progress", setId] });
+      queryClient.invalidateQueries({ queryKey: ["sets"] });
+      setIsModalOpen(false);
     },
     onError: (error) => {
       console.error(error);
@@ -55,25 +104,30 @@ export default function PracticeMapPage() {
     },
   });
 
-  const handleResetProgress = () => {
-    if (
-      !window.confirm(
-        "Ви впевнені? Це обнулить увесь ваш прогрес навчання для цього сету!",
-      )
-    )
-      return;
-    resetMutation.mutate();
-  };
+  if (isCardsLoading || !setInfo) {
+    return <div>Завантаження...</div>;
+  }
 
-  if (isProgressLoading || isLimitsLoading || !progressData || !limits) {
+  if (flashcards.length === 0) {
     return (
-      <div style={{ textAlign: "center", marginTop: "50px" }}>
-        Завантаження...
+      <div className="map-page-container">
+        <p>На цій сторінці немає карток.</p>
+        <button
+          onClick={() =>
+            navigate(
+              `${endpoint}/${setId}/practice?page=1&pageSize=${pageSize}`,
+            )
+          }
+        >
+          На першу сторінку
+        </button>
       </div>
     );
   }
 
-  const progress = progressData.progress ?? 0;
+  if (isProgressLoading || isLimitsLoading || !progressData || !limits) {
+    return <div>Завантаження...</div>;
+  }
 
   const isUnlocked = (mode) => {
     switch (mode) {
@@ -91,86 +145,78 @@ export default function PracticeMapPage() {
         return false;
     }
   };
-
   const getModeName = (mode) => {
-    switch (mode) {
-      case 1:
-        return "Флеш картки";
-      case 2:
-        return "Вікторина";
-      case 3:
-        return "З'єднання";
-      case 4:
-        return "Письмо";
-      case 5:
-        return "Mixed-режим";
-      default:
-        return "";
-    }
+    return PRACTICE_MODES.find((m) => m.id === mode)?.name || "";
   };
 
-  const visibleModes = [1, 2, 3, 4, 5];
-
   return (
-    <div className="flex-center-wrapper">
-      <div className="map-page-container">
-        <div className="map-top-bar">
-          <button onClick={() => navigate(backNav.url)} className="back-link">
-            <ArrowLeft />
-            {backNav.text}
+    <div className="map-page-container">
+      <div className="map-top-bar">
+        <button onClick={() => navigate(backNav.url)} className="back-link">
+          <ArrowLeft />
+          {backNav.text}
+        </button>
+
+        <div className="map-top-actions">
+          <button
+            type="button"
+            onClick={handleToggleReverse}
+            className={`btn-top btn-top--reverse ${isReversed ? "btn-top--reverse-active" : ""}`}
+          >
+            <span className="reverse-label">Зворотний режим</span>
+            <div className="reverse-icon-bg">
+              <RefreshCcw size={16} />
+            </div>
           </button>
 
-          <div className="map-top-actions">
-            <button
-              type="button"
-              onClick={() => setIsReversed(!isReversed)}
-              className={`btn-top btn-top--reverse ${isReversed ? "btn-top--reverse-active" : ""}`}
-            >
-              <span className="reverse-label">Зворотний режим</span>
-              <div className="reverse-icon-bg">
-                <RefreshCcw size={16} />
-              </div>
-            </button>
-
-            <button
-              onClick={handleResetProgress}
-              className="btn-top--reset btn-top"
-            >
-              <span>Скинути прогрес</span>
-              <div className="reset-icon-bg">
-                <Trash size={16} />
-              </div>
-            </button>
-          </div>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="btn-top--reset btn-top"
+          >
+            <span>Скинути прогрес</span>
+            <div className="reset-icon-bg">
+              <Trash size={16} />
+            </div>
+          </button>
         </div>
+      </div>
+      {isModalOpen && (
+        <ResetProgressModal
+          isOpen={isModalOpen}
+          onConfirmBatch={() => resetMutation.mutate()}
+          onConfirmAll={() => resetMutation.mutate("all")}
+          onClose={() => setIsModalOpen(false)}
+        />
+      )}
 
-        <div className="progress-header">
-          <h2>{location.state?.name}</h2>
-          <div className="percentage">{Math.round(progress * 100)}%</div>
-          <p style={{ opacity: 0.5 }}>Рівень володіння набором</p>
+      <div className="progress-header">
+        <h2>{setInfo.name}</h2>
+        <div className="flashcards-count">
+          {`(${pagination.startItem}–${pagination.endItem} з ${pagination.totalItems} карток)`}
         </div>
+        <div className="percentage">{Math.round(progress * 100)}%</div>
+        <p style={{ opacity: 0.5 }}>Рівень володіння набором</p>
+      </div>
 
-        <div className="roadmap">
-          {visibleModes.map((modeId, i) => {
-            const unlocked = isUnlocked(modeId);
-            const nextWillBeUnlocked =
-              i < visibleModes.length - 1 && isUnlocked(visibleModes[i + 1]);
-
-            return (
-              <PracticeNode
-                key={modeId}
-                modeId={modeId}
-                unlocked={unlocked}
-                nextWillBeUnlocked={nextWillBeUnlocked}
-                isLast={i === visibleModes.length - 1}
-                getModeName={getModeName}
-                setId={setId}
-                isReversed={isReversed}
-                navigate={navigate}
-              />
-            );
-          })}
-        </div>
+      <div className="roadmap">
+        {PRACTICE_MODES.map((mode, i) => (
+          <PracticeNode
+            key={mode.id}
+            modeId={mode.id}
+            unlocked={isUnlocked(mode.id)}
+            nextWillBeUnlocked={
+              i < PRACTICE_MODES.length - 1 &&
+              isUnlocked(PRACTICE_MODES[i + 1].id)
+            }
+            isLast={i === PRACTICE_MODES.length - 1}
+            getModeName={getModeName}
+            setId={setId}
+            isMySet={isMySet}
+            isReversed={isReversed}
+            page={pagination.currentPage}
+            pageSize={pageSize}
+          />
+        ))}
       </div>
     </div>
   );

@@ -1,81 +1,81 @@
 import { useState, useCallback, useEffect, useRef } from "react";
-import { useQuery, keepPreviousData } from "@tanstack/react-query";
+import { useQuery } from "@tanstack/react-query";
 import api from "../services/api";
+import { usePracticeCards } from "./usePracticeCards";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20, 25, "all"];
 
-export function useSetDetails(endpoint, setId) {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(10); 
+export function useSetDetails(
+  endpoint,
+  setId,
+  initialPage,
+  initialPageSize,
+  // optional options object (not a positional bool) so calls
+  // stay self-documenting and easy to extend later; the outer `= {}` lets callers omit
+  // the whole options argument without a "cannot destructure undefined" crash.
+  // (used by Practice pages, where page changes via setSearchParams without a remount).
+  { keepPrevious = true, controlled = false } = {},
+) {
+  const [internalPage, setInternalPage] = useState(Number(initialPage) || 1);
+  const [internalPageSize, setInternalPageSize] = useState(initialPageSize || 10);
+
+  const page = controlled ? Number(initialPage) || 1 : internalPage;
+  const pageSize = controlled ? initialPageSize || 10 : internalPageSize;
 
   const { data: setInfo, isLoading: isSetInfoLoading } = useQuery({
     queryKey: ["setInfo", endpoint, setId],
     queryFn: () => api.get(`${endpoint}/${setId}`).then((res) => res.data),
   });
-  
-  // paginatedFlashcards
-  const { data, isLoading, isFetching } = useQuery({
-    queryKey: ["setCards", endpoint, setId, page, pageSize],
-    queryFn: () =>
-      api
-        .get(`${endpoint}/${setId}/flashcards`, {
-          params: {
-            page,
-            pageSize: pageSize === "all" ? 0 : pageSize,
-          },
-        })
-        .then((res) => res.data),
-    placeholderData: keepPreviousData,
-    enabled: !!setId,
-  });
 
-  const cards = data?.items ?? [];
-  const pagination = {
-    currentPage: data?.currentPage ?? 1,
-    pageSize,
-    totalItems: data?.totalItems ?? 0,
-    startItem: data?.startItem ?? 0,
-    endItem: data?.endItem ?? 0,
-    hasPrev: data?.hasPreviousPage ?? false,
-    hasNext: data?.hasNextPage ?? false,
-  };
+  // paginatedFlashcards via usePracticeCards
+  const {
+    cards,
+    isLoading: isCardsLoading,
+    isFetching,
+    pagination,
+  } = usePracticeCards(endpoint, setId, page, pageSize, { keepPrevious });
 
+  // Only relevant in uncontrolled mode (SetDetailsLayout). In controlled mode the caller
+  // owns page/pageSize via the URL, so these are no-ops — Practice pages don't use them.
   const changePageSize = useCallback((value) => {
-    setPageSize(value);
-    setPage(1);
-  }, []);
+    if (controlled) return;
+    setInternalPageSize(value);
+    setInternalPage(1);
+  }, [controlled]);
 
   const isFirstRender = useRef(true);
-    useEffect(() => {
-      if (isFirstRender.current) {
-        isFirstRender.current = false;
-        return;
-      }
-      window.scrollTo({ top: 0, behavior: "smooth" });
-    }, [page]);
-    
-    const handlePageChange = useCallback(
-      (direction) => {
-        document.activeElement?.blur(); //зняли фокус з кнопки (- конфлікт скрола і рендера)
-        setPage((prevPage) => {
-          if (direction === "prev" && pagination.hasPrev) return prevPage - 1;
-          if (direction === "next" && pagination.hasNext) return prevPage + 1;
-          return prevPage;
-        });
-      },
-      [pagination.hasPrev, pagination.hasNext]
-    );
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }, [page]);
+
+  const handlePageChange = useCallback(
+    (direction) => {
+      if (controlled) return;
+      document.activeElement?.blur(); //зняли фокус з кнопки (- конфлікт скрола і рендера)
+      setInternalPage((prevPage) => {
+        if (direction === "prev" && pagination.hasPrev) return prevPage - 1;
+        if (direction === "next" && pagination.hasNext) return prevPage + 1;
+        return prevPage;
+      });
+    },
+    [controlled, pagination.hasPrev, pagination.hasNext],
+  );
 
   return {
     setInfo,
     isSetInfoLoading,
     cards,
-    isLoading: isLoading || isSetInfoLoading,
+    isLoading: isCardsLoading || isSetInfoLoading,
     isFetching,
     pagination,
     pageSize,
     pageSizeOptions: PAGE_SIZE_OPTIONS,
     changePageSize,
     handlePageChange,
+    page,
   };
 }

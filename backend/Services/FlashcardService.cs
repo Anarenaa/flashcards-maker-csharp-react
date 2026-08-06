@@ -16,13 +16,16 @@ namespace Services
         public async Task<IEnumerable<FlashcardDTO>> GetFlashcardsBySetIdAsync(int setId)
         {
             var flashcards = await _unitOfWork.Flashcards.GetAllAsync(
-                filter: f => f.SetId == setId
+                filter: f => f.SetId == setId,
+                includeProperties: "Set"
             );
             return flashcards.Select(f => new FlashcardDTO
             {
                 Id = f.Id,
                 Term = f.Term,
-                Definition = f.Definition
+                Definition = f.Definition,
+                FromLang = f.Set.FromLang!,
+                ToLang = f.Set.ToLang!
             });
         }
         public async Task<PagedResult<FlashcardDTO>> GetPagedFlashcardsBySetIdAsync(int setId, int page, int pageSize)
@@ -30,14 +33,17 @@ namespace Services
             var pagedResult = await _unitOfWork.Flashcards.GetAllPagedAsync(
                 page,
                 pageSize,
-                filter: f => f.SetId == setId
+                filter: f => f.SetId == setId,
+                includeProperties: "Set"
             );
 
             var mappedItems = pagedResult.Items.Select(f => new FlashcardDTO
             {
                 Id = f.Id,
                 Term = f.Term,
-                Definition = f.Definition
+                Definition = f.Definition,
+                FromLang = f.Set.FromLang!,
+                ToLang = f.Set.ToLang!
             }).ToList();
 
             return new PagedResult<FlashcardDTO>(
@@ -49,14 +55,16 @@ namespace Services
         }
         public async Task<FlashcardDTO> GetFlashcardByIdAsync(int id)
         {
-            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(id);
+            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(id, includeProperties: "Set");
             if (flashcard == null)
                 throw new NotFoundException("Картка не знайдена.");
             return new FlashcardDTO
             {
                 Id = flashcard.Id,
                 Term = flashcard.Term,
-                Definition = flashcard.Definition
+                Definition = flashcard.Definition,
+                FromLang = flashcard.Set.FromLang!,
+                ToLang = flashcard.Set.ToLang!
             };
         }
         private async Task updateTimeInSet(int setId)
@@ -95,7 +103,7 @@ namespace Services
         }
         public async Task UpdateFlashcardAsync(FlashcardDTO flashcardDto)
         {
-            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(flashcardDto.Id.Value);
+            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(flashcardDto.Id!.Value);
             if (flashcard == null)
                 throw new NotFoundException("Картка не знайдена.");
 

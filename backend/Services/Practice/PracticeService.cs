@@ -24,9 +24,21 @@ namespace Services.Practice
         {
             return await _sessionService.GetPracticeSessionAsync(flashcards, setId, userId, requestedMode, isReversed);
         }
+        public async Task<float> GetOverallProgressForFlashcardsBatch(int userId, List<int> flashcardIds)
+        {
+            return await _progressService.GetOverallProgressForFlascardsBatch(userId, flashcardIds);
+        }
         public async Task<float> GetSingleSetProgressAsync(int userId, int setId)
         {
             return await _progressService.GetSingleSetProgressAsync(userId, setId);
+        }
+        public async Task ResetSetProgressAsync(int userId, int setId)
+        {
+            await _progressService.ResetSetProgressAsync(userId, setId);
+        }
+        public async Task ResetBatchCardProgressAsync(int userId, List<int> flashcardIds)
+        {
+            await _progressService.ResetBatchCardProgressAsync(userId, flashcardIds);
         }
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {

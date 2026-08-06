@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { MoreVertical, Volume2, BookOpen } from "lucide-react";
 import FlashcardContextsPanel from "../../../features/flashcards/FlashcardContextsPanel";
+import PronounceButton from "../../Shared/PronounceButton";
 import "./CardTile.scss";
 
 function formatDate(dateString) {
@@ -11,25 +12,9 @@ function formatDate(dateString) {
     day: "2-digit",
   });
 }
-export default function CardTile({ card, isMine, isLanguageType, lang }) {
+export default function CardTile({ card, isMine, isLanguageType }) {
   const [isContextModalOpen, setIsContextModalOpen] = useState(false);
-
-  const handleSpeak = (e, term) => {
-    e.stopPropagation(); // щоб клік по озвучці не зачепив можливий onClick картки в майбутньому
-
-    // Захист для браузерів/середовищ без підтримки Web Speech API
-    if (!window.speechSynthesis) return;
-
-    const utterance = new SpeechSynthesisUtterance(term);
-    if (lang) utterance.lang = lang; // напр. "de-DE", "en-US"
-
-    window.speechSynthesis
-      .getVoices()
-      .forEach((v) => console.log(v.name, v.lang));
-    window.speechSynthesis.cancel(); // перериває попередню озвучку, якщо ще звучить
-    window.speechSynthesis.speak(utterance);
-  };
-
+  
   return (
     <>
       <div className="card-tile">
@@ -40,14 +25,7 @@ export default function CardTile({ card, isMine, isLanguageType, lang }) {
         )}
         <div className="card-tile__term-row">
           <h3>{card.term}</h3>
-          <button
-            type="button"
-            className="card-tile__speak card-tile__icon"
-            onClick={(e) => handleSpeak(e, card.term)}
-            aria-label="Прослухати вимову"
-          >
-            <Volume2 size={18} />
-          </button>
+          <PronounceButton word={card.term} lang={card.fromLang} />
           {isLanguageType && (
             <button
               type="button"
@@ -67,7 +45,6 @@ export default function CardTile({ card, isMine, isLanguageType, lang }) {
           isOpen={isContextModalOpen}
           onClose={() => setIsContextModalOpen(false)}
           card={card}
-          handleSpeak={handleSpeak}
         />
       )}
     </>

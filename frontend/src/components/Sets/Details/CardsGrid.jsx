@@ -8,7 +8,6 @@ function CardsGrid({
   isLoading,
   isMine,
   isLanguageType,
-  lang,
   emptyText,
   loadingText = "Завантажуємо картки...",
 }) {
@@ -38,7 +37,6 @@ function CardsGrid({
           card={card}
           isMine={isMine}
           isLanguageType={isLanguageType}
-          lang={lang}
         />)
       ))}
     </div>

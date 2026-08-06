@@ -1,0 +1,84 @@
+.input-zone {
+  width: 100%;
+}
+.input-field {
+  position: relative;
+}
+.text-input {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.05);
+  border: 2px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 18px;
+  color: var(--accent-white);
+  font-size: 1.4rem;
+  text-align: center;
+  outline: none;
+
+  &.input-correct {
+    border-color: var(--success-color);
+  }
+
+  &.input-wrong {
+    border-color: var(--error-bright-color);
+  }
+}
+.keyboard-toggle-btn {
+  color: var(--accent-white);
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  margin-right: 1.5rem;
+}
+.btn-check {
+  margin: 0;
+  padding-top: 1.25rem;
+  padding-bottom: 1.25rem;
+}
+
+.input-feedback {
+  color: var(--error-bright-color);
+  margin-top: 0.75rem;
+  font-weight: 500;
+  font-size: 1.1rem;
+
+  .correct-val {
+    color: var(--accent-white);
+  }
+}
+
+.virtual-keyboard {
+  display: none;
+  width: 100%;
+  @media (hover: hover) and (pointer: fine) {
+    display: block;
+  }
+}
+.myApp-keyboard-theme {
+  background: transparent;
+
+  .hg-button {
+    background: transparent;
+    color: var(--accent-white);
+    border-radius: 0.25rem;
+    box-shadow: none;
+    border: 1px solid var(--square-color-2);
+    transition: background-color 0.15s ease;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        background-color: var(--component-hover);
+      }
+    }
+  }
+
+  .hg-button.hg-functionBtn {
+    background: var(--component-hover);
+    font-weight: 600;
+  }
+
+  .hg-row:not(:last-child) {
+    margin-bottom: 0.4rem;
+  }
+}

@@ -3,26 +3,39 @@ import SetHeader from "../Sets/Details/SetHeader";
 import PageSizeSelector from "../Sets/Details/PageSizeSelector";
 import CardsGrid from "../Sets/Details/CardsGrid";
 import PaginationFooter from "../Sets/PaginationFooter";
-import './SetDetailsLayout.scss';
+import "./SetDetailsLayout.scss";
 import { useNavigate } from "react-router";
+import { useEffect } from "react";
 
 export default function SetDetailsLayout({
   endpoint,
   setId,
+  initialPage,
+  initialPageSize,
+  onParamsChange,
   isMine,
   backHref,
   backLabel,
-  onPracticeLink
+  onPracticeLink,
 }) {
   const {
     setInfo,
     cards,
     isLoading,
     pagination,
+    pageSize,
     pageSizeOptions,
     changePageSize,
     handlePageChange,
-  } = useSetDetails(endpoint, setId);
+    page,
+  } = useSetDetails(endpoint, setId, initialPage, initialPageSize);
+
+  // sync url params with user actions
+  useEffect(() => {
+    if (onParamsChange) {
+      onParamsChange(page, pageSize);
+    }
+  }, [page, pageSize]);
 
   const navigate = useNavigate();
   return (
@@ -36,13 +49,15 @@ export default function SetDetailsLayout({
         backLabel={backLabel}
         isMine={isMine}
         onAddCard={() => {
-          /* TODO: модалка додавання картки — наступний крок */
+          /* TODO: модалка додавання картки */
         }}
         onAddCategory={() => {
           /* TODO */
         }}
         onPractice={() => {
-          navigate(onPracticeLink, { state: { name: setInfo.name } });
+          navigate(
+            `${onPracticeLink}?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`,
+          );
         }}
       />
 
@@ -51,14 +66,13 @@ export default function SetDetailsLayout({
         options={pageSizeOptions}
         onChange={changePageSize}
       />
-      
+
       <CardsGrid
         cards={cards}
         isLoading={isLoading}
         isMine={isMine}
         isLanguageType={setInfo?.type === 0}
         emptyText="Створіть свою першу картку"
-        lang={setInfo?.fromLang}
       />
 
       <PaginationFooter

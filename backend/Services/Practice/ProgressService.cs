@@ -20,9 +20,22 @@ namespace Services.Practice
         {
             await _unitOfWork.Practice.ResetSetProgressAsync(userId, setId);
         }
+        public async Task ResetBatchCardProgressAsync(int userId, List<int> flashcardIds)
+        {
+            await _unitOfWork.Practice.ResetBatchCardProgressAsync(userId, flashcardIds);
+        }
         public async Task<float> GetSingleSetProgressAsync(int userId, int setId)
         {
             return await _unitOfWork.Practice.GetSingleSetProgressAsync(userId, setId);
+        }
+        public async Task<float> GetOverallProgressForFlascardsBatch(int userId, List<int> flashcardIds)
+        {
+            if (flashcardIds == null || flashcardIds.Count == 0) return 0f;
+
+            var progresses = await _unitOfWork.Practice.GetBatchCardProgressMapAsync(userId, flashcardIds);
+            if (progresses.Count == 0) return 0f;
+
+            return flashcardIds.Sum(id => progresses.GetValueOrDefault(id, 0f)) / flashcardIds.Count;
         }
         public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
         {

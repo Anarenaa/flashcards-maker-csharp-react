@@ -12,9 +12,12 @@
 
   --progress-bar-start: #6e8efb;
   --progress-bar-end: #a777e3;
+  --progress-bar-gradient: linear-gradient(135deg, var(--progress-bar-start), var(--progress-bar-end));
 
   --error-color: #ff6464;
   --error-text: #ff8080;
+  --error-bright-color: #dc3545;
+  --success-color: #28a745;
 }
 
 * {
@@ -48,7 +51,6 @@ aside {
 html,
 body,
 #root {
-  min-height: 100vh;
   max-width: 100vw;
   font-size: 100%;
   line-height: 1;

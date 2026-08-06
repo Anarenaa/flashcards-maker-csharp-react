@@ -16,6 +16,19 @@ namespace WebAPI.Controllers
             _practiceService = practiceService;
         }
 
+        [HttpPost("progress-batch")]
+        public async Task<IActionResult> GetOverallProgressForFlashcardsBatch([FromBody] List<int> flashcardIds)
+        {
+            var progress = await _practiceService.GetOverallProgressForFlashcardsBatch(UserId, flashcardIds);
+            return Ok(new { progress });
+        }
+        [HttpPost("reset-batch-progress")]
+        public async Task<IActionResult> ResetBatchCardProgressAsync(List<int> flashcardIds)
+        {
+            await _practiceService.ResetBatchCardProgressAsync(UserId, flashcardIds);
+            return Ok();
+        }
+
         [HttpPost("/api/sets/{setId}/sessions")]
         public async Task<IActionResult> StartSession(
             int setId,

@@ -73,5 +73,11 @@ namespace WebAPI.Controllers
                 ? Ok(new { progress })
                 : NotFound();
         }
+        [HttpPost("{setId}/reset-set-progress")]
+        public async Task<IActionResult> ResetSetProgress(int setId)
+        {
+            await _practiceService.ResetSetProgressAsync(UserId, setId);
+            return Ok();
+        }
     }
 }

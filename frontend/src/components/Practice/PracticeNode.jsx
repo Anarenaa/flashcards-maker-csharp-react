@@ -1,5 +1,5 @@
-import React from "react";
-import "./PracticeNode.scss";
+import { useNavigate } from 'react-router';
+import './PracticeNode.scss';
 
 export default function PracticeNode({
   modeId,
@@ -10,20 +10,28 @@ export default function PracticeNode({
   setId,
   isMySet,
   isReversed,
-  navigate,
+  page,
+  pageSize,
 }) {
+  const navigate = useNavigate();
+
   const handleNodeClick = () => {
-    const basePath = isMySet ? `/my-sets/${setId}/test` : `/sets/${setId}/test`;
-    navigate(`${basePath}?mode=${modeId}&isReversed=${isReversed}`);
+    const basePath = isMySet
+      ? `/my-sets/${setId}/practice/test`
+      : `/sets/${setId}/practice/test`;
+    const params = new URLSearchParams({
+      page,
+      pageSize,
+      mode: modeId,
+      isReversed,
+    });
+    navigate(`${basePath}?${params.toString()}`);
   };
 
   return (
     <div className="node">
       {unlocked ? (
-        <button
-          onClick={handleNodeClick}
-          className="circle unlocked"
-        >
+        <button onClick={handleNodeClick} className="circle unlocked">
           {getModeName(modeId)}
         </button>
       ) : (
@@ -32,7 +40,6 @@ export default function PracticeNode({
           <div className="locked-label">🔒 Заблоковано</div>
         </div>
       )}
-
       {!isLast && (
         <div className={`line ${nextWillBeUnlocked ? "active" : ""}`}></div>
       )}

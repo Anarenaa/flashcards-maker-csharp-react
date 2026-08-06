@@ -154,6 +154,8 @@ namespace Services.Practice
                 Id = cp.FlashcardId,
                 Term = isReversed ? flashcard.Definition : flashcard.Term,
                 Definition = isReversed ? flashcard.Term : flashcard.Definition,
+                FromLang = flashcard.FromLang!,
+                ToLang = flashcard.ToLang!,
                 CardActivityType = type
             };
         }

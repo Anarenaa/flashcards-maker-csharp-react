@@ -5,5 +5,7 @@
         public int? Id { get; set; }
         public required string Term { get; set; }
         public required string Definition { get; set; }
+        public string? FromLang { get; set; }
+        public string? ToLang { get; set; }
     }
 }

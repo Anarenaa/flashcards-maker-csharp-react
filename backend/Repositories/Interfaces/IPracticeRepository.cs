@@ -17,6 +17,7 @@ namespace Repositories.Interfaces
         Task UpsertBatchProgressAsync(int userId, Dictionary<int, float> progressUpdates);
         Task CreateProgressAsync(CardProgress progress);
         Task ResetSetProgressAsync(int userId, int setId);
+        Task ResetBatchCardProgressAsync(int userId, List<int> flashcardIds);
 
         // Practice Assets
         Task<Dictionary<int, List<string>>> GetBatchDistractorsAsync(int setId, List<int> excludeCardIds, int count, bool isReversed);

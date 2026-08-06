@@ -1,8 +1,8 @@
 .map-page-container {
   max-width: 1100px;
   width: 100%;
-  margin: 0 auto;
-  padding: 1.2rem;
+  margin: 1.5rem auto;
+  padding: 0 1.2rem;
   text-align: center;
   animation: fadeIn 0.6s ease;
 }
@@ -20,7 +20,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 4rem;
+  margin-bottom: 2.5rem;
   gap: 1rem;
 
   @media (max-width: 678px) {
@@ -145,7 +145,11 @@
       line-clamp: 2;
     }
   }
-
+  .flashcards-count{
+    font-size: 1.1rem;
+    opacity: 0.8;
+    margin-top: 0.5rem;
+  }
   .percentage {
     font-size: 6rem;
     font-weight: 900;
@@ -159,7 +163,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-top: 3rem;
+  margin-top: 2.75rem;
   flex-wrap: wrap;
 
   @media (max-width: 868px) {

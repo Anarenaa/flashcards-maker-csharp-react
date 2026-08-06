@@ -1,0 +1,30 @@
+.quiz-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  width: 100%;
+
+  @media (max-width: 768px) {
+    grid-template-columns: 1fr;
+    gap: 0.5rem;
+  }
+}
+.quiz-btn {
+  font-size: 0.95rem;
+  text-align: inherit;
+
+  @media (hover: hover) and (pointer: fine) {
+    &:hover {
+      background-color: var(--component-hover);
+    }
+  }
+}
+.quiz-correct {
+  background: var(--success-color) !important;
+  border-color: var(--success-color) !important;
+}
+
+.quiz-wrong {
+  background: var(--error-bright-color) !important;
+  border-color: var(--error-bright-color) !important;
+}

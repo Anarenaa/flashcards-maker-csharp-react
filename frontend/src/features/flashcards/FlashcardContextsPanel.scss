@@ -48,16 +48,17 @@
     display: flex;
     gap: 0.5rem;
   }
-}
-.top-panel {
-  display: flex;
-  column-gap: 0.5rem;
-  justify-content: space-between;
+  .top-panel {
+    display: flex;
+    column-gap: 0.5rem;
+    justify-content: space-between;
 
-  line-height: 1.35rem;
+    line-height: 1.35rem;
+  }
 }
 .card-tile__speak {
   align-self: self-start;
+  padding-top: 0.25rem;
 }
 .icon {
   color: var(--text-color);
