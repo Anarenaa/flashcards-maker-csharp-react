@@ -157,13 +157,18 @@ namespace Services
             var set = await _unitOfWork.Sets.GetByIdAsync(flashcard.SetId);
             if (flashcard == null) throw new Exception("Set not found");
 
-            string prompt = $"Provide 3 natural example sentences in the original language for the term '{flashcard.Term}' " +
-                            $"with their translations in {set?.ToLang} language. " +
-                            $"In the 'sentence' field, wrap the exact word or phrase that matches '{flashcard.Term}' in <strong></strong> tags. " +
-                            $"In the 'translation' field, wrap the word or phrase that semantically corresponds to '{flashcard.Term}' in <strong></strong> tags, " +
-                            "even if it's a different grammatical form (e.g., a conjugated verb or declined noun). " +
-                            "Do not use any other HTML tags. " +
-                            "Return ONLY a JSON array of objects: [{'sentence': '...', 'translation': '...'}].";
+            string prompt = $"Provide 3 short, natural example sentences in the original language using the EXACT term '{flashcard.Term}' " +
+                (set?.FromLang != set?.ToLang ? $"with their translations in {set?.ToLang} language. " : "") +
+                $"Each sentence must be concise (maximum 10-12 words). " +
+                $"In the 'sentence' field, wrap the exact term '{flashcard.Term}' in <strong></strong> tags (do NOT use synonyms or different forms of the word, use the exact term). " +
+                (set?.FromLang != set?.ToLang
+                ? $"In the 'translation' field, wrap the corresponding word or phrase in <strong></strong> tags."
+                : "") +
+                "Do NOT use any other HTML tags or Markdown asterisks. " +
+                "Return ONLY a JSON array of objects: " +
+                (set?.FromLang != set?.ToLang
+                ? "[{'sentence': '...', 'translation': '...'}]."
+                : "[{'sentence': '...'}].");
 
             var requestBody = new
             {

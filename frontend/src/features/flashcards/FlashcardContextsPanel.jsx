@@ -111,11 +111,19 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
                       word={cleanHtmlForSpeech(context.sentence)}
                       lang={card.fromLang}
                     />
-                    <hr />
-                    {/* we get html string in response from backend (only <strong> tag allowed) */}
-                    <div
-                      dangerouslySetInnerHTML={{ __html: context.translation }}
-                    />
+                    {/* we get html string in response from backend if it exists - optional (only <strong> tag allowed) */}
+                    {context.translation && (
+                      <>
+                        <hr />
+                        <div>
+                          <div
+                            dangerouslySetInnerHTML={{
+                              __html: context.translation,
+                            }}
+                          />
+                        </div>
+                      </>
+                    )}
                   </div>
                   {!context.isGenerated && (
                     <div className="actions">

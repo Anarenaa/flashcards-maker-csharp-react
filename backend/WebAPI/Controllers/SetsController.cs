@@ -30,7 +30,7 @@ namespace WebAPI.Controllers
             [FromQuery] string? searchText = null,
             [FromQuery] string? progress = null)
         {
-            var pagedResult = await _setService.GetAllSetsAsync(
+            var pagedResult = await _setService.GetAllSetsPagedAsync(
                 page: page,
                 perPage: perPage,
                 currentUserId: UserId,

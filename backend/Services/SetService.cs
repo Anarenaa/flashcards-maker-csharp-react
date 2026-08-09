@@ -44,7 +44,7 @@ namespace Services
                 OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
             }).ToList();
         }
-        public async Task<PagedResult<SetDTO>> GetAllSetsAsync(
+        public async Task<PagedResult<SetDTO>> GetAllSetsPagedAsync(
             int page,
             int perPage,
             int currentUserId,
@@ -77,7 +77,7 @@ namespace Services
             var dtos = await mapToSetDtosAsync(setsPagedResult.Items, currentUserId);
             return new PagedResult<SetDTO>(dtos, setsPagedResult.TotalItems, page, perPage);
         }
-        public async Task<PagedResult<SetDTO>> GetAllUserSetsAsync(
+        public async Task<PagedResult<SetDTO>> GetAllUserSetsPagedAsync(
             int page,
             int perPage,
             int currentUserId,
@@ -96,8 +96,7 @@ namespace Services
             var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
                     page: page,
                     perPage: perPage,
-                    filter: s => s.IsPublic
-                    && s.UserId == currentUserId
+                    filter: s => s.UserId == currentUserId
                     && s.Flashcards.Count > 0
                     && (filteredSetIds == null || filteredSetIds.Contains(s.Id))
                     && (categoryId == null || s.Categories.Any(c => c.Id == categoryId))
