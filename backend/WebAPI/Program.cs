@@ -298,6 +298,8 @@ builder.Services.AddScoped<IWikipediaService, WikipediaService>();
 builder.Services.AddScoped<IDictionaryService, DictionaryService>();
 builder.Services.AddScoped<IHintService, HintService>();
 
+builder.Services.AddHttpClient<IElevenLabsService, ElevenLabsService>();
+
 var app = builder.Build();
 
 // ������������ ������ ������� ��� �����
