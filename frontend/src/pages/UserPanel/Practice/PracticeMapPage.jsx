@@ -19,6 +19,7 @@ import PracticeNode from "../../../components/Practice/PracticeNode";
 import ResetProgressModal from "../../../features/practice/ResetProgressModal";
 import api from "../../../services/api";
 import "./PracticeMapPage.scss";
+import Loader from "../../../components/Shared/Loader";
 
 export default function PracticeMapPage() {
   const { id: setId } = useParams();
@@ -105,7 +106,7 @@ export default function PracticeMapPage() {
   });
 
   if (isCardsLoading || !setInfo) {
-    return <div>Завантаження...</div>;
+    return <Loader scale={1.2} fullHeight={true} />;
   }
 
   if (flashcards.length === 0) {
@@ -125,8 +126,9 @@ export default function PracticeMapPage() {
     );
   }
 
+  // before opening Map page
   if (isProgressLoading || isLimitsLoading || !progressData || !limits) {
-    return <div>Завантаження...</div>;
+    return <Loader scale={1.2} fullHeight={true} />;
   }
 
   const isUnlocked = (mode) => {

@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router";
 import api from "./services/api";
+import Loader from "./components/Shared/Loader";
 import Layout from "./components/Layouts/Layout";
 import HomePage from "./pages/HomePage";
 import RegisterPage from "./pages/Auth/RegisterPage";
@@ -44,11 +45,8 @@ function App() {
   }, []);
 
   if (isAuth === null) {
-    //заглушка, змінити на красивий компонент прогрузки
     return (
-      <div className="flex h-screen w-screen items-center justify-center bg-zinc-950 text-white">
-        <div className="animate-pulse text-xl">Завантаження додатка...</div>
-      </div>
+      <Loader loadingText="Завантаження додатка..." scale={1.2} fullHeight={true} />
     );
   }
 

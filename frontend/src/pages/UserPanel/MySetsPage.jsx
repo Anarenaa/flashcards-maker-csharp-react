@@ -6,7 +6,7 @@ export default function MySetsPage() {
     <SetsPageLayout
       endpoint="/my-sets"
       isMine={true}
-      loadingText="Шукаємо твої сети..."
+      loadingText="Завантажуємо твої сети..."
       extraCard={
         <div className="set-card add-new-card">
             <span>+</span>

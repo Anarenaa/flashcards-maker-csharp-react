@@ -13,6 +13,7 @@ import { useUrlPagination } from "../../../hooks/useUrlPagination";
 import PracticeSummary from "../../../components/Practice/PracticeSummary";
 import TaskRenderer from "../../../components/Practice/TaskRenderer";
 import "./PracticeTestPage.scss";
+import Loader from "../../../components/Shared/Loader";
 
 export default function PracticeTestPage() {
   const { id: setId } = useParams();
@@ -92,7 +93,7 @@ export default function PracticeTestPage() {
     isCardsLoading ||
     (!session.isReady && !session.isError && !isCardsError)
   ) {
-    return <div className="practice-loader">Завантаження сесії...</div>;
+    return <Loader scale={1.2} fullHeight={true} />;
   }
 
   if (isCardsError) {

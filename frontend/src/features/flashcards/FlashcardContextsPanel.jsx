@@ -7,6 +7,7 @@ import FlashcardContextsForm from "./FlashcardContextForm";
 import PronounceButton from "../../components/Shared/PronounceButton";
 import api from "../../services/api";
 import "./FlashcardContextsPanel.scss";
+import Loader from "../../components/Shared/Loader";
 
 export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
   const { id: setId } = useParams();
@@ -95,7 +96,7 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
           </button>
 
           {isLoading || generateMutation.isPending ? (
-            <p>Завантаження...</p>
+            <Loader loadingText="Генеруємо приклади..." />
           ) : isEmpty ? (
             <p>Не вдалося знайти або згенерувати контексти. Додайте новий.</p>
           ) : (

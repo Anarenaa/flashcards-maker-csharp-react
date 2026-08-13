@@ -1,6 +1,7 @@
 import React from "react";
 import { Loader2, FolderSearch } from "lucide-react";
 import SetCard from "./SetCard";
+import Loader from "../Shared/Loader";
 import "./SetsGrid.scss";
 
 function SetsGrid({
@@ -16,8 +17,7 @@ function SetsGrid({
     return (
       <div className="sets-grid">
         <div className="grid-status-message">
-          <Loader2 className="spinner-icon" size={32} />
-          <p>{loadingText}</p>
+          <Loader loadingText={loadingText} />
         </div>
       </div>
     );

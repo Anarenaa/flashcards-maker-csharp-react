@@ -1,0 +1,30 @@
+.loading-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 0.75rem;
+  opacity: 0.7;
+  
+  &.full-height{
+    height: 100vh;
+  }
+
+  .loading-text {
+    color: var(--accent-white);
+  }
+
+  .spinner-icon {
+    animation: spin 1s linear infinite;
+    color: var(--accent-white);
+  }
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

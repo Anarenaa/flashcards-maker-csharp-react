@@ -2,6 +2,7 @@ import React from "react";
 import { BookPlus, Loader2, Sparkles } from "lucide-react";
 import CardTile from "./CardTile";
 import "./CardsGrid.scss";
+import Loader from "../../Shared/Loader";
 
 function CardsGrid({
   cards,
@@ -15,8 +16,7 @@ function CardsGrid({
     return (
       <div className="cards-grid">
         <div className="grid-status-message">
-          <Loader2 className="spinner-icon" size={32} />
-          <p>{loadingText}</p>
+          <Loader loadingText={loadingText} />
         </div>
       </div>
     );

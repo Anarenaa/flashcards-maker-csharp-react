@@ -6,7 +6,7 @@ export default function MainPage() {
     <SetsPageLayout
       endpoint="/sets"
       isMine={false}
-      loadingText="Шукаємо сети..."
+      loadingText="Завантажуємо сети..."
     />
   );
 }
