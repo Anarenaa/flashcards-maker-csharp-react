@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router";
+import { Toaster } from "react-hot-toast";
 import api from "./services/api";
 import Loader from "./components/Shared/Loader";
 import Layout from "./components/Layouts/Layout";
@@ -27,7 +28,7 @@ function App() {
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const res = await api.get("/auth/me");
+        const res = await api.get("/auth/me", { skipErrorToast: true });
 
         setCurrentUser(res.data); // { id, role, username, avatarUrl, email }
         setIsAuth(true);
@@ -46,43 +47,50 @@ function App() {
 
   if (isAuth === null) {
     return (
-      <Loader loadingText="Завантаження додатка..." scale={1.2} fullHeight={true} />
+      <Loader
+        loadingText="Завантаження додатка..."
+        scale={1.2}
+        fullHeight={true}
+      />
     );
   }
 
   return (
-    <Routes>
-      <Route path="/" element={isAuth ? <MainPage /> : <HomePage />} />
-      <Route path="register" element={<RegisterPage />} />
-      <Route path="login" element={<LoginPage />} />
-      <Route path="verify-email" element={<VerifyEmailPage />} />
-      <Route path="email-sent" element={<EmailSentPage />} />
-      <Route path="change-password" element={<ChangePassword />} />
+    <>
+      <Toaster position="top-right" reverseOrder={false} />
+      <Routes>
+        <Route path="/" element={isAuth ? <MainPage /> : <HomePage />} />
+        <Route path="register" element={<RegisterPage />} />
+        <Route path="login" element={<LoginPage />} />
+        <Route path="verify-email" element={<VerifyEmailPage />} />
+        <Route path="email-sent" element={<EmailSentPage />} />
+        <Route path="change-password" element={<ChangePassword />} />
 
-      <Route element={<Layout currentUser={currentUser} />}>
-        <Route path="main" element={<MainPage />} />
-        <Route path="my-sets" element={<MySetsPage />} />
-        <Route path="my-collections" element={<MyCollectionsPage />} />
-        <Route path="my-profile" element={<MyProfilePage />} />
-        <Route path="settings" element={<SettingsPage />} />
-      </Route>
-
-      <Route path="sets/:id">
-        <Route index element={<SetDetailsPage />} />
-        <Route path="practice">
-          <Route index element={<PracticeMapPage />} />
-          <Route path="test" element={<PracticeTestPage />} />
+        <Route element={<Layout currentUser={currentUser} />}>
+          <Route path="main" element={<MainPage />} />
+          <Route path="my-sets" element={<MySetsPage />} />
+          <Route path="my-collections" element={<MyCollectionsPage />} />
+          <Route path="my-profile" element={<MyProfilePage />} />
+          <Route path="settings" element={<SettingsPage />} />
         </Route>
-      </Route>
 
-      <Route path="my-sets/:id">
-        <Route index element={<MySetDetailsPage />} />
-        <Route path="practice">
-          <Route index element={<PracticeMapPage />} />
-          <Route path="test" element={<PracticeTestPage />} />
+        <Route path="sets/:id">
+          <Route index element={<SetDetailsPage />} />
+          <Route path="practice">
+            <Route index element={<PracticeMapPage />} />
+            <Route path="test" element={<PracticeTestPage />} />
+          </Route>
         </Route>
-      </Route>
-    </Routes>
+
+        <Route path="my-sets/:id">
+          <Route index element={<MySetDetailsPage />} />
+          <Route path="practice">
+            <Route index element={<PracticeMapPage />} />
+            <Route path="test" element={<PracticeTestPage />} />
+          </Route>
+        </Route>
+      </Routes>
+    </>
   );
 }
 

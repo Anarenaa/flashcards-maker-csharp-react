@@ -12,14 +12,15 @@ import {
   useMutation,
   keepPreviousData,
 } from "@tanstack/react-query";
+import toast from "react-hot-toast";
 import { ArrowLeft, RefreshCcw, Trash } from "lucide-react";
 import { useSetDetails } from "../../../hooks/useSetDetails";
 import { useUrlPagination } from "../../../hooks/useUrlPagination";
 import PracticeNode from "../../../components/Practice/PracticeNode";
 import ResetProgressModal from "../../../features/practice/ResetProgressModal";
 import api from "../../../services/api";
-import "./PracticeMapPage.scss";
 import Loader from "../../../components/Shared/Loader";
+import "./PracticeMapPage.scss";
 
 export default function PracticeMapPage() {
   const { id: setId } = useParams();
@@ -100,8 +101,9 @@ export default function PracticeMapPage() {
       setIsModalOpen(false);
     },
     onError: (error) => {
-      console.error(error);
-      alert("Не вдалося скинути прогрес.");
+      toast.error("Не вдалося скинути прогрес.", {
+        className: "toast-error"
+      });
     },
   });
 

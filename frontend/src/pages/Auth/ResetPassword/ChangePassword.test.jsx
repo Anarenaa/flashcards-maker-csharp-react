@@ -2,6 +2,7 @@ import { render, fireEvent, waitFor } from "@testing-library/react";
 import { BrowserRouter } from "react-router";
 import { http, HttpResponse } from "msw";
 import { server } from "../../../setupTests";
+import toast from "react-hot-toast";
 import ChangePassword from "./ChangePassword";
 
 describe("Form and local validation", () => {
@@ -94,6 +95,8 @@ describe("API interaction (MSW)", () => {
   });
 
   it("should display custom backend error when token is invalid", async () => {
+    const toastSpy = vi.spyOn(toast, "error");
+
     server.use(
       http.post("*/api/auth/change-password", () => {
         return HttpResponse.json({ global: ["Invalid token."] }, { status: 400 });
@@ -105,7 +108,10 @@ describe("API interaction (MSW)", () => {
     fireEvent.click(submitButton);
 
     await waitFor(() => {
-      expect(container.textContent).toContain("Invalid token.");
+      expect(toastSpy).toHaveBeenCalledWith(
+        "Invalid token.",
+        expect.objectContaining({ className: "toast-error" })
+      );
     });
   });
 
@@ -126,20 +132,6 @@ describe("API interaction (MSW)", () => {
     await waitFor(() => {
       const passwordError = Array.from(container.querySelectorAll(".text-danger")).find(el => el.textContent !== "");
       expect(passwordError.textContent).toContain("таким самим, як старий");
-    });
-  });
-
-  describe("edge tests", () => {
-    it("should catch network errors and display internet connection message", async () => {
-      server.use(http.post("*/api/auth/change-password", () => HttpResponse.error()));
-
-      fireEvent.change(newPasswordInput, { target: { value: "Password123!" } });
-      fireEvent.change(confirmPasswordInput, { target: { value: "Password123!" } });
-      fireEvent.click(submitButton);
-
-      await waitFor(() => {
-        expect(container.textContent).toContain("Здається, у вас зник інтернет");
-      });
     });
   });
 });

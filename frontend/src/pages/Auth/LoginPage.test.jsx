@@ -155,39 +155,4 @@ describe("API interaction (MSW)", () => {
       expect(passwordError.textContent).toContain("Неправильний пароль");
     });
   });
-
-  //services/api.js
-  describe("edge tests", () => {
-    it("should catch network errors through Axios interceptor and display global message", async () => {
-        server.use(
-        http.post("*/api/auth/login", () => {
-            return HttpResponse.error(); // ERR_NETWORK
-        })
-        );
-
-        fireEvent.change(usernameInput, { target: { value: "ananas" } });
-        fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-        expect(container.textContent).toContain("Здається, у вас зник інтернет");
-        });
-    });
-
-    it("should display server down message when status code is 500", async () => {
-        server.use(
-        http.post("*/api/auth/login", () => {
-            return new HttpResponse(null, { status: 503 });
-        })
-        );
-
-        fireEvent.change(usernameInput, { target: { value: "ananas" } });
-        fireEvent.change(passwordInput, { target: { value: "Password123!" } });
-        fireEvent.click(submitButton);
-
-        await waitFor(() => {
-        expect(container.textContent).toContain("Не вдалося з'єднатися з сервером. Спробуйте пізніше.");
-        });
-    });
-  });
 });

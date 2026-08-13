@@ -2,7 +2,7 @@
   --bg-color: #141b25;
   --accent-purple: #2c1335;
   --accent-color: #6b8789;
-  --accent-white: #f0ffff;
+  --accent-white: #f7ffff;
   --square-color-2: #818375;
   --text-color: var(--accent-white);
 
@@ -170,4 +170,11 @@ input.error-input {
     align-items: center;
     height: 100vh;
   }
+}
+
+.toast-error{
+  background-color: var(--accent-white);
+  padding: 0.875rem 1rem;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4);
+  font-weight: 500;
 }
