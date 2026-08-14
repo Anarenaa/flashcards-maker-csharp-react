@@ -5,15 +5,17 @@ import { useParams } from "react-router";
 import { ModalWrapper } from "../../components/Shared/ModalWrapper";
 import FlashcardContextsForm from "./FlashcardContextForm";
 import PronounceButton from "../../components/Shared/PronounceButton";
+import Loader from "../../components/Shared/Loader";
+import ConfirmModal from "../../components/Shared/ConfirmModal";
 import api from "../../services/api";
 import "./FlashcardContextsPanel.scss";
-import Loader from "../../components/Shared/Loader";
 
 export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
   const { id: setId } = useParams();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingContext, setEditingContext] = useState(null);
+  const [deletingContextId, setDeletingContextId] = useState(null);
 
   const { data, isLoading } = useQuery({
     queryKey: ["flashcardContexts", setId, card.id],
@@ -136,11 +138,22 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
                       </button>
                       <button
                         aria-label="Видалити"
-                        onClick={() => deleteMutation.mutate(context.id)}
+                        onClick={() => setDeletingContextId(context.id)}
                         disabled={deleteMutation.isPending}
                       >
                         <Trash2 size={15} className="icon" />
                       </button>
+                      {deletingContextId === context.id && (
+                        <ConfirmModal
+                          isOpen={Boolean(deletingContextId)}
+                          onConfirm={() => {
+                            deleteMutation.mutate(context.id, {
+                              onSuccess: () => setDeletingContextId(null),
+                            });
+                          }}
+                          onCancel={() => setDeletingContextId(null)}
+                        />
+                      )}
                     </div>
                   )}
                 </div>

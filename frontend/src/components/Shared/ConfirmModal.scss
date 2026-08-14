@@ -1,0 +1,39 @@
+.position-top {
+  display: flex;
+  justify-content: center;
+  align-items: start;
+}
+.confirm-modal {
+  margin: 1rem auto;
+  background-color: var(--accent-white);
+  color: black;
+  border-radius: 0.5rem;
+  max-width: 450px;
+  padding: 1.5rem 2rem;
+  font-weight: 500;
+}
+.confirm-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+
+  button {
+    border: 1px solid var(--bg-color);
+    padding: 0.25rem 1rem;
+    border-radius: 0.25rem;
+    background-color: var(--bg-color);
+    color: var(--accent-white);
+    font-size: 0.95rem;
+    font-weight: 500;
+    transition:
+      background-color 0.3s,
+      color 0.3s;
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        color: var(--bg-color);
+        background-color: transparent;
+      }
+    }
+  }
+}
