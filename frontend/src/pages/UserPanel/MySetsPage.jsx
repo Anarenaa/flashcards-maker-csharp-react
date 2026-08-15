@@ -1,18 +1,27 @@
+import { useState } from "react";
 import SetsPageLayout from "../../components/Layouts/SetsPageLayout";
 import "./MySetsPage.scss";
+import SetForm from "../../features/sets/SetForm";
 
 export default function MySetsPage() {
+  const [isFormOpen, setIsFormOpen] = useState(false);
   return (
-    <SetsPageLayout
-      endpoint="/my-sets"
-      isMine={true}
-      loadingText="Завантажуємо твої сети..."
-      extraCard={
-        <div className="set-card add-new-card">
+    <>
+      <SetsPageLayout
+        endpoint="/my-sets"
+        isMine={true}
+        loadingText="Завантажуємо твої сети..."
+        extraCard={
+          <button
+            className="set-card add-new-card"
+            onClick={() => setIsFormOpen(true)}
+          >
             <span>+</span>
             Створити новий сет
-        </div>
-      }
-    />
+          </button>
+        }
+      />
+      {isFormOpen && <SetForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />}
+    </>
   );
 }

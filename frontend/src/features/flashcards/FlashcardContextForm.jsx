@@ -84,11 +84,12 @@ export default function FlashcardContextsForm({
   };
 
   return (
-    <ModalWrapper isOpen={isOpen} onClose={onClose} showCloseButton={true}>
-      <h2 className="title">
-        {initialData ? "Редагувати" : "Додати контекст"}
-      </h2>
-
+    <ModalWrapper isOpen={isOpen} onClose={onClose} showCloseButton={true} size="sm">
+      <div className="context-form-top-panel">
+        <h2 className="title">
+          {initialData ? "Редагувати" : "Додати контекст"}
+        </h2>
+      </div>
       <form
         className="flashcard-context-form"
         onSubmit={handleSubmit(onSubmit)}

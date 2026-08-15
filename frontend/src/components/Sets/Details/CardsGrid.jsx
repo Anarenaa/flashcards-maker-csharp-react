@@ -6,13 +6,14 @@ import Loader from "../../Shared/Loader";
 
 function CardsGrid({
   cards,
+  flashcardsCount,
   isLoading,
   isMine,
   isLanguageType,
   emptyText,
   loadingText = "Завантажуємо картки...",
 }) {
-  if (isLoading) {
+  if (isLoading && flashcardsCount > 0) {
     return (
       <div className="cards-grid">
         <div className="grid-status-message">

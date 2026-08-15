@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
+import { useSetTypes } from "./useSetTypes";
 
 export function useSetsList(endpoint) {
   const [filters, setFilters] = useState({
@@ -25,11 +26,7 @@ export function useSetsList(endpoint) {
     staleTime: 5 * 60 * 1000,
   });
 
-  const { data: types = [] } = useQuery({
-    queryKey: ["setTypes"],
-    queryFn: () => api.get("/sets/types").then((res) => res.data),
-    staleTime: Infinity,
-  });
+  const types = useSetTypes();
 
   // Ключ запиту: усі фільтри, КРІМ searchText, беруться напряму з filters
   // (вони й так змінюються "миттєво" — select одразу тригерить запит).

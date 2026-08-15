@@ -11,7 +11,7 @@ export default function CardTile({ card, isMine, isLanguageType }) {
     <>
       <div className="card-tile">
         {isMine && (
-          <button type="button" className="card-tile__menu card-tile__icon">
+          <button type="button" className="actions-menu-icon icon">
             <MoreVertical size={18} />
           </button>
         )}
@@ -21,7 +21,7 @@ export default function CardTile({ card, isMine, isLanguageType }) {
           {isLanguageType && (
             <button
               type="button"
-              className="card-tile__context card-tile__icon"
+              className="card-tile__context icon"
               onClick={() => setIsContextModalOpen(true)}
             >
               <BookOpen size={18} />

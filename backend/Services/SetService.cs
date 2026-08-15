@@ -97,7 +97,6 @@ namespace Services
                     page: page,
                     perPage: perPage,
                     filter: s => s.UserId == currentUserId
-                    && s.Flashcards.Count > 0
                     && (filteredSetIds == null || filteredSetIds.Contains(s.Id))
                     && (categoryId == null || s.Categories.Any(c => c.Id == categoryId))
                     && (setType == null || s.Type == setType)
@@ -121,6 +120,7 @@ namespace Services
         public async Task<SetDetailDTO> GetSetByIdAsync(int setId, int? currentUserId = null)
         {
             var set = await _unitOfWork.Sets.GetByIdAsync(setId, "Categories");
+            var flashcardsCount = await _unitOfWork.Flashcards.GetCountBySetIdAsync(setId);
 
             if (set == null) throw new KeyNotFoundException("Сет не знайдено");
             if (currentUserId != null && set.UserId != currentUserId) throw new UnauthorizedAccessException();
@@ -135,6 +135,7 @@ namespace Services
                 ToLang = set.ToLang,
                 IsPublic = set.IsPublic,
                 IsGenerated = set.IsGenerated,
+                FlashcardsCount = flashcardsCount,
                 CreatedAt = set.CreatedAt,
                 LastUpdatedAt = set.UpdatedAt,
                 Categories = set.Categories.Select(c => new CategoryDTO

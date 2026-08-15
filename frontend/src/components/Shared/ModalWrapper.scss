@@ -16,16 +16,8 @@
   padding: 3rem 1.5rem 2rem;
   border-radius: 8px;
   border: 1px solid var(--square-color-2);
-  min-width: 35vw;
-  min-height: 60vh;
-  max-width: 60vw;
+  min-height: 40vh;
   max-height: 95vh;
-  @media (max-width: 1024px) {
-    max-width: 75vw;
-  }
-  @media (max-width: 768px) {
-    max-width: 90vw;
-  }
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
   position: relative;
   animation: fadeIn 0.5s ease-out;
@@ -37,14 +29,60 @@
     justify-content: center;
     align-items: center;
   }
+
+  // Size modifiers — each consumer picks one via the `size` prop instead of
+  // overriding `.modal-content` globally from its own feature stylesheet.
+  &.modal-content--sm {
+    width: 35vw;
+    max-width: 35vw;
+
+    @media (max-width: 1024px) {
+      width: 55vw;
+      max-width: 55vw;
+    }
+    @media (max-width: 768px) {
+      width: 75vw;
+      max-width: 75vw;
+    }
+    @media (max-width: 425px) {
+      width: 95vw;
+      max-width: 95vw;
+    }
+  }
+
+  &.modal-content--md {
+    width: 50vw;
+    max-width: 60vw;
+
+    @media (max-width: 1024px) {
+      width: 75vw;
+      max-width: 75vw;
+    }
+    @media (max-width: 768px) {
+      width: 90vw;
+      max-width: 90vw;
+    }
+  }
+
+  &.modal-content--lg {
+    width: 65vw;
+    max-width: 75vw;
+
+    @media (max-width: 1024px) {
+      width: 85vw;
+      max-width: 85vw;
+    }
+    @media (max-width: 768px) {
+      width: 95vw;
+      max-width: 95vw;
+    }
+  }
 }
 
 .close-btn {
   position: absolute;
   top: 1.25rem;
   right: 1.5rem;
-  cursor: pointer;
-  border: none;
   color: var(--square-color-2);
   background: transparent;
 }

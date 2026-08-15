@@ -43,6 +43,7 @@ export default function SetDetailsLayout({
       <SetHeader
         title={setInfo?.name}
         description={setInfo?.description}
+        flashcardsCount={setInfo?.flashcardsCount}
         tags={setInfo?.categories}
         lastUpdatedAt={setInfo?.lastUpdatedAt}
         backHref={backHref}
@@ -69,6 +70,7 @@ export default function SetDetailsLayout({
 
       <CardsGrid
         cards={cards}
+        flashcardsCount={setInfo?.flashcardsCount}
         isLoading={isLoading}
         isMine={isMine}
         isLanguageType={setInfo?.type === 0}

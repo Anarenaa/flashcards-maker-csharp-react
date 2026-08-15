@@ -118,8 +118,13 @@
   font-size: 0.95rem;
   white-space: nowrap;
 
+  &:disabled{
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+
   @media (hover: hover) and (pointer: fine) {
-    &:hover {
+    &:hover:not(:disabled) {
       border-color: var(--accent-white);
     }
   }
@@ -134,11 +139,11 @@
   padding-right: 1.5rem;
   background-color: color-mix(in srgb, var(--accent-color) 70%, transparent);
 
-  svg {
-    color: var(--accent-white);
-  }
-
   @media (max-width: 768px) {
     flex-grow: 1;
+  }
+
+  svg {
+    color: var(--accent-white);
   }
 }

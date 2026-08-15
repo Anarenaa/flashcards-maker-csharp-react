@@ -7,6 +7,7 @@ import { formatLocalDate } from "../../../utils/formatLocalDate";
 export default function SetHeader({
   title,
   description,
+  flashcardsCount,
   tags = [],
   lastUpdatedAt,
   backHref,
@@ -87,6 +88,7 @@ export default function SetHeader({
             type="button"
             className="btn-secondary btn-practice"
             onClick={onPractice}
+            disabled={flashcardsCount === 0}
           >
             <Play size={16} />
             Практикувати

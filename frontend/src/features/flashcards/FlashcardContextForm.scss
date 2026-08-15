@@ -1,7 +1,10 @@
+.context-form-top-panel {
+  margin-bottom: 1.3rem;
+}
 .flashcard-context-form {
   display: flex;
   flex-direction: column;
-  width: 40vw;
+  width: 100%;
   gap: 1rem;
 
   label {
@@ -14,7 +17,6 @@
 }
 .title {
   color: var(--accent-white);
-  margin-bottom: 1.3rem;
   font-size: 1.4rem;
   font-weight: 700;
 }

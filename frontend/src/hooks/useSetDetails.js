@@ -33,7 +33,7 @@ export function useSetDetails(
     isLoading: isCardsLoading,
     isFetching,
     pagination,
-  } = usePracticeCards(endpoint, setId, page, pageSize, { keepPrevious });
+  } = usePracticeCards(endpoint, setId, page, pageSize, setInfo?.flashcardsCount, { keepPrevious });
 
   // Only relevant in uncontrolled mode (SetDetailsLayout). In controlled mode the caller
   // owns page/pageSize via the URL, so these are no-ops — Practice pages don't use them.
