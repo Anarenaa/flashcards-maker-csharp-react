@@ -113,16 +113,17 @@ export default function PracticeMapPage() {
 
   if (flashcards.length === 0) {
     return (
-      <div className="map-page-container">
-        <p>На цій сторінці немає карток.</p>
+      <div className="map-page-empty">
+        <p className="title">На цій сторінці немає карток.</p>
         <button
+          className="primary-button"
           onClick={() =>
             navigate(
-              `${endpoint}/${setId}/practice?page=1&pageSize=${pageSize}`,
+              `${endpoint}/${setId}`,
             )
           }
         >
-          На першу сторінку
+          Назад до сету
         </button>
       </div>
     );

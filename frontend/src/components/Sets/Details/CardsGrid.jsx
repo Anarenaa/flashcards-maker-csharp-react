@@ -23,7 +23,7 @@ function CardsGrid({
     );
   }
 
-  const isEmpty = !cards || cards.length === 0;
+  const isEmpty = flashcardsCount === 0 || !cards || cards.length === 0;
   return (
     <div className="cards-grid">
       {isEmpty ? (

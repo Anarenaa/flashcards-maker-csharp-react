@@ -14,7 +14,7 @@ export function usePracticeCards(endpoint, setId, page, pageSize, flashcardsCoun
         })
         .then((res) => res.data),
     placeholderData: keepPrevious ? keepPreviousData : undefined,
-    enabled: !!setId && flashcardsCount !== 0,
+    enabled: !!setId && flashcardsCount > 0,
   });
 
   const cards = data?.items ?? [];

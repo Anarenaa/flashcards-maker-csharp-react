@@ -6,6 +6,7 @@ import PaginationFooter from "../Sets/PaginationFooter";
 import "./SetDetailsLayout.scss";
 import { useNavigate } from "react-router";
 import { useEffect } from "react";
+import Loader from "../Shared/Loader";
 
 export default function SetDetailsLayout({
   endpoint,
@@ -38,6 +39,11 @@ export default function SetDetailsLayout({
   }, [page, pageSize]);
 
   const navigate = useNavigate();
+
+  if (isLoading && !setInfo) {
+    return <Loader fullHeight={true} />;
+  }
+
   return (
     <div className="set-details-page">
       <SetHeader
