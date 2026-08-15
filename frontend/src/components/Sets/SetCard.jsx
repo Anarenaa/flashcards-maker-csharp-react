@@ -1,5 +1,6 @@
 import { NavLink } from "react-router";
 import { getCardsCountLabel } from "../../utils/getCardsCountLabel";
+import { formatLocalDate } from "../../utils/formatLocalDate";
 import "./SetCard.scss";
 
 export default function SetCard({ set, isMine }) {
@@ -45,11 +46,7 @@ export default function SetCard({ set, isMine }) {
           {set.flashcardsCount} {getCardsCountLabel(set.flashcardsCount)}
         </span>
         <span className="created-at">
-          {new Date(set.createdAt).toLocaleDateString(undefined, {
-            year: "numeric",
-            month: "2-digit",
-            day: "2-digit",
-          })}
+          {formatLocalDate(set.createdAt, { withTime: false })}
         </span>
       </footer>
     </NavLink>

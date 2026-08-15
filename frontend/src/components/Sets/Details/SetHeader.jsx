@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { NavLink } from "react-router";
 import { Play, ChevronLeft } from "lucide-react";
 import "./SetHeader.scss";
+import { formatLocalDate } from "../../../utils/formatLocalDate";
 
 export default function SetHeader({
   title,
@@ -57,13 +58,7 @@ export default function SetHeader({
             {lastUpdatedAt && (
               <span className="set-header__updated">
                 Останнє оновлення:{" "}
-                {new Date(lastUpdatedAt).toLocaleDateString(undefined, {
-                  year: "numeric",
-                  month: "2-digit",
-                  day: "2-digit",
-                  hour: "2-digit",
-                  minute: "2-digit",
-                })}
+                {formatLocalDate(lastUpdatedAt)}
               </span>
             )}
           </div>

@@ -4,14 +4,6 @@ import FlashcardContextsPanel from "../../../features/flashcards/FlashcardContex
 import PronounceButton from "../../Shared/PronounceButton";
 import "./CardTile.scss";
 
-function formatDate(dateString) {
-  if (!dateString) return null;
-  return new Date(dateString).toLocaleDateString(undefined, {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-  });
-}
 export default function CardTile({ card, isMine, isLanguageType }) {
   const [isContextModalOpen, setIsContextModalOpen] = useState(false);
   
