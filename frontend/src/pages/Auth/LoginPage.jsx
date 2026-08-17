@@ -49,7 +49,7 @@ export default function LoginPage() {
         <h2 className="title">Вхід</h2>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-group">
+          <div className="form-field">
             <input
               type="text"
               placeholder="Введіть нікнейм або email"
@@ -63,7 +63,7 @@ export default function LoginPage() {
             )}
           </div>
 
-          <div className="form-group">
+          <div className="form-field">
             <PasswordField
               placeholder="Пароль"
               inputClassName={errors.password ? "error-input" : ""}

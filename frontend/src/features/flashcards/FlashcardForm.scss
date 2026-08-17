@@ -1,0 +1,19 @@
+.definition-input-container {
+  position: relative;
+}
+#definition-input{
+    padding-right: 50px;
+}
+.definition-hint-button {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  background-color: var(--accent-color);
+  padding: 0.35rem 0.5rem;
+  border-radius: 50%;
+
+  &:disabled{
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}

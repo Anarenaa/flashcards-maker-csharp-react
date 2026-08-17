@@ -1,4 +1,5 @@
-﻿using Core.Models;
+﻿using Core.DTOs;
+using Core.Models;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Logging;
 using Services.Interfaces;
@@ -27,9 +28,9 @@ namespace Services
             _logger = logger;
         }
 
-        public async Task<string> GetHintAsync(string term, SetType type, string? fromLang, string? toLang, string? uiLang)
+        public async Task<string> GetHintAsync(SetType type, string term, string fromLang, string toLang)
         {
-            string cacheKey = $"hint_{type}_{fromLang ?? ""}_{toLang ?? ""}_{uiLang ?? ""}_{term.ToLower().Trim()}";
+            string cacheKey = $"hint_{type}_{fromLang ?? ""}_{toLang ?? ""}_{term.ToLower().Trim()}";
 
             if (_cache.TryGetValue(cacheKey, out string? cachedHint))
             {
@@ -40,21 +41,20 @@ namespace Services
             _logger.LogInformation("Hint for '{Term}' not found in cache. Fetching from external APIs...", term);
             string? result = null;
 
-            if (type == SetType.Language)
+            if (type == SetType.Language && fromLang != toLang)
             {
-                result = await _dictionaryService.GetTranslationAsync(term, fromLang, toLang);
+                result = await _dictionaryService.GetTranslationAsync(term, fromLang!, toLang!);
             }
-            else if (type == SetType.Subject)
+            else if (type == SetType.Subject || fromLang == toLang)
             {
-                result = await _wikiService.GetDescriptionAsync(term, uiLang);
+                result = await _wikiService.GetDescriptionAsync(term, toLang!);
             }
 
             if (string.IsNullOrWhiteSpace(result))
             {
                 _logger.LogWarning("External API failed or returned empty result for '{Term}'. Falling back to Gemini...", term);
 
-                string targetLang = type == SetType.Language ? toLang : uiLang;
-                result = await _geminiService.GenerateSimpleHintAsync(term, targetLang, type);
+                result = await _geminiService.GenerateSimpleHintAsync(term, toLang!, type);
             }
 
             if (string.IsNullOrWhiteSpace(result))

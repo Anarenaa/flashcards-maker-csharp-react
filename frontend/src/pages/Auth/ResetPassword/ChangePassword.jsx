@@ -67,10 +67,10 @@ export default function ChangePassword() {
         <form onSubmit={handleSubmit(onSubmit)}>
           <input type="hidden" />
           <div className="text-danger"></div>
-          <div className="form-group">
+          <div className="form-field">
             <input value={email} readOnly />
           </div>
-          <div className="form-group">
+          <div className="form-field">
             <PasswordField
               placeholder="Новий пароль"
               inputClassName={errors.newPassword ? "error-input" : ""}
@@ -81,7 +81,7 @@ export default function ChangePassword() {
               <span className="text-danger">{errors.newPassword.message}</span>
             )}
           </div>
-          <div className="form-group">
+          <div className="form-field">
             <PasswordField
               placeholder="Підтвердження паролю"
               inputClassName={errors.confirmPassword ? "error-input" : ""}

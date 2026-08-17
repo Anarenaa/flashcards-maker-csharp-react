@@ -58,7 +58,7 @@ export default function RegisterPage() {
         <h2 className="title">Реєстрація</h2>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-group">
+          <div className="form-field">
             <input
               placeholder="Вигадайте нікнейм"
               className={errors.userName ? "error-input" : ""}
@@ -70,7 +70,7 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <div className="form-group">
+          <div className="form-field">
             <input
               type="text"
               placeholder="example@mail.com"
@@ -84,7 +84,7 @@ export default function RegisterPage() {
 
           <hr />
 
-          <div className="form-group">
+          <div className="form-field">
             <PasswordField
               placeholder="Пароль"
               inputClassName={errors.password ? "error-input" : ""}
@@ -96,7 +96,7 @@ export default function RegisterPage() {
             )}
           </div>
 
-          <div className="form-group">
+          <div className="form-field">
             <PasswordField
               placeholder="Повторіть пароль"
               inputClassName={errors.confirmPassword ? "error-input" : ""}
