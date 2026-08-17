@@ -105,7 +105,7 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
             <div className="contexts-scroll-container">
               {sortedData.map((context) => (
                 <div key={context.id} className="context-block">
-                  <div className="top-panel">
+                  <div className="context-block-top-panel">
                     {/* we get html string in response from backend (only <strong> tag allowed) */}
                     <div
                       dangerouslySetInnerHTML={{ __html: context.sentence }}

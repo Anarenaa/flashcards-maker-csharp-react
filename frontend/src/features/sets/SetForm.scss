@@ -1,27 +1,8 @@
 .set-form {
   width: 100%;
 
-  label{
-    font-size: 0.9rem;
-  }
   .ai-toggle-label {
     font-size: 1.25rem;
-  }
-  .top-panel {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 1.3rem;
-  }
-  .form-field {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    margin-top: 0.6rem;
-
-    flex-grow: 1;
-  }
-  textarea{
-    min-height: 80px;
   }
   .languages{
     display: flex;

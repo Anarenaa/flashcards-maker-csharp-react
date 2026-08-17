@@ -128,10 +128,15 @@ textarea {
 textarea {
   resize: vertical;
   field-sizing: content;
+  min-height: 80px;
 }
 input:focus,
 textarea:focus {
   border-color: var(--accent-white);
+}
+/* tab state */
+button:focus-visible {
+  outline: 2px solid var(--accent-white);
 }
 input[readonly],
 textarea[readonly] {
@@ -146,7 +151,6 @@ textarea.error-input {
 .text-danger {
   color: var(--error-text);
   font-size: 0.75rem;
-  margin-top: 0.35rem;
   display: block;
   text-align: left;
 }
@@ -196,4 +200,36 @@ textarea.error-input {
   cursor: pointer;
   background: transparent;
   padding-top: 0.25rem;
+}
+.top-panel {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 1.3rem;
+  gap: 0.5rem;
+}
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.6rem;
+
+  flex-grow: 1;
+}
+.form-field label {
+  font-size: 0.9rem;
+}
+
+.spinner-icon {
+  animation: spin 1s linear infinite;
+  color: var(--accent-white);
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
 }

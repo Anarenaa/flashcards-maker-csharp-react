@@ -75,8 +75,12 @@ namespace Services
                 set.UpdatedAt = DateTime.UtcNow;
             }
         }
-        public async Task CreateFlashcardAsync(int setId, FlashcardDTO flashcardDto)
+        public async Task<FlashcardDTO> CreateFlashcardAsync(int setId, FlashcardDTO flashcardDto)
         {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set == null)
+                throw new NotFoundException("Сет не знайдено.");
+
             var flashcard = new Flashcard
             {
                 Term = flashcardDto.Term,
@@ -87,6 +91,15 @@ namespace Services
             await updateTimeInSet(setId);
 
             await _unitOfWork.SaveChangesAsync();
+
+            return new FlashcardDTO
+            {
+                Id = flashcard.Id,
+                Term = flashcard.Term,
+                Definition = flashcard.Definition,
+                FromLang =  set?.FromLang,
+                ToLang = set?.ToLang
+            };
         }
         public async Task CreateFlashcardsRangeAsync(int setId, IEnumerable<FlashcardDTO> flashcardDtos)
         {
@@ -101,9 +114,9 @@ namespace Services
 
             await _unitOfWork.SaveChangesAsync();
         }
-        public async Task UpdateFlashcardAsync(FlashcardDTO flashcardDto)
+        public async Task UpdateFlashcardAsync(int flashcardId, FlashcardDTO flashcardDto)
         {
-            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(flashcardDto.Id!.Value);
+            var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(flashcardId);
             if (flashcard == null)
                 throw new NotFoundException("Картка не знайдена.");
 

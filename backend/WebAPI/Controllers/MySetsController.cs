@@ -11,13 +11,13 @@ namespace WebAPI.Controllers
     public class MySetsController : BaseApiController
     {
         private SetService _setService;
-        private FlashcardService _flashcardService;
 
-        public MySetsController(SetService setService, FlashcardService flashcardService)
+        public MySetsController(SetService setService)
         {
             _setService = setService;
-            _flashcardService = flashcardService;
         }
+
+        // CRUD ------------------------
 
         [HttpGet]
         public async Task<IActionResult> GetMySets(
@@ -48,12 +48,6 @@ namespace WebAPI.Controllers
             var set = await _setService.GetSetByIdAsync(id, UserId);
             return Ok(set);
         }
-        [HttpGet("{setId}/flashcards")]
-        public async Task<IActionResult> GetFlashcards(int setId, [FromQuery] int page = 1, [FromQuery] int pageSize = 10)
-        {
-            var pagedCards = await _flashcardService.GetPagedFlashcardsBySetIdAsync(setId, page, pageSize);
-            return Ok(pagedCards);
-        }
 
         [HttpPost]
         public async Task<IActionResult> CreateSet([FromBody] SetCreateDTO setDto)
@@ -74,5 +68,6 @@ namespace WebAPI.Controllers
             await _setService.DeleteSetAsync(setId);
             return NoContent();
         }
+        //-----------------------------
     }
 }

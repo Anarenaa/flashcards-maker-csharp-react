@@ -3,10 +3,11 @@ import SetHeader from "../Sets/Details/SetHeader";
 import PageSizeSelector from "../Sets/Details/PageSizeSelector";
 import CardsGrid from "../Sets/Details/CardsGrid";
 import PaginationFooter from "../Sets/PaginationFooter";
-import "./SetDetailsLayout.scss";
 import { useNavigate } from "react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Loader from "../Shared/Loader";
+import FlashcardForm from "../../features/flashcards/FlashcardForm";
+import "./SetDetailsLayout.scss";
 
 export default function SetDetailsLayout({
   endpoint,
@@ -39,54 +40,65 @@ export default function SetDetailsLayout({
   }, [page, pageSize]);
 
   const navigate = useNavigate();
+  const [isFlashcardFormOpen, setIsFlashcardFormOpen] = useState(false);
 
   if (isLoading && !setInfo) {
     return <Loader fullHeight={true} />;
   }
 
   return (
-    <div className="set-details-page">
-      <SetHeader
-        title={setInfo?.name}
-        description={setInfo?.description}
-        flashcardsCount={setInfo?.flashcardsCount}
-        tags={setInfo?.categories}
-        lastUpdatedAt={setInfo?.lastUpdatedAt}
-        backHref={backHref}
-        backLabel={backLabel}
-        isMine={isMine}
-        onAddCard={() => {
-          /* TODO: модалка додавання картки */
-        }}
-        onAddCategory={() => {
-          /* TODO */
-        }}
-        onPractice={() => {
-          navigate(
-            `${onPracticeLink}?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`,
-          );
-        }}
-      />
+    <>
+      <div className="set-details-page">
+        <SetHeader
+          title={setInfo?.name}
+          description={setInfo?.description}
+          flashcardsCount={setInfo?.flashcardsCount}
+          tags={setInfo?.categories}
+          lastUpdatedAt={setInfo?.lastUpdatedAt}
+          backHref={backHref}
+          backLabel={backLabel}
+          isMine={isMine}
+          onAddCard={() => {
+            setIsFlashcardFormOpen(true);
+          }}
+          onAddCategory={() => {
+            /* TODO */
+          }}
+          onPractice={() => {
+            navigate(
+              `${onPracticeLink}?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`,
+            );
+          }}
+        />
 
-      <PageSizeSelector
-        pagination={pagination}
-        options={pageSizeOptions}
-        onChange={changePageSize}
-      />
+        <PageSizeSelector
+          pagination={pagination}
+          options={pageSizeOptions}
+          onChange={changePageSize}
+        />
 
-      <CardsGrid
-        cards={cards}
-        flashcardsCount={setInfo?.flashcardsCount}
-        isLoading={isLoading}
-        isMine={isMine}
-        isLanguageType={setInfo?.type === 0}
-        emptyText="Створіть свою першу картку"
-      />
+        <CardsGrid
+          cards={cards}
+          setId={setId}
+          flashcardsCount={setInfo?.flashcardsCount}
+          isLoading={isLoading}
+          isMine={isMine}
+          isLanguageType={setInfo?.type === 0}
+          emptyText="Створіть свою першу картку"
+        />
 
-      <PaginationFooter
-        pagination={pagination}
-        onPageChange={handlePageChange}
-      />
-    </div>
+        <PaginationFooter
+          pagination={pagination}
+          onPageChange={handlePageChange}
+        />
+      </div>
+      {isFlashcardFormOpen && (
+        <FlashcardForm
+          isOpen={isFlashcardFormOpen}
+          onClose={() => setIsFlashcardFormOpen(false)}
+          setId={setId}
+        />
+      )}
+    </>
   );
 }

@@ -6,6 +6,7 @@ import Loader from "../../Shared/Loader";
 
 function CardsGrid({
   cards,
+  setId,
   flashcardsCount,
   isLoading,
   isMine,
@@ -36,6 +37,7 @@ function CardsGrid({
         <CardTile
           key={card.id}
           card={card}
+          setId={setId}
           isMine={isMine}
           isLanguageType={isLanguageType}
         />)

@@ -43,7 +43,7 @@ export default function VerifyEmailPage() {
         </p>
 
         <form onSubmit={handleSubmit(onSubmit)}>
-          <div className="form-group">
+          <div className="form-field">
             <input
               type="text"
               className={errors.email ? "error-input" : ""}

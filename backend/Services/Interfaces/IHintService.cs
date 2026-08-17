@@ -4,6 +4,6 @@ namespace Services.Interfaces
 {
     public interface IHintService
     {
-        Task<string> GetHintAsync(string term, SetType type, string? fromLang, string? toLang, string? uiLang);
+        Task<string> GetHintAsync(SetType type, string term, string fromLang, string toLang);
     }
 }

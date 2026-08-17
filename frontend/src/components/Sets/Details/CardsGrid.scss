@@ -21,19 +21,5 @@
       opacity: 0.7;
       margin: 0;
     }
-
-    .spinner-icon {
-      animation: spin 1s linear infinite;
-      color: var(--accent-white);
-    }
-
-    @keyframes spin {
-      from {
-        transform: rotate(0deg);
-      }
-      to {
-        transform: rotate(360deg);
-      }
-    }
   }
 }
