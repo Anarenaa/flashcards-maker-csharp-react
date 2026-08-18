@@ -5,7 +5,6 @@ import CardsGrid from "../Sets/Details/CardsGrid";
 import PaginationFooter from "../Sets/PaginationFooter";
 import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
-import { useEffect, useState } from "react";
 import Loader from "../Shared/Loader";
 import FlashcardForm from "../../features/flashcards/FlashcardForm";
 import CategoryToSetForm from "../../features/sets/CategoryToSetForm";
@@ -78,21 +77,7 @@ export default function SetDetailsLayout({
           options={pageSizeOptions}
           onChange={changePageSize}
         />
-        <PageSizeSelector
-          pagination={pagination}
-          options={pageSizeOptions}
-          onChange={changePageSize}
-        />
 
-        <CardsGrid
-          cards={cards}
-          setId={setId}
-          flashcardsCount={setInfo?.flashcardsCount}
-          isLoading={isLoading}
-          isMine={isMine}
-          isLanguageType={setInfo?.type === 0}
-          emptyText="Створіть свою першу картку"
-        />
         <CardsGrid
           cards={cards}
           setId={setId}
