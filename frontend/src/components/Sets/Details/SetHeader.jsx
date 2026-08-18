@@ -1,10 +1,14 @@
 import { useState, useEffect } from "react";
 import { NavLink } from "react-router";
-import { Play, ChevronLeft } from "lucide-react";
-import "./SetHeader.scss";
+import { Play, ChevronLeft, X } from "lucide-react";
 import { formatLocalDate } from "../../../utils/formatLocalDate";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import api from "../../../services/api";
+import toast from "react-hot-toast";
+import "./SetHeader.scss";
 
 export default function SetHeader({
+  setId,
   title,
   description,
   flashcardsCount,
@@ -31,6 +35,24 @@ export default function SetHeader({
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  const queryClient = useQueryClient();
+
+  const removeCategoryMutation = useMutation({
+    mutationFn: (catId) =>
+      api.post(`my-sets/${setId}/remove-category`, null, { params: { categoryId: catId } }),
+    onSuccess: () => {
+      queryClient.invalidateQueries(["setInfo", setId]);
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message || error.response?.data;
+      toast.error(
+        typeof errorMessage === "string" ? errorMessage : "Сталася помилка",
+      );
+    },
+  });
+
   return (
     <header className="set-header">
       <NavLink
@@ -53,13 +75,21 @@ export default function SetHeader({
               {tags.map((tag) => (
                 <span key={tag.id} className="set-header__tag">
                   {tag.name}
+                  <button>
+                    <X
+                      size={18}
+                      className="icon"
+                      onClick={() => {
+                        removeCategoryMutation.mutate(tag.id);
+                      }}
+                    />
+                  </button>
                 </span>
               ))}
             </div>
             {lastUpdatedAt && (
               <span className="set-header__updated">
-                Останнє оновлення:{" "}
-                {formatLocalDate(lastUpdatedAt)}
+                Останнє оновлення: {formatLocalDate(lastUpdatedAt)}
               </span>
             )}
           </div>

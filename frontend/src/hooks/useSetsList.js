@@ -2,6 +2,7 @@ import { useState, useCallback, useRef, useEffect } from "react";
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
 import { useSetTypes } from "./useSetTypes";
+import { useCategories } from "./useCategories";
 
 export function useSetsList(endpoint) {
   const [filters, setFilters] = useState({
@@ -20,12 +21,7 @@ export function useSetsList(endpoint) {
   const [page, setPage] = useState(1);
   const pageSize = 20;
 
-  const { data: categories = [] } = useQuery({
-    queryKey: ["categories"],
-    queryFn: () => api.get("/categories").then((res) => res.data),
-    staleTime: 5 * 60 * 1000,
-  });
-
+  const categories = useCategories();
   const types = useSetTypes();
 
   // Ключ запиту: усі фільтри, КРІМ searchText, беруться напряму з filters

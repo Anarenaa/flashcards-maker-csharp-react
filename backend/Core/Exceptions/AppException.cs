@@ -1,10 +1,10 @@
 ﻿namespace Core.Exceptions
 {
-    public class AppException : Exception
+    public class BadHttpRequestException : Exception
     {
         public int StatusCode { get; }
 
-        public AppException(string message, int statusCode = 400) : base(message)
+        public BadHttpRequestException(string message, int statusCode = 400) : base(message)
         {
             StatusCode = statusCode;
         }

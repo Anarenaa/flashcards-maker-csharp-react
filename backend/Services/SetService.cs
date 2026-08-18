@@ -215,10 +215,10 @@ namespace Services
                 setId,
                 includeProperties: "Categories"
             );
-            if (set == null) throw new NotFoundException("Сет не знайдено");
+            if (set == null) throw new KeyNotFoundException("Сет не знайдено");
 
             var category = await _unitOfWork.Categories.GetByIdAsync(categoryId);
-            if (category == null) throw new NotFoundException("Категорію не знайдено");
+            if (category == null) throw new KeyNotFoundException("Категорію не знайдено");
 
             if (!set.Categories.Any(c => c.Id == categoryId))
             {
@@ -226,7 +226,7 @@ namespace Services
             }
             else
             {
-                throw new AppException("Категорія вже додана до сету");
+                throw new InvalidOperationException("Категорія вже додана до сету");
             }
 
             await _unitOfWork.SaveChangesAsync();
@@ -237,10 +237,10 @@ namespace Services
                 setId,
                 includeProperties: "Categories"
             );
-            if (set == null) throw new NotFoundException("Сет не знайдено");
+            if (set == null) throw new KeyNotFoundException("Сет не знайдено");
 
             var category = set.Categories.FirstOrDefault(c => c.Id == categoryId);
-            if (category == null) throw new NotFoundException("Категорію не знайдено в сеті");
+            if (category == null) throw new KeyNotFoundException("Категорію не знайдено в сеті");
 
             set.Categories.Remove(category);
             await _unitOfWork.SaveChangesAsync();
@@ -253,7 +253,7 @@ namespace Services
             bool alreadyExists = await _unitOfWork.Collections
                 .AnySetInCollectionAsync(collectionId, setId);
 
-            if (alreadyExists) throw new AppException("Сет вже доданий до колекції");
+            if (alreadyExists) throw new BadHttpRequestException("Сет вже доданий до колекції");
 
             var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
             if (collection == null) throw new NotFoundException("Колекцію не знайдено");

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import Loader from "../Shared/Loader";
 import FlashcardForm from "../../features/flashcards/FlashcardForm";
+import CategoryToSetForm from "../../features/sets/CategoryToSetForm";
 import "./SetDetailsLayout.scss";
 
 export default function SetDetailsLayout({
@@ -41,6 +42,7 @@ export default function SetDetailsLayout({
 
   const navigate = useNavigate();
   const [isFlashcardFormOpen, setIsFlashcardFormOpen] = useState(false);
+  const [isAddCategoryFormOpen, setIsAddCategoryFormOpen] = useState(false);
 
   if (isLoading && !setInfo) {
     return <Loader fullHeight={true} />;
@@ -50,6 +52,7 @@ export default function SetDetailsLayout({
     <>
       <div className="set-details-page">
         <SetHeader
+          setId={setId}
           title={setInfo?.name}
           description={setInfo?.description}
           flashcardsCount={setInfo?.flashcardsCount}
@@ -61,9 +64,7 @@ export default function SetDetailsLayout({
           onAddCard={() => {
             setIsFlashcardFormOpen(true);
           }}
-          onAddCategory={() => {
-            /* TODO */
-          }}
+          onAddCategory={() => setIsAddCategoryFormOpen(true)}
           onPractice={() => {
             navigate(
               `${onPracticeLink}?page=${pagination.currentPage}&pageSize=${pagination.pageSize}`,
@@ -96,6 +97,13 @@ export default function SetDetailsLayout({
         <FlashcardForm
           isOpen={isFlashcardFormOpen}
           onClose={() => setIsFlashcardFormOpen(false)}
+          setId={setId}
+        />
+      )}
+      {isAddCategoryFormOpen && (
+        <CategoryToSetForm
+          isOpen={isAddCategoryFormOpen}
+          onClose={() => setIsAddCategoryFormOpen(false)}
           setId={setId}
         />
       )}

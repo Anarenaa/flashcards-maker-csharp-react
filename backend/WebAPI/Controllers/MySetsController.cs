@@ -69,5 +69,18 @@ namespace WebAPI.Controllers
             return NoContent();
         }
         //-----------------------------
+
+        [HttpPost("{setId}/add-category")]
+        public async Task<IActionResult> AddCategoryToSetAsync(int setId, [FromQuery] int categoryId)
+        {
+            await _setService.AddCategoryToSetAsync(setId, categoryId);
+            return NoContent();
+        }
+        [HttpPost("{setId}/remove-category")]
+        public async Task<IActionResult> RemoveCategoryFromSetAsync(int setId, [FromQuery] int categoryId)
+        {
+            await _setService.RemoveCategoryFromSetAsync(setId, categoryId);
+            return NoContent();
+        }
     }
 }

@@ -331,21 +331,22 @@ app.Use(async (context, next) =>
     {
         await next();
     }
-    catch (KeyNotFoundException)
+    catch (KeyNotFoundException ex)
     {
-        context.Response.StatusCode = 404;
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+    }
+    catch (InvalidOperationException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
     }
     catch (DbException)
     {
-        if (!context.Request.Path.Value!.StartsWith("/api/"))
-        {
-            context.Response.Redirect("/Home/ServiceUnavailable");
-        }
-        else
-        {
-            context.Response.StatusCode = 503;
-            await context.Response.WriteAsJsonAsync(new { error = "Database connection error." });
-        }
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        await context.Response.WriteAsJsonAsync(new { error = "Database connection error." });
     }
 });
 
