@@ -34,7 +34,7 @@ export default function PracticeTestPage() {
     isError: isCardsError,
     refetch: refetchCards,
     pagination,
-  } = usePracticeCards(endpoint, setId, page, pageSize, {
+  } = usePracticeCards( setId, page, pageSize, undefined, {
     keepPrevious: false,
   });
 

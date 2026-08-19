@@ -1,12 +1,12 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
 
-export function usePracticeCards(endpoint, setId, page, pageSize, flashcardsCount, { keepPrevious = true } = {}) {
+export function usePracticeCards( setId, page, pageSize, flashcardsCount, { keepPrevious = true } = {}) {
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
-    queryKey: ["setCards", endpoint, setId, page, pageSize],
+    queryKey: ["setCards", setId, page, pageSize],
     queryFn: () =>
       api
-        .get(`${endpoint}/${setId}/flashcards`, {
+        .get(`sets/${setId}/flashcards`, {
           params: {
             page,
             pageSize: pageSize === "all" ? 0 : pageSize,
@@ -14,7 +14,7 @@ export function usePracticeCards(endpoint, setId, page, pageSize, flashcardsCoun
         })
         .then((res) => res.data),
     placeholderData: keepPrevious ? keepPreviousData : undefined,
-    enabled: !!setId && flashcardsCount > 0,
+    enabled: Boolean(setId && (flashcardsCount === undefined || flashcardsCount > 0)),
   });
 
   const cards = data?.items ?? [];
