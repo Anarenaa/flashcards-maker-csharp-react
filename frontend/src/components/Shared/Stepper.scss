@@ -1,0 +1,26 @@
+.stepper{
+  position: relative;
+
+  input{
+    padding-left: 2rem;
+    padding-right: 2rem;
+    text-align: center;
+    min-width: 100px;
+    max-width: 120px;
+    font-weight: 500;
+  }
+  .decrement-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    left: 0;
+    padding-left: 0.5rem;
+  }
+  .increment-btn{
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    right: 0;
+    padding-right: 0.5rem;
+  }
+}

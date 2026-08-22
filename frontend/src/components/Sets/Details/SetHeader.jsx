@@ -8,12 +8,7 @@ import toast from "react-hot-toast";
 import "./SetHeader.scss";
 
 export default function SetHeader({
-  setId,
-  title,
-  description,
-  flashcardsCount,
-  tags = [],
-  lastUpdatedAt,
+  setInfo,
   backHref,
   backLabel,
   isMine,
@@ -40,7 +35,9 @@ export default function SetHeader({
 
   const removeCategoryMutation = useMutation({
     mutationFn: (catId) =>
-      api.post(`my-sets/${setId}/remove-category`, null, { params: { categoryId: catId } }),
+      api.post(`my-sets/${setId}/remove-category`, null, {
+        params: { categoryId: catId },
+      }),
     onSuccess: () => {
       queryClient.invalidateQueries(["setInfo", setId]);
     },
@@ -65,14 +62,17 @@ export default function SetHeader({
 
       <div className="set-header__row">
         <div className={`set-header__info ${isScrolled ? "hidden" : ""}`}>
-          <h1>{title}</h1>
-          {description && (
-            <p className="set-header__description">{description}</p>
+          <h1>
+            {setInfo.name}
+            {setInfo.isGenerated && <span>{"\u2728"}</span>}
+          </h1>
+          {setInfo.description && (
+            <p className="set-header__description">{setInfo.description}</p>
           )}
 
           <div className="set-header__meta">
             <div className="set-header__tags">
-              {tags.map((tag) => (
+              {setInfo.categories.map((tag) => (
                 <span key={tag.id} className="set-header__tag">
                   {tag.name}
                   <button>
@@ -87,9 +87,9 @@ export default function SetHeader({
                 </span>
               ))}
             </div>
-            {lastUpdatedAt && (
+            {setInfo.lastUpdatedAt && (
               <span className="set-header__updated">
-                Останнє оновлення: {formatLocalDate(lastUpdatedAt)}
+                Останнє оновлення: {formatLocalDate(setInfo.lastUpdatedAt)}
               </span>
             )}
           </div>
@@ -118,7 +118,7 @@ export default function SetHeader({
             type="button"
             className="btn-secondary btn-practice"
             onClick={onPractice}
-            disabled={flashcardsCount === 0}
+            disabled={setInfo.flashcardsCount === 0}
           >
             <Play size={16} />
             Практикувати

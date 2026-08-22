@@ -41,7 +41,7 @@ api.interceptors.response.use(
         window.location.href = "/not-allowed";
       } else if (status === 429) {
         error.globalMessage =
-          "Занадто багато запитів! Будь ласка, зачекайте хвилину перед наступною спробою.";
+          "Занадто багато запитів! Будь ласка, спробуйте трохи пізніше.";
       } else if (status >= 500) {
         error.globalMessage =
           "Не вдалося з'єднатися з сервером. Спробуйте пізніше.";

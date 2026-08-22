@@ -51,9 +51,16 @@ namespace WebAPI.Controllers
             
             return CreatedAtAction(
                 nameof(GetFlashcardById),
-                new { setId = setId, flashcardId = createdFlashcard.Id },
+                new { setId, flashcardId = createdFlashcard.Id },
                 createdFlashcard
             );
+        }
+        [HttpPost("batch")]
+        public async Task<IActionResult> CreateFlashcardsBatch(int setId, [FromBody] List<FlashcardDTO> flashcardDtos)
+        {
+           await _flashcardService.CreateFlashcardsRangeAsync(setId, flashcardDtos);
+
+           return NoContent();
         }
 
         [HttpPut("{flashcardId}")]

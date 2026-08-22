@@ -1,8 +1,8 @@
 ﻿using Core.DTOs;
 using Core.Models;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Services;
+using Services.Interfaces;
 
 namespace WebAPI.Controllers
 {
@@ -10,11 +10,13 @@ namespace WebAPI.Controllers
     [ApiController]
     public class MySetsController : BaseApiController
     {
-        private SetService _setService;
+        private readonly SetService _setService;
+        private readonly IGeminiService _geminiService;
 
-        public MySetsController(SetService setService)
+        public MySetsController(SetService setService, IGeminiService geminiService)
         {
             _setService = setService;
+            _geminiService = geminiService;
         }
 
         // CRUD ------------------------
@@ -50,9 +52,12 @@ namespace WebAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateSet([FromBody] SetCreateDTO setDto)
+        public async Task<IActionResult> CreateSet([FromBody] SetCreateDTO setDto, [FromQuery] bool isGenerated = false)
         {
             var createdSet = await _setService.AddSetAsync(setDto, UserId);
+            if (isGenerated)
+                await _setService.MarkSetAsGenerated(createdSet.Id!.Value);
+
             return CreatedAtAction(nameof(GetMySetById), new { id = createdSet.Id }, createdSet);
         }
 
@@ -81,6 +86,18 @@ namespace WebAPI.Controllers
         {
             await _setService.RemoveCategoryFromSetAsync(setId, categoryId);
             return NoContent();
+        }
+
+        // Additional functions ------------------------
+        [HttpPost("generate")]
+        public async Task<IActionResult> GenerateSetWithFlashcards([FromForm] SetAIPromtCreateDTO requestDto)
+        {
+            var (setDto, flashcards) = await _geminiService.GenerateSetWithFlashcardsAsync(requestDto);
+            if (setDto == null || flashcards == null)
+            {
+                return BadRequest("Не вдалося згенерувати сет та флеш-карти.");
+            }
+            return Ok(new { SetInfo = setDto, Flashcards = flashcards });
         }
     }
 }

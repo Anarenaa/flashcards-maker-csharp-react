@@ -23,7 +23,7 @@ export default function SetCard({ set, isMine }) {
     onSuccess: () => {
       queryClient.invalidateQueries(["sets"]);
       setDeletingSetId(null);
-      setTimeout(()=>{
+      setTimeout(() => {
         toast.success("Сет успішно видалено");
       }, 200);
     },
@@ -60,8 +60,13 @@ export default function SetCard({ set, isMine }) {
               <span className="author-name">Автор: {set.userName}</span>
             </div>
           )}
-          <h3 className="set-card__title">{set.name}</h3>
-          <p className="set-card__description">{set.description}</p>
+          <h3 className="set-card__title">
+            {set.name}
+            {set.isGenerated && <span>{"\u2728"}</span>}
+          </h3>
+          <div class="description-wrapper">
+            <p class="set-card__description">{set.description}</p>
+          </div>
 
           <div className="progress">
             <div className="progress__label">

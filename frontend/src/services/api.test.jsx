@@ -38,7 +38,7 @@ describe('API Interceptor Global Errors & Edge Cases', () => {
 
     await expect(errorHandler(error)).rejects.toEqual(error);
     expect(toast.error).toHaveBeenCalledWith(
-      "Занадто багато запитів! Будь ласка, зачекайте хвилину перед наступною спробою.",
+      "Занадто багато запитів! Будь ласка, спробуйте трохи пізніше.",
       expect.any(Object)
     );
   });

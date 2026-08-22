@@ -144,6 +144,14 @@ textarea[readonly] {
   cursor: not-allowed;
   border-style: dashed;
 }
+input::-webkit-outer-spin-button,
+input::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+input[type=number] {
+  -moz-appearance: textfield;
+}
 input.error-input,
 textarea.error-input {
   border-color: var(--error-color);
@@ -178,7 +186,17 @@ textarea.error-input {
     transform: translateY(-2px);
   }
 }
-
+.gradient-button {
+  background: var(--progress-bar-gradient);
+  color: var(--accent-white);
+  border: none;
+  padding: 18px 35px;
+  border-radius: 20px;
+  font-weight: 800;
+  text-transform: uppercase;
+  transition: 0.3s;
+  width: 100%;
+}
 @media (min-width: 1024px) {
   .flex-center-wrapper {
     display: flex;

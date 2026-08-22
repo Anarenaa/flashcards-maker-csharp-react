@@ -20,16 +20,16 @@ export default function PracticeSummary({
 
       <div className="summary-actions">
         {canRetry && (
-          <button onClick={onRetry} className="btn-practice-main btn-retry">
+          <button onClick={onRetry} className="gradient-button btn-retry">
             Виправити помилки
           </button>
         )}
-        <button onClick={onRestart} className="btn-practice-main">
+        <button onClick={onRestart} className="gradient-button">
           Пройти спочатку
         </button>
         <button
           onClick={onNextSession}
-          className="btn-practice-main btn-next-session"
+          className="gradient-button"
         >
           {isFinalMixedRound
             ? "Повернутись до сету"

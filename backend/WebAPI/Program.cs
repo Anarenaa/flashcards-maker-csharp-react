@@ -343,6 +343,12 @@ app.Use(async (context, next) =>
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(new { message = ex.Message });
     }
+    catch (HttpRequestException ex) when (ex.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+    {
+        context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+    }
     catch (DbException)
     {
         context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;

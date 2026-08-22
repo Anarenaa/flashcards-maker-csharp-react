@@ -6,9 +6,8 @@ namespace Services.Interfaces
 {
     public interface IGeminiService
     {
-        Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int count, byte[]? imageBytes = null, string? mimeType = null);
+        Task<(SetCreateDTO? SetDto, List<FlashcardDTO>? Flashcards)> GenerateSetWithFlashcardsAsync(SetAIPromtCreateDTO requestDto);
         Task<string?> GenerateSimpleHintAsync(string term, string targetLang, SetType type);
-        Task MarkSetIsGenerated(int setId);
         Task<List<FlashcardContextDTO>?> GenerateContextsForFlashcardAsync(int cardId);
     }
 }

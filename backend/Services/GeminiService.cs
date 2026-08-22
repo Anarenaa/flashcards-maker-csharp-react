@@ -18,9 +18,9 @@ namespace Services
         private readonly ILogger<GeminiService> _logger;
         private readonly IUnitOfWork _unitOfWork;
 
-        private readonly JsonSerializerOptions _jsonOptions = new() 
-        { 
-            PropertyNameCaseInsensitive = true 
+        private readonly JsonSerializerOptions _jsonOptions = new()
+        {
+            PropertyNameCaseInsensitive = true
         };
 
         public GeminiService(HttpClient client, string apiKey, ILogger<GeminiService> logger, IUnitOfWork unitOfWork)
@@ -31,34 +31,10 @@ namespace Services
             _unitOfWork = unitOfWork;
         }
 
-        public async Task<List<FlashcardDTO>> GenerateCardsAsync(SetCreateDTO setDto, int cardsCount, byte[]? imageBytes = null, string? mimeType = null)
+        // --- UNIVERSAL PRIVATE METHOD FOR GEMINI API REQUESTS ---
+        private async Task<GeminiResponse?> SendGeminiRequestAsync(object requestBody, string logContextName)
         {
             var url = "interactions";
-
-            object inputData;
-            string text = $"Generate {setDto.Description}. Title \"{setDto.Name}\". " +
-                          $"Type \"{setDto.Type.ToString()}\". If Type is Language generate cards from {setDto.FromLang} to {setDto.ToLang}. " +
-                          $"{cardsCount} cards. Format ONLY as a JSON array: [{{'Term': '...', 'Definition': '...'}}].";
-            
-            if (imageBytes != null && !string.IsNullOrEmpty(mimeType))
-            {
-                inputData = new object[]
-                {
-                    new { type = "text", text = text },
-                    new { type = "image", data = Convert.ToBase64String(imageBytes), mime_type = mimeType }
-                };
-            }
-            else
-            {
-                inputData = text;
-            }
-
-            var requestBody = new
-            {
-                model = "gemini-2.5-flash",
-                input = inputData
-            };
-
             var request = new HttpRequestMessage(HttpMethod.Post, url)
             {
                 Content = JsonContent.Create(requestBody)
@@ -66,62 +42,123 @@ namespace Services
             request.Headers.Add("x-goog-api-key", _apiKey);
 
             var response = await _client.SendAsync(request);
-            response.EnsureSuccessStatusCode();
+
+            // Handle rate limit (Too Many Requests)
+            if (response.StatusCode == System.Net.HttpStatusCode.TooManyRequests)
+            {
+                throw new HttpRequestException(
+                    "Gemini API rate limit exceeded.",
+                    null,
+                    System.Net.HttpStatusCode.TooManyRequests
+                );
+            }
+
+            if (!response.IsSuccessStatusCode)
+            {
+                _logger.LogWarning("Gemini API returned status code: {StatusCode} during {Context}", response.StatusCode, logContextName);
+                return null;
+            }
 
             var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
-            Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
 
+            // Deserialize response and log token usage metadata
             var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
 
-            var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+            if (result?.Usage != null)
+            {
+                _logger.LogInformation(
+                    "Gemini Tokens Used ({Context}) -> Prompt: {Prompt}, Candidates: {Candidates}, Total: {Total}",
+                    logContextName,
+                    result.Usage.PromptTokens,
+                    result.Usage.CandidatesTokens,
+                    result.Usage.TotalTokens
+                );
+            }
+
+            return result;
+        }
+
+        public async Task<(SetCreateDTO? SetDto, List<FlashcardDTO>? Flashcards)> GenerateSetWithFlashcardsAsync(SetAIPromtCreateDTO requestDto)
+        {
+            object inputData;
+            string text = $"{requestDto.Prompt}. " +
+                        $"Type \"{requestDto.Type}\". " +
+                        (requestDto.CardsCount.HasValue ? $"Generate {requestDto.CardsCount} cards. " : "") +
+                        (requestDto.Type.ToString() == "Language" ? $"From {requestDto.FromLang} to {requestDto.ToLang}. " : $"In {requestDto.ToLang}. ") +
+                        "Format ONLY as a JSON object: " +
+                        "{ \"Name\": \"...\", \"Description\": \"...\", \"Flashcards\": [{ \"Term\": \"...\", \"Definition\": \"...\" }] }. " +
+                        "Make response clear and simple. Without transcription. Terms and definitions should be short enough to be able to write them.";
+
+            byte[]? fileBytes = null;
+            string? mimeType = null;
+
+            if (requestDto.File != null && requestDto.File.Length > 0)
+            {
+                using var memoryStream = new MemoryStream();
+                await requestDto.File.CopyToAsync(memoryStream);
+                fileBytes = memoryStream.ToArray();
+                mimeType = requestDto.File.ContentType;
+            }
+
+            if (fileBytes != null && !string.IsNullOrEmpty(mimeType))
+            {
+                string fileType = mimeType.StartsWith("image/") ? "image" : "file";
+                inputData = new object[]
+                {
+                    new { type = "text", text },
+                    new { type = fileType, data = Convert.ToBase64String(fileBytes), mime_type = mimeType }
+                };
+            }
+            else
+            {
+                inputData = text;
+            }
+
+            var requestBody = new { model = "gemini-2.5-flash", input = inputData };
+
+            var result = await SendGeminiRequestAsync(requestBody, $"Set Generation ('{requestDto.Prompt}')");
+            if (result == null) return (null, new List<FlashcardDTO>());
+
+            var outputStep = result.Steps?.FirstOrDefault(s => s.Type == "model_output");
             var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
 
-            if (string.IsNullOrEmpty(rawJson)) return new List<FlashcardDTO>();
+            if (string.IsNullOrEmpty(rawJson)) return (null, new List<FlashcardDTO>());
 
             if (rawJson.Contains("```"))
             {
                 rawJson = rawJson.Replace("```json", "").Replace("```", "").Trim();
             }
 
-            return JsonSerializer.Deserialize<List<FlashcardDTO>>(rawJson, _jsonOptions) ?? new List<FlashcardDTO>();
+            var aiResult = JsonSerializer.Deserialize<GeneratedAiSetResponse>(rawJson, _jsonOptions);
+            if (aiResult == null) return (null, new List<FlashcardDTO>());
+
+            var setDto = new SetCreateDTO
+            {
+                Name = aiResult.Name,
+                Description = aiResult.Description,
+                Type = requestDto.Type,
+                FromLang = requestDto.FromLang,
+                ToLang = requestDto.ToLang,
+                IsPublic = false
+            };
+
+            return (setDto, aiResult.Flashcards);
         }
 
         public async Task<string?> GenerateSimpleHintAsync(string term, string lang, SetType type)
         {
-            var url = "interactions";
-
             string prompt = type == SetType.Language
                 ? $"Translate the word '{term}' to language with ISO code '{lang}'. Return ONLY the translated word/phrase, no extra text, no explanations, no quotes."
                 : $"Give a one-sentence definition of the term '{term}' in language with ISO code '{lang}'. Max 15 words. Return ONLY the definition text, no extra words.";
 
-            var requestBody = new
-            {
-                model = "gemini-2.5-flash",
-                input = prompt
-            };
+            var requestBody = new { model = "gemini-2.5-flash", input = prompt };
 
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, url)
-                {
-                    Content = JsonContent.Create(requestBody)
-                };
-                request.Headers.Add("x-goog-api-key", _apiKey);
+                var result = await SendGeminiRequestAsync(requestBody, $"Simple Hint ('{term}')");
+                if (result == null) return null;
 
-                var response = await _client.SendAsync(request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Gemini API returned status code: {StatusCode} during simple hint generation for '{Term}'", response.StatusCode, term);
-                    return null;
-                }
-
-                var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
-
-                var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
-                
-                var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+                var outputStep = result.Steps?.FirstOrDefault(s => s.Type == "model_output");
                 var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
 
                 if (string.IsNullOrWhiteSpace(rawJson)) return null;
@@ -137,67 +174,35 @@ namespace Services
             }
         }
 
-        public async Task MarkSetIsGenerated(int setId)
-        {
-            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
-            if (set != null)
-            {
-                set.IsGenerated = true;
-                await _unitOfWork.SaveChangesAsync();
-            }
-        }
-        
         public async Task<List<FlashcardContextDTO>?> GenerateContextsForFlashcardAsync(int cardId)
         {
-            var url = "interactions";
-
             var flashcard = await _unitOfWork.Flashcards.GetByIdAsync(cardId);
             if (flashcard == null) throw new Exception("Flashcard not found");
 
             var set = await _unitOfWork.Sets.GetByIdAsync(flashcard.SetId);
-            if (flashcard == null) throw new Exception("Set not found");
+            if (set == null) throw new Exception("Set not found");
 
             string prompt = $"Provide 3 short, natural example sentences in the original language using the EXACT term '{flashcard.Term}' " +
-                (set?.FromLang != set?.ToLang ? $"with their translations in {set?.ToLang} language. " : "") +
+                (set.FromLang != set.ToLang ? $"with their translations in {set.ToLang} language. " : "") +
                 $"Each sentence must be concise (maximum 10-12 words). " +
                 $"In the 'sentence' field, wrap the exact term '{flashcard.Term}' in <strong></strong> tags (do NOT use synonyms or different forms of the word, use the exact term). " +
-                (set?.FromLang != set?.ToLang
+                (set.FromLang != set.ToLang
                 ? $"In the 'translation' field, wrap the corresponding word or phrase in <strong></strong> tags."
                 : "") +
                 "Do NOT use any other HTML tags or Markdown asterisks. " +
                 "Return ONLY a JSON array of objects: " +
-                (set?.FromLang != set?.ToLang
-                ? "[{'sentence': '...', 'translation': '...'}]."
+                (set.FromLang != set.ToLang
+                ? "[{'sentence': '...', 'translation': ''}]."
                 : "[{'sentence': '...'}].");
 
-            var requestBody = new
-            {
-                model = "gemini-2.5-flash",
-                input = prompt
-            };
+            var requestBody = new { model = "gemini-2.5-flash", input = prompt };
 
             try
             {
-                var request = new HttpRequestMessage(HttpMethod.Post, url)
-                {
-                    Content = JsonContent.Create(requestBody)
-                };
-                request.Headers.Add("x-goog-api-key", _apiKey);
+                var result = await SendGeminiRequestAsync(requestBody, $"Contexts Generation ('{flashcard.Term}')");
+                if (result == null) return new List<FlashcardContextDTO>();
 
-                var response = await _client.SendAsync(request);
-
-                if (!response.IsSuccessStatusCode)
-                {
-                    _logger.LogWarning("Gemini API returned status code: {StatusCode} during simple hint generation for '{Term}'", response.StatusCode, flashcard.Term);
-                    return null;
-                }
-
-                var rawTextFromGoogle = await response.Content.ReadAsStringAsync();
-                Console.WriteLine("Raw response from Gemini API: " + rawTextFromGoogle);
-
-                var result = JsonSerializer.Deserialize<GeminiResponse>(rawTextFromGoogle, _jsonOptions);
-
-                var outputStep = result?.Steps?.FirstOrDefault(s => s.Type == "model_output");
+                var outputStep = result.Steps?.FirstOrDefault(s => s.Type == "model_output");
                 var rawJson = outputStep?.Content?.FirstOrDefault(c => c.Type == "text")?.Text;
 
                 if (string.IsNullOrEmpty(rawJson)) return new List<FlashcardContextDTO>();
@@ -211,10 +216,11 @@ namespace Services
 
                 if (contextDtos != null)
                 {
-                    var sanitizer = new HtmlSanitizer(); //to prevent XSS attacks, allow only <strong> tags and no other attributes
+                    // Sanitize HTML output to prevent XSS attacks, allowing only <strong> tags
+                    var sanitizer = new HtmlSanitizer();
                     sanitizer.AllowedTags.Clear();
                     sanitizer.AllowedTags.Add("strong");
-                    sanitizer.AllowedAttributes.Clear(); // no other attributes allowed
+                    sanitizer.AllowedAttributes.Clear();
 
                     foreach (var dto in contextDtos)
                     {
@@ -227,10 +233,35 @@ namespace Services
             }
             catch (Exception ex)
             {
-                _logger.LogError(ex, "Error occurred while generating Gemini hint for term: '{Term}'", flashcard.Term);
+                _logger.LogError(ex, "Error occurred while generating contexts for term: '{Term}'", flashcard.Term);
                 return null;
             }
         }
+    }
+
+    // Response models and DTOs
+    public class GeneratedAiSetResponse
+    {
+        [JsonPropertyName("Name")]
+        public required string Name { get; set; }
+
+        [JsonPropertyName("Description")]
+        public required string Description { get; set; }
+
+        [JsonPropertyName("Flashcards")]
+        public required List<FlashcardDTO> Flashcards { get; set; }
+    }
+
+    public class GeminiUsage
+    {
+        [JsonPropertyName("promptTokenCount")]
+        public int PromptTokens { get; set; }
+
+        [JsonPropertyName("candidatesTokenCount")]
+        public int CandidatesTokens { get; set; }
+
+        [JsonPropertyName("totalTokenCount")]
+        public int TotalTokens { get; set; }
     }
 
     public class GeminiResponse
@@ -243,6 +274,9 @@ namespace Services
 
         [JsonPropertyName("steps")]
         public List<GeminiStep>? Steps { get; set; }
+
+        [JsonPropertyName("usageMetadata")]
+        public GeminiUsage? Usage { get; set; }
     }
 
     public class GeminiStep

@@ -52,12 +52,7 @@ export default function SetDetailsLayout({
     <>
       <div className="set-details-page">
         <SetHeader
-          setId={setId}
-          title={setInfo?.name}
-          description={setInfo?.description}
-          flashcardsCount={setInfo?.flashcardsCount}
-          tags={setInfo?.categories}
-          lastUpdatedAt={setInfo?.lastUpdatedAt}
+          setInfo={setInfo}
           backHref={backHref}
           backLabel={backLabel}
           isMine={isMine}

@@ -283,6 +283,15 @@ namespace Services
             if (set == null) throw new NotFoundException("Сет не знайдено");
             return set.UserId == userId;
         }
+        public async Task MarkSetAsGenerated(int setId)
+        {
+            var set = await _unitOfWork.Sets.GetByIdAsync(setId);
+            if (set != null)
+            {
+                set.IsGenerated = true;
+                await _unitOfWork.SaveChangesAsync();
+            }
+        }
         public IEnumerable<object> GetSetTypes()
         {
             return Enum.GetValues(typeof(SetType))

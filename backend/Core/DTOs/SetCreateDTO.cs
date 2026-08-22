@@ -13,8 +13,8 @@ namespace Core.DTOs
         public string? Description { get; set; }
 
         public SetType Type { get; set; } 
-        public string? FromLang { get; set; }
-        public string? ToLang { get; set; }
+        public required string FromLang { get; set; }
+        public required string ToLang { get; set; }
         public bool IsPublic { get; set; }
     }
 }
