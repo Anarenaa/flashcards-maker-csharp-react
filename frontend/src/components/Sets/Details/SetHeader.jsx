@@ -35,11 +35,11 @@ export default function SetHeader({
 
   const removeCategoryMutation = useMutation({
     mutationFn: (catId) =>
-      api.post(`my-sets/${setId}/remove-category`, null, {
+      api.post(`my-sets/${setInfo.id}/remove-category`, null, {
         params: { categoryId: catId },
       }),
     onSuccess: () => {
-      queryClient.invalidateQueries(["setInfo", setId]);
+      queryClient.invalidateQueries(["setInfo", setInfo.id]);
     },
     onError: (error) => {
       const errorMessage =
@@ -75,14 +75,12 @@ export default function SetHeader({
               {setInfo.categories.map((tag) => (
                 <span key={tag.id} className="set-header__tag">
                   {tag.name}
-                  <button>
-                    <X
-                      size={18}
-                      className="icon"
-                      onClick={() => {
-                        removeCategoryMutation.mutate(tag.id);
-                      }}
-                    />
+                  <button
+                    onClick={() => {
+                      removeCategoryMutation.mutate(tag.id);
+                    }}
+                  >
+                    <X size={18} className="icon" />
                   </button>
                 </span>
               ))}

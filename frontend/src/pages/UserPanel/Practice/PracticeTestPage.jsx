@@ -1,5 +1,4 @@
 import { PRACTICE_MODES } from "../../../constants/practiceConstants";
-import React from "react";
 import {
   useParams,
   useSearchParams,
@@ -7,13 +6,13 @@ import {
   useNavigate,
 } from "react-router";
 import { ArrowLeft, AlertCircle } from "lucide-react";
-import { usePracticeCards } from "../../../hooks/usePracticeCards";
+import { useFlashcards } from "../../../hooks/useFlashcards";
 import { usePracticeSession } from "../../../hooks/usePracticeSession";
 import { useUrlPagination } from "../../../hooks/useUrlPagination";
 import PracticeSummary from "../../../components/Practice/PracticeSummary";
 import TaskRenderer from "../../../components/Practice/TaskRenderer";
-import "./PracticeTestPage.scss";
 import Loader from "../../../components/Shared/Loader";
+import "./PracticeTestPage.scss";
 
 export default function PracticeTestPage() {
   const { id: setId } = useParams();
@@ -34,7 +33,7 @@ export default function PracticeTestPage() {
     isError: isCardsError,
     refetch: refetchCards,
     pagination,
-  } = usePracticeCards( setId, page, pageSize, undefined, {
+  } = useFlashcards( setId, page, pageSize, undefined, {
     keepPrevious: false,
   });
 

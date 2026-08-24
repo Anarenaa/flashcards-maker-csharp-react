@@ -1,47 +1,30 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { useQuery } from "@tanstack/react-query";
 import api from "../services/api";
-import { usePracticeCards } from "./usePracticeCards";
+import { useFlashcards } from "./useFlashcards";
 
 const PAGE_SIZE_OPTIONS = [5, 10, 15, 20, 25, "all"];
 
-export function useSetDetails(
-  endpoint,
-  setId,
-  initialPage,
-  initialPageSize,
-  // optional options object (not a positional bool) so calls
-  // stay self-documenting and easy to extend later; the outer `= {}` lets callers omit
-  // the whole options argument without a "cannot destructure undefined" crash.
-  // (used by Practice pages, where page changes via setSearchParams without a remount).
-  { keepPrevious = true, controlled = false } = {},
-) {
-  const [internalPage, setInternalPage] = useState(Number(initialPage) || 1);
-  const [internalPageSize, setInternalPageSize] = useState(initialPageSize || 10);
-
-  const page = controlled ? Number(initialPage) || 1 : internalPage;
-  const pageSize = controlled ? initialPageSize || 10 : internalPageSize;
+export function useSetDetails(endpoint, setId, initialPage, initialPageSize) {
+  const [page, setPage] = useState(Number(initialPage) || 1);
+  const [pageSize, setPageSize] = useState(initialPageSize || 10);
 
   const { data: setInfo, isLoading: isSetInfoLoading } = useQuery({
     queryKey: ["setInfo", endpoint, setId],
     queryFn: () => api.get(`${endpoint}/${setId}`).then((res) => res.data),
   });
 
-  // paginatedFlashcards via usePracticeCards
   const {
     cards,
     isLoading: isCardsLoading,
     isFetching,
     pagination,
-  } = usePracticeCards( setId, page, pageSize, setInfo?.flashcardsCount, { keepPrevious });
+  } = useFlashcards(setId, page, pageSize, setInfo?.flashcardsCount, { keepPrevious: true });
 
-  // Only relevant in uncontrolled mode (SetDetailsLayout). In controlled mode the caller
-  // owns page/pageSize via the URL, so these are no-ops — Practice pages don't use them.
   const changePageSize = useCallback((value) => {
-    if (controlled) return;
-    setInternalPageSize(value);
-    setInternalPage(1);
-  }, [controlled]);
+    setPageSize(value);
+    setPage(1);
+  }, []);
 
   const isFirstRender = useRef(true);
   useEffect(() => {
@@ -54,15 +37,14 @@ export function useSetDetails(
 
   const handlePageChange = useCallback(
     (direction) => {
-      if (controlled) return;
-      document.activeElement?.blur(); //зняли фокус з кнопки (- конфлікт скрола і рендера)
-      setInternalPage((prevPage) => {
+      document.activeElement?.blur();
+      setPage((prevPage) => {
         if (direction === "prev" && pagination.hasPrev) return prevPage - 1;
         if (direction === "next" && pagination.hasNext) return prevPage + 1;
         return prevPage;
       });
     },
-    [controlled, pagination.hasPrev, pagination.hasNext],
+    [pagination.hasPrev, pagination.hasNext],
   );
 
   return {

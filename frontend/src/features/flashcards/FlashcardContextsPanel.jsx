@@ -3,7 +3,7 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useRef, useState } from "react";
 import { useParams } from "react-router";
 import { ModalWrapper } from "../../components/Shared/ModalWrapper";
-import FlashcardContextsForm from "./FlashcardContextForm";
+import FlashcardContextForm from "./FlashcardContextForm";
 import PronounceButton from "../../components/Shared/PronounceButton";
 import Loader from "../../components/Shared/Loader";
 import ConfirmModal from "../../components/Shared/ConfirmModal";
@@ -163,7 +163,7 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
         </div>
       </ModalWrapper>
       {isFormOpen && (
-        <FlashcardContextsForm
+        <FlashcardContextForm
           isOpen={isFormOpen}
           onClose={() => {
             setIsFormOpen(false);

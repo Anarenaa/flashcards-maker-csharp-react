@@ -1,7 +1,7 @@
 import { useQuery, keepPreviousData } from "@tanstack/react-query";
 import api from "../services/api";
 
-export function usePracticeCards( setId, page, pageSize, flashcardsCount, { keepPrevious = true } = {}) {
+export function useFlashcards( setId, page, pageSize, flashcardsCount, { keepPrevious = true } = {}) {
   const { data, isLoading, isFetching, isError, refetch } = useQuery({
     queryKey: ["setCards", setId, page, pageSize],
     queryFn: () =>

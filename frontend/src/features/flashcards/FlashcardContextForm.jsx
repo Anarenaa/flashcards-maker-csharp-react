@@ -21,7 +21,7 @@ const contextSchema = z.object({
     .max(100, "Занадто багато символів"),
 });
 
-export default function FlashcardContextsForm({
+export default function FlashcardContextForm({
   isOpen,
   onClose,
   card,

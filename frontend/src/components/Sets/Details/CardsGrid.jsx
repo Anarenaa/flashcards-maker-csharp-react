@@ -1,8 +1,8 @@
 import React from "react";
-import { BookPlus, Loader2, Sparkles } from "lucide-react";
+import { Sparkles } from "lucide-react";
 import CardTile from "./CardTile";
-import "./CardsGrid.scss";
 import Loader from "../../Shared/Loader";
+import "./CardsGrid.scss";
 
 function CardsGrid({
   cards,
