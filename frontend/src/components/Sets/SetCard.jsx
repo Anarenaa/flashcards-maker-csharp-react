@@ -3,8 +3,8 @@ import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCardsCountLabel } from "../../utils/getCardsCountLabel";
 import { formatLocalDate } from "../../utils/formatLocalDate";
-import { MoreVertical } from "lucide-react";
 import toast from "react-hot-toast";
+import DefaultProfileImage from "../Profile/DefaultProfileImage";
 import ActionsDropdown from "../Shared/ActionsDropdown";
 import SetForm from "../../features/sets/SetForm";
 import ConfirmModal from "../Shared/ConfirmModal";
@@ -54,10 +54,10 @@ export default function SetCard({ set, isMine }) {
                 {set.avatarUrl ? (
                   <img src={set.avatarUrl} alt={set.userName} />
                 ) : (
-                  <span>👤</span>
+                  <DefaultProfileImage />
                 )}
               </div>
-              <span className="author-name">Автор: {set.userName}</span>
+              <span className="author-name">{set.userName}</span>
             </div>
           )}
           <h3 className="set-card__title">

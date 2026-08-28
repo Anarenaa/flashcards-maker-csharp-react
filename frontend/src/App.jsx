@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import { Route, Routes, useNavigate } from "react-router";
 import { Toaster } from "react-hot-toast";
+import { useQuery } from "@tanstack/react-query";
 import api from "./services/api";
 import Loader from "./components/Shared/Loader";
 import Layout from "./components/Layouts/Layout";
@@ -22,22 +23,26 @@ import PracticeTestPage from "./pages/UserPanel/Practice/PracticeTestPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
-  const [currentUser, setCurrentUser] = useState(null);
   const navigate = useNavigate();
+
+  const { data: user, isLoading: isUserLoading } = useQuery({
+    queryKey: ["my-profile"],
+    queryFn: () => api.get("users/me").then((res) => res.data),
+    staleTime: Infinity,
+    enabled: !!isAuth,
+  });
 
   useEffect(() => {
     const checkUser = async () => {
       try {
         const res = await api.get("/auth/me", { skipErrorToast: true });
+        setIsAuth(res.data);
 
-        setCurrentUser(res.data); // { id, role, username, avatarUrl, email }
-        setIsAuth(true);
-
+        // redirect authenticated users from the root path to /main so the browser URL matches the page
         if (window.location.pathname === "/") {
           navigate("/main", { replace: true });
         }
       } catch (error) {
-        setCurrentUser(null);
         setIsAuth(false);
       }
     };
@@ -45,7 +50,7 @@ function App() {
     checkUser();
   }, []);
 
-  if (isAuth === null) {
+  if (isAuth === null || (isAuth === true && isUserLoading)) {
     return (
       <Loader
         loadingText="Завантаження додатка..."
@@ -66,11 +71,11 @@ function App() {
         <Route path="email-sent" element={<EmailSentPage />} />
         <Route path="change-password" element={<ChangePassword />} />
 
-        <Route element={<Layout currentUser={currentUser} />}>
+        <Route element={<Layout currentUser={user} />}>
           <Route path="main" element={<MainPage />} />
           <Route path="my-sets" element={<MySetsPage />} />
           <Route path="my-collections" element={<MyCollectionsPage />} />
-          <Route path="my-profile" element={<MyProfilePage />} />
+          <Route path="my-profile" element={<MyProfilePage currentUser={user} />} />
           <Route path="settings" element={<SettingsPage />} />
         </Route>
 

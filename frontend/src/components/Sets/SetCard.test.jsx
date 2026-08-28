@@ -105,7 +105,7 @@ it("should render public set of another user with author info, progress, instead
     "Чужий публічний сет",
   );
   expect(container.querySelector(".author-name").textContent).toContain(
-    "Автор: ivan",
+    "ivan",
   );
   expect(container.textContent).toContain("20%");
   expect(container.querySelector(".progress-fill").style.width).toBe("20%");

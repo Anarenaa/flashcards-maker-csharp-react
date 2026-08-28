@@ -35,6 +35,7 @@ namespace Services
                 FromLang = s.FromLang,
                 ToLang = s.ToLang,
                 FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                UserId = s.UserId,
                 AvatarUrl = s.User?.AvatarUrl,
                 UserName = s.User?.UserName,
                 IsPublic = s.IsPublic,
@@ -253,7 +254,7 @@ namespace Services
             bool alreadyExists = await _unitOfWork.Collections
                 .AnySetInCollectionAsync(collectionId, setId);
 
-            if (alreadyExists) throw new BadHttpRequestException("Сет вже доданий до колекції");
+            if (alreadyExists) throw new InvalidOperationException("Сет вже доданий до колекції");
 
             var collection = await _unitOfWork.Collections.GetByIdAsync(collectionId);
             if (collection == null) throw new NotFoundException("Колекцію не знайдено");

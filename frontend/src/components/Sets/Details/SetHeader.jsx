@@ -41,13 +41,6 @@ export default function SetHeader({
     onSuccess: () => {
       queryClient.invalidateQueries(["setInfo", setInfo.id]);
     },
-    onError: (error) => {
-      const errorMessage =
-        error.response?.data?.message || error.response?.data;
-      toast.error(
-        typeof errorMessage === "string" ? errorMessage : "Сталася помилка",
-      );
-    },
   });
 
   return (

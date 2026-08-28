@@ -183,18 +183,11 @@ namespace WebAPI.Controllers
             var user = await _userManager.FindByIdAsync(userIdClaim.Value);
             if (user == null)
             {
-                return NotFound(new { message = "Користувача не знайдено" });
+                throw new KeyNotFoundException("Користувача не знайдено");
             }
             var userRoles = await _userManager.GetRolesAsync(user);
 
-            return Ok(new
-            {
-                id = user.Id,
-                role = userRoles.FirstOrDefault() ?? "User",
-                avatarUrl = user.AvatarUrl,
-                username = user.UserName,
-                email = user.Email
-            });
+            return Ok(true);
         }
 
         [HttpGet("google-login")]

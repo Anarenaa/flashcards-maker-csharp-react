@@ -8,7 +8,6 @@ public interface IPracticeService
     Task ResetSetProgressAsync(int userId, int setId);
     Task ResetBatchCardProgressAsync(int userId, List<int> flashcardIds);
     Task<float> GetOverallProgressForFlashcardsBatch(int userId, List<int> flashcardIds);
-    Task<UserProgressDTO> GetUserProgressAsync(int userId);
     Task<bool> CheckAnswerAsync(int flashcardId, string userAnswer, PracticeActivityType activityType, bool isReversed);
     Task<List<int>> SavePracticeResultsAsync(int userId, List<PracticeResultDTO> results);
 }

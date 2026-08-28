@@ -1,4 +1,5 @@
-﻿using Core.Context;
+﻿using System.Linq.Expressions;
+using Core.Context;
 using Core.Models;
 using Microsoft.EntityFrameworkCore;
 using Repositories.Interfaces;
@@ -8,9 +9,16 @@ namespace Repositories
     public class SetRepository : Repository<Set>, ISetRepository
     {
         public SetRepository(BaseDataContext context) : base(context) { }
-        public async Task<int> GetUserSetsCount(int userId)
+        public async Task<int> GetUserSetsCount(int userId, Expression<Func<Set, bool>>? filter = null)
         {
-            return await _dbSet.CountAsync(s => s.UserId == userId);
+            var query = _dbSet.Where(s => s.UserId == userId);
+
+            if (filter != null)
+            {
+                query = query.Where(filter);
+            }
+
+            return await query.CountAsync();
         }
         public async Task DeleteUserSets(int userId)
         {

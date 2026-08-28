@@ -40,10 +40,6 @@ namespace Services.Practice
         {
             await _progressService.ResetBatchCardProgressAsync(userId, flashcardIds);
         }
-        public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
-        {
-            return await _progressService.GetUserProgressAsync(userId);
-        }
 
         public async Task<bool> CheckAnswerAsync(int flashcardId, string userAnswer, PracticeActivityType activityType, bool isReversed)
         {

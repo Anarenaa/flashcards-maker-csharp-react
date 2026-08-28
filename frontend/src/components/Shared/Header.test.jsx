@@ -11,11 +11,11 @@ describe("Base Interaction and API (Logout/Routing)", () => {
   let burgerButton;
 
   beforeEach(() => {
-    const mockUser = { role: "User", username: "Anastasiia" };
+    const mockUser = { roles: ["User"], username: "Anastasiia" };
     const rendered = render(
       <BrowserRouter>
         <Header currentUser={mockUser} />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
     container = rendered.container;
     headerElement = container.querySelector(".header");
@@ -52,7 +52,7 @@ describe("Base Interaction and API (Logout/Routing)", () => {
       expect(headerElement).not.toHaveClass("header--open");
     });
   });
-  
+
   it("should successfully call logout API and handle window reload on submit", async () => {
     let apiCalled = false;
 
@@ -60,14 +60,14 @@ describe("Base Interaction and API (Logout/Routing)", () => {
       http.post("*/api/auth/logout", () => {
         apiCalled = true;
         return HttpResponse.json({ message: "Вихід успішний" });
-      })
+      }),
     );
 
     const fakeLocation = { href: "http://localhost:5173" };
     vi.stubGlobal("location", fakeLocation);
 
     const logoutForm = container.querySelector(".header__logout-form");
-    
+
     // Trigger submit and wait for the async execution
     fireEvent.submit(logoutForm);
 
@@ -84,29 +84,29 @@ describe("Base Interaction and API (Logout/Routing)", () => {
 describe("User Role Navigation and Profile", () => {
   it("should render links and a custom avatar specifically for the User role", () => {
     const mockUser = {
-      role: "User",
+      roles: ["User"],
       username: "Anastasiia",
-      avatarUrl: "https://example.com/avatar.jpg"
+      avatarUrl: "https://example.com/avatar.jpg",
     };
 
     const { container } = render(
       <BrowserRouter>
         <Header currentUser={mockUser} />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
 
     const links = container.querySelectorAll(".header__link");
-    const linksText = Array.from(links).map(link => link.textContent.trim());
-    
+    const linksText = Array.from(links).map((link) => link.textContent.trim());
+
     expect(linksText).toContain("Головна");
     expect(linksText).toContain("Мої сети");
     expect(linksText).toContain("Мої колекції");
     expect(linksText).toContain("Профіль");
     expect(linksText).toContain("Налаштування");
-    
+
     // Check if the admin links are not here
     expect(linksText).not.toContain("Скарги");
-    
+
     // Check avatar
     const avatarImg = container.querySelector(".header__nav-avatar-mini img");
     expect(avatarImg).not.toBeNull();
@@ -114,17 +114,18 @@ describe("User Role Navigation and Profile", () => {
   });
 
   it("should fall back to default profile icon if avatarUrl is missing", () => {
-    const userWithoutAvatar = { role: "User", username: "Anastasiia" };
-    
+    const userWithoutAvatar = { roles: ["User"], username: "Anastasiia" };
+
     const { container } = render(
       <BrowserRouter>
         <Header currentUser={userWithoutAvatar} />
-      </BrowserRouter>
+      </BrowserRouter>,
     );
-    
-    const fallbackAvatar = container.querySelector(".header__nav-avatar-mini span");
+
+    const fallbackAvatar = container.querySelector(
+      ".header__nav-avatar-mini img",
+    );
     expect(fallbackAvatar).not.toBeNull();
-    expect(fallbackAvatar.textContent).toBe("👤");
   });
 
   //Add admin panel testing

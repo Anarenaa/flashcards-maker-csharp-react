@@ -37,61 +37,6 @@ namespace Services.Practice
 
             return flashcardIds.Sum(id => progresses.GetValueOrDefault(id, 0f)) / flashcardIds.Count;
         }
-        public async Task<UserProgressDTO> GetUserProgressAsync(int userId)
-        {
-            var user = await _userManager.FindByIdAsync(userId.ToString());
-            if (user == null)
-                return new UserProgressDTO { UserId = userId };
-
-            // Отримуємо всі прогреси користувача (з усіх сетів, які він практикував)
-            var allCardProgresses = await _unitOfWork.Practice.GetAllUserProgressAsync(userId);
-            if (!allCardProgresses.Any())
-                return new UserProgressDTO { UserId = userId };
-
-            // Групуємо по сетах
-            var setProgresses = new List<SetProgressSummary>();
-            var setGroups = allCardProgresses.GroupBy(cp => cp.Flashcard.SetId);
-
-            foreach (var setGroup in setGroups)
-            {
-                var setCardProgresses = setGroup.ToList();
-                var setOverallProgress = setCardProgresses.Average(cp => cp.Progress);
-                var setMasteredCards = setCardProgresses.Count(cp => cp.Progress >= 1.0f);
-
-                setProgresses.Add(new SetProgressSummary
-                {
-                    SetId = setGroup.Key,
-                    Progress = setOverallProgress,
-                    MasteredCards = setMasteredCards
-                });
-            }
-
-            // Розраховуємо загальну статистику по всіх пройдених картах
-            var practicedCards = allCardProgresses.Count;
-            var overallProgress = allCardProgresses.Average(cp => cp.Progress);
-            var masteredCards = allCardProgresses.Count(cp => cp.Progress >= 1.0f);
-            var inProgressCards = allCardProgresses.Count(cp => cp.Progress >= 0.1f && cp.Progress < 1.0f);
-            var notStartedCards = allCardProgresses.Count(cp => cp.Progress < 0.1f);
-
-            // Отримуємо статистику активності
-            var lastActivity = allCardProgresses.Any() ? allCardProgresses.Max(cp => cp.LastReview) : DateTime.MinValue;
-            var totalPracticeSessions = allCardProgresses.Count(cp => cp.LastReview > DateTime.MinValue);
-
-            return new UserProgressDTO
-            {
-                UserId = userId,
-                SetProgresses = setProgresses,
-                PracticedSets = setProgresses.Count,
-                CompletedSets = setProgresses.Count(sp => sp.IsCompleted),
-                PracticedCards = practicedCards,
-                MasteredCards = masteredCards,
-                InProgressCards = inProgressCards,
-                NotStartedCards = notStartedCards,
-                OverallProgress = overallProgress,
-                LastActivity = lastActivity,
-                TotalPracticeSessions = totalPracticeSessions,
-            };
-        }
 
         public async Task<List<int>> SavePracticeResultsAsync(int userId, List<PracticeResultDTO> results)
         {

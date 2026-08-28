@@ -4,7 +4,6 @@ using System.Text;
 using App.Configuration;
 using Core.Context;
 using Core.DTOs;
-using Core.Exceptions;
 using Core.Models;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -331,15 +330,15 @@ app.Use(async (context, next) =>
     {
         await next();
     }
-    catch (KeyNotFoundException ex)
-    {
-        context.Response.StatusCode = StatusCodes.Status404NotFound;
-        context.Response.ContentType = "application/json";
-        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
-    }
     catch (InvalidOperationException ex)
     {
         context.Response.StatusCode = StatusCodes.Status400BadRequest;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+    }
+    catch (KeyNotFoundException ex)
+    {
+        context.Response.StatusCode = StatusCodes.Status404NotFound;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(new { message = ex.Message });
     }

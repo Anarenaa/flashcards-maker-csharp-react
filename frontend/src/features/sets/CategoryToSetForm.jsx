@@ -22,13 +22,6 @@ export default function CategoryToSetForm({ isOpen, onClose, setId }) {
       toast.success("Категорію успішно додано");
       onClose();
     },
-    onError: (error) => {
-      const errorMessage =
-        error.response?.data?.message || error.response?.data;
-      toast.error(
-        typeof errorMessage === "string" ? errorMessage : "Сталася помилка",
-      );
-    },
   });
 
   const handleSubmit = (e) => {

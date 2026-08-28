@@ -32,10 +32,17 @@ api.interceptors.response.use(
         "Не вдалося з'єднатися з сервером. Можливо, ведуться технічні роботи.";
     } else {
       const status = error.response.status;
+      const errorData = error.response.data;
 
       const isAuthCheck = error.config?.url?.includes("/auth/me");
 
-      if (status === 401 && !isAuthCheck) {
+      if (status === 400) {
+        if (typeof errorData === "string") {
+          error.globalMessage = errorData;
+        } else if (errorData?.message) {
+          error.globalMessage = errorData.message;
+        }
+      } else if (status === 401 && !isAuthCheck) {
         window.location.href = "/login";
       } else if (status === 403) {
         window.location.href = "/not-allowed";

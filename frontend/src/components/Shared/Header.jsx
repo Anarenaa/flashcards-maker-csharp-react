@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { NavLink, useLocation, useNavigate } from "react-router";
 import { Menu, X } from "lucide-react";
+import DefaultProfileImage from "../Profile/DefaultProfileImage";
 import api from "../../services/api";
 import "./Header.scss";
 
@@ -58,7 +59,7 @@ export default function Header({ currentUser }) {
       <div className="header__line"></div>
       <nav className="header__nav">
         <ul className="header__menu-list">
-          {currentUser?.role === "Admin" && (
+          {currentUser?.roles?.includes("Admin") && (
             <>
               <li className="header__nav-btn">
                 <NavLink to="/admin/complaints" className="header__link">
@@ -83,7 +84,7 @@ export default function Header({ currentUser }) {
             </>
           )}
 
-          {currentUser?.role === "User" && (
+          {currentUser?.roles?.includes("User") && (
             <>
               <li className="header__nav-btn">
                 <NavLink to="/main" className="header__link">
@@ -107,9 +108,9 @@ export default function Header({ currentUser }) {
                 >
                   <div className="header__nav-avatar-mini">
                     {currentUser?.avatarUrl ? (
-                      <img src={currentUser.avatarUrl} alt="Avatar" />
+                      <img src={currentUser?.avatarUrl} alt="Avatar" />
                     ) : (
-                      <span>👤</span>
+                      <DefaultProfileImage />
                     )}
                   </div>
                   Профіль
