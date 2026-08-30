@@ -20,6 +20,8 @@ import SetDetailsPage from "./pages/UserPanel/Sets/SetDetailsPage";
 import MySetDetailsPage from "./pages/UserPanel/Sets/MySetDetailsPage";
 import PracticeMapPage from "./pages/UserPanel/Practice/PracticeMapPage";
 import PracticeTestPage from "./pages/UserPanel/Practice/PracticeTestPage";
+import UserProfilePage from "./pages/UserPanel/UserProfile/UserProfilePage";
+import UserSetsPage from "./pages/UserPanel/UserProfile/UserSetsPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
@@ -93,6 +95,11 @@ function App() {
             <Route index element={<PracticeMapPage />} />
             <Route path="test" element={<PracticeTestPage />} />
           </Route>
+        </Route>
+
+        <Route path="users">
+          <Route path=":id" element={<UserProfilePage />} />
+          <Route path=":id/sets" element={<UserSetsPage />} />
         </Route>
       </Routes>
     </>

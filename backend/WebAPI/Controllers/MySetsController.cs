@@ -34,7 +34,7 @@ namespace WebAPI.Controllers
             var pagedResult = await _setService.GetAllUserSetsPagedAsync(
                 page: page,
                 perPage: perPage,
-                currentUserId: UserId,
+                userId: UserId,
                 categoryId: categoryId,
                 setType: setType,
                 fromLangCode: fromLangCode,

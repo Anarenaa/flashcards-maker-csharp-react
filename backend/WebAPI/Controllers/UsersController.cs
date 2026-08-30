@@ -17,7 +17,7 @@ namespace WebAPI.Controllers
         [HttpGet("me")]
         public async Task<IActionResult> GetCurrentUser()
         {
-            var user = await _userService.GetUserAsync(UserId);
+            var user = await _userService.GetUserAsync(UserId, UserId);
             if (user == null)
             {
                 return NotFound();

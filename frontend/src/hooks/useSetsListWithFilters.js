@@ -4,7 +4,7 @@ import api from "../services/api";
 import { useSetTypes } from "./useSetTypes";
 import { useCategories } from "./useCategories";
 
-export function useSetsList(endpoint) {
+export function useSetsListWithFilters(endpoint) {
   const [filters, setFilters] = useState({
     searchText: "",
     categoryId: "",
@@ -30,7 +30,7 @@ export function useSetsList(endpoint) {
   // щоб keystroke НЕ впливав на queryKey і НЕ тригерив автофетч.
   const queryFilters = { ...filters, searchText: appliedSearchText };
 
-  const { data, isLoading, isFetching } = useQuery({
+  const { data, isLoading, isFetching, isError } = useQuery({
     queryKey: ["sets", endpoint, queryFilters, page],
     queryFn: ({ signal }) =>
       api
@@ -126,6 +126,7 @@ export function useSetsList(endpoint) {
     sets,
     isLoading,
     isFetching,
+    isError,
     categories,
     types,
     filters,

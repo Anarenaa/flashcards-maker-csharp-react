@@ -1,10 +1,13 @@
 import { useParams } from "react-router";
 import { useUrlPagination } from "../../../hooks/useUrlPagination";
+import { useHandleBackLink } from "../../../utils/useHandleBackLink";
 import SetDetailsLayout from "../../../components/Layouts/SetDetailsLayout";
 
 export default function MySetDetailsPage() {
   const { id } = useParams();
   const { page, pageSize, setPaginationParams } = useUrlPagination();
+
+  const handleBack = useHandleBackLink("/my-sets");
 
   return (
     <SetDetailsLayout
@@ -14,7 +17,7 @@ export default function MySetDetailsPage() {
       initialPageSize={pageSize}
       onParamsChange={setPaginationParams}
       isMine={true}
-      backHref="/my-sets"
+      onBack={handleBack}
       backLabel="Назад до моїх сетів"
       onPracticeLink={`/my-sets/${id}/practice`}
     />

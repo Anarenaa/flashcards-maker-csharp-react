@@ -1,3 +1,7 @@
+.overtop {
+  position: absolute;
+  z-index: 50;
+}
 .set-card-wrapper {
   position: relative;
   transition: all 0.3s ease;
@@ -9,23 +13,6 @@
       box-shadow: 0 10px 20px rgba(0, 0, 0, 0.4);
     }
   }
-}
-.set-card-actions {
-  position: absolute;
-  z-index: 50;
-  top: 1.5rem;
-  right: 0.9rem;
-}
-.set-card {
-  color: var(--accent-white);
-  background-color: var(--component-bg);
-  border: 1px solid var(--component-border);
-  border-radius: 0.75rem;
-  padding: 1.5rem;
-  min-height: 240px;
-  display: flex;
-  flex-direction: column;
-  cursor: pointer;
 
   .privacy-status {
     display: block;
@@ -35,6 +22,9 @@
     font-weight: 500;
     max-width: 100px;
     margin-bottom: 0.5rem;
+
+    top: 1.4rem;
+    left: 1.5rem;
 
     &.public {
       color: color-mix(in srgb, var(--accent-color) 80%, white);
@@ -55,6 +45,9 @@
     gap: 0.6rem;
     margin-bottom: 0.75rem;
 
+    top: 1.4rem;
+    left: 1.5rem;
+
     .author-avatar-mini {
       width: 1.75rem;
       height: 1.75rem;
@@ -72,7 +65,7 @@
         height: 100%;
         object-fit: cover;
       }
-      svg{
+      svg {
         color: #333;
       }
     }
@@ -80,8 +73,32 @@
     .author-name {
       font-size: 0.85rem;
       opacity: 0.6;
+      transition: opacity 0.3s;
+
+      &:hover{
+        opacity: 1;
+      }
     }
   }
+
+  .set-card-actions {
+    top: 1.5rem;
+    right: 0.9rem;
+  }
+}
+.set-card {
+  color: var(--accent-white);
+  background-color: var(--component-bg);
+  border: 1px solid var(--component-border);
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+  .set-card-wrapper:has(.overtop) & {
+    padding-top: 3.5rem;
+  }
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  cursor: pointer;
 
   &__title {
     margin: 0 0 8px 0;
@@ -91,8 +108,8 @@
     line-height: 1.5rem;
 
     display: -webkit-box;
-    -webkit-line-clamp: 2;
-    line-clamp: 2;
+    -webkit-line-clamp: 1;
+    line-clamp: 1;
     -webkit-box-orient: vertical;
     overflow: hidden;
   }

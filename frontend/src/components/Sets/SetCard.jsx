@@ -1,4 +1,4 @@
-import { NavLink } from "react-router";
+import { NavLink, useLocation } from "react-router";
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { getCardsCountLabel } from "../../utils/getCardsCountLabel";
@@ -11,12 +11,13 @@ import ConfirmModal from "../Shared/ConfirmModal";
 import api from "../../services/api";
 import "./SetCard.scss";
 
-export default function SetCard({ set, isMine }) {
+export default function SetCard({ set, isMine, withTop = true }) {
   const baseLink = isMine ? `/my-sets/${set.id}` : `/sets/${set.id}`;
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [deletingSetId, setDeletingSetId] = useState(null);
 
   const queryClient = useQueryClient();
+  const location = useLocation();
 
   const deleteMutation = useMutation({
     mutationFn: (setId) => api.delete(`/my-sets/${setId}`),
@@ -32,24 +33,14 @@ export default function SetCard({ set, isMine }) {
   return (
     <>
       <div className="set-card-wrapper">
-        {isMine && (
-          <div className="set-card-actions">
-            <ActionsDropdown
-              onEdit={() => setIsEditModalOpen(true)}
-              onDelete={() => setDeletingSetId(set.id)}
-              disabled={deleteMutation.isPending}
-            />
-          </div>
-        )}
-        <NavLink className="set-card" to={`${baseLink}?page=1&pageSize=10`}>
-          {isMine ? (
+        {withTop && isMine ? (
             <span
-              className={`privacy-status ${set.isPublic ? "public" : "private"}`}
+              className={`privacy-status ${set.isPublic ? "public" : "private"} overtop`}
             >
               {set.isPublic ? "🌐 Публічний" : "🔒 Приватний"}
             </span>
-          ) : (
-            <div className="author-wrapper">
+          ) : withTop ? (
+            <NavLink to={`/users/${set.userId}`} className="author-wrapper overtop">
               <div className="author-avatar-mini">
                 {set.avatarUrl ? (
                   <img src={set.avatarUrl} alt={set.userName} />
@@ -58,8 +49,23 @@ export default function SetCard({ set, isMine }) {
                 )}
               </div>
               <span className="author-name">{set.userName}</span>
-            </div>
-          )}
+            </NavLink>
+          ) : null}
+        {isMine && (
+          <div className="set-card-actions overtop">
+            <ActionsDropdown
+              onEdit={() => setIsEditModalOpen(true)}
+              onDelete={() => setDeletingSetId(set.id)}
+              disabled={deleteMutation.isPending}
+            />
+          </div>
+        )}
+        <NavLink
+          className="set-card"
+          to={`${baseLink}?page=1&pageSize=10`}
+          state={{ from: location.pathname }}
+        >
+          
           <h3 className="set-card__title">
             {set.name}
             {set.isGenerated && <span>{"\u2728"}</span>}

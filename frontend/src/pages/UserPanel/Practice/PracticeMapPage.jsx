@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { ArrowLeft, RefreshCcw, Trash } from "lucide-react";
 import { useSetDetails } from "../../../hooks/useSetDetails";
 import { useUrlPagination } from "../../../hooks/useUrlPagination";
+import { useHandleBackLink } from "../../../utils/useHandleBackLink";
 import PracticeNode from "../../../components/Practice/PracticeNode";
 import ResetProgressModal from "../../../features/practice/ResetProgressModal";
 import api from "../../../services/api";
@@ -54,6 +55,12 @@ export default function PracticeMapPage() {
   };
   const backNav = getBackNavigation();
 
+  // Use real browser history navigation (with a fallback), same as SetHeader,
+  // instead of always pushing a fresh entry — pushing here was fighting with
+  // navigate(-1) on the set details page, causing an infinite back-and-forth
+  // ping-pong between the two pages.
+  const handleBack = useHandleBackLink(backNav.url);
+
   const flashcardIds = flashcards.map((f) => f.id);
 
   const { data: progressData, isLoading: isProgressLoading } = useQuery({
@@ -80,11 +87,14 @@ export default function PracticeMapPage() {
   });
 
   const handleToggleReverse = () => {
-    setSearchParams({
-      page,
-      pageSize,
-      isReversed: !isReversed,
-    });
+    setSearchParams(
+      {
+        page,
+        pageSize,
+        isReversed: !isReversed,
+      },
+      { replace: true },
+    );
   };
 
   const queryClient = useQueryClient();
@@ -102,7 +112,7 @@ export default function PracticeMapPage() {
     },
     onError: (error) => {
       toast.error("Не вдалося скинути прогрес.", {
-        className: "toast-error"
+        className: "toast-error",
       });
     },
   });
@@ -117,11 +127,7 @@ export default function PracticeMapPage() {
         <p className="title">На цій сторінці немає карток.</p>
         <button
           className="primary-button"
-          onClick={() =>
-            navigate(
-              `${endpoint}/${setId}`,
-            )
-          }
+          onClick={() => navigate(`${endpoint}/${setId}`)}
         >
           Назад до сету
         </button>
@@ -157,7 +163,7 @@ export default function PracticeMapPage() {
   return (
     <div className="map-page-container">
       <div className="map-top-bar">
-        <button onClick={() => navigate(backNav.url)} className="back-link">
+        <button onClick={handleBack} className="back-link">
           <ArrowLeft />
           {backNav.text}
         </button>

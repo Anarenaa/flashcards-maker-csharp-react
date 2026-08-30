@@ -85,6 +85,7 @@ a,
 a:visited {
   text-decoration: none;
   cursor: pointer;
+  color: inherit;
 }
 a:hover {
   text-decoration: none;

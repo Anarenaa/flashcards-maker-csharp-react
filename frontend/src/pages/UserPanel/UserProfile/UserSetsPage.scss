@@ -1,0 +1,51 @@
+.user-sets-page {
+  max-width: 1300px;
+  margin: 0 auto;
+  padding: 4rem 1rem 1rem;
+
+  .top-panel {
+    @media (max-width: 768px) {
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+  }
+  .back-link {
+    color: var(--accent-white);
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0.7;
+    font-size: 0.95rem;
+    transition:
+      opacity 0.3s ease,
+      transform 0.3s ease;
+
+      @media (max-width: 768px) {
+        align-self: self-start;
+      }
+
+    @media (hover: hover) and (pointer: fine) {
+      &:hover {
+        opacity: 1;
+        transform: translateX(-5px);
+      }
+    }
+  }
+  .top-pagination-counter {
+    order: 0;
+    @media (max-width: 768px) {
+      width: 100%;
+    }
+  }
+
+  .user-sets {
+    margin-top: 2.5rem;
+  }
+  .accent-name {
+    color: var(--accent-color);
+  }
+  .title {
+    font-size: 1.8rem;
+    text-align: center;
+  }
+}

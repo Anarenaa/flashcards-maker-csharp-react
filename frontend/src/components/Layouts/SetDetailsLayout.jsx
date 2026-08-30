@@ -17,7 +17,7 @@ export default function SetDetailsLayout({
   initialPageSize,
   onParamsChange,
   isMine,
-  backHref,
+  onBack,
   backLabel,
   onPracticeLink,
 }) {
@@ -53,7 +53,7 @@ export default function SetDetailsLayout({
       <div className="set-details-page">
         <SetHeader
           setInfo={setInfo}
-          backHref={backHref}
+          onBack={onBack}
           backLabel={backLabel}
           isMine={isMine}
           onAddCard={() => {

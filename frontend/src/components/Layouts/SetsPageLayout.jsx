@@ -1,4 +1,4 @@
-import { useSetsList } from "../../hooks/useSetsList";
+import { useSetsListWithFilters } from "../../hooks/useSetsListWithFilters";
 import FilterPanel from "../Sets/FilterPanel";
 import SetsGrid from "../Sets/SetsGrid";
 import PaginationFooter from "../Sets/PaginationFooter";
@@ -22,7 +22,7 @@ export default function SetsPageLayout({
     clearSearch,
     handleSubmit,
     handlePageChange,
-  } = useSetsList(endpoint);
+  } = useSetsListWithFilters(endpoint);
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
   const isEmpty = !sets || sets.length === 0;

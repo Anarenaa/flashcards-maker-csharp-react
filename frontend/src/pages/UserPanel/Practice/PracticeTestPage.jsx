@@ -13,6 +13,7 @@ import PracticeSummary from "../../../components/Practice/PracticeSummary";
 import TaskRenderer from "../../../components/Practice/TaskRenderer";
 import Loader from "../../../components/Shared/Loader";
 import "./PracticeTestPage.scss";
+import { useHandleBackLink } from "../../../utils/useHandleBackLink";
 
 export default function PracticeTestPage() {
   const { id: setId } = useParams();
@@ -33,7 +34,7 @@ export default function PracticeTestPage() {
     isError: isCardsError,
     refetch: refetchCards,
     pagination,
-  } = useFlashcards( setId, page, pageSize, undefined, {
+  } = useFlashcards(setId, page, pageSize, undefined, {
     keepPrevious: false,
   });
 
@@ -59,7 +60,10 @@ export default function PracticeTestPage() {
       currentModeIndex < PRACTICE_MODES.length - 1
     ) {
       const nextMode = PRACTICE_MODES[currentModeIndex + 1].id;
-      setSearchParams({ page, pageSize, mode: nextMode, isReversed });
+      setSearchParams(
+        { page, pageSize, mode: nextMode, isReversed },
+        { replace: true },
+      );
     } else {
       if (isFinalMixedRound) {
         navigate(`${endpoint}/${setId}?page=1&pageSize=10`);
@@ -67,25 +71,33 @@ export default function PracticeTestPage() {
       }
 
       if (isLastPage) {
-        setSearchParams({ page: 1, pageSize: "all", mode: 5, isReversed });
+        setSearchParams(
+          { page: 1, pageSize: "all", mode: 5, isReversed },
+          { replace: true },
+        );
         return;
       }
 
       const firstMode = PRACTICE_MODES[0].id;
-      setSearchParams({
-        page: page + 1,
-        pageSize,
-        mode: firstMode,
-        isReversed,
-      });
+      setSearchParams(
+        {
+          page: page + 1,
+          pageSize,
+          mode: firstMode,
+          isReversed,
+        },
+        { replace: true },
+      );
     }
   };
 
+  const handleExitBack = useHandleBackLink(
+    `${endpoint}/${setId}/practice?page=${page}&pageSize=${pageSize}&isReversed=${isReversed}`,
+  );
+
   const exitPractice = () => {
     session.finishAndSave();
-    navigate(
-      `${endpoint}/${setId}/practice?page=${page}&pageSize=${pageSize}&isReversed=${isReversed}`,
-    );
+    handleExitBack();
   };
 
   if (

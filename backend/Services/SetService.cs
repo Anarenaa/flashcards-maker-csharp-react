@@ -81,10 +81,11 @@ namespace Services
         public async Task<PagedResult<SetDTO>> GetAllUserSetsPagedAsync(
             int page,
             int perPage,
-            int currentUserId,
-            int? categoryId,
-            SetType? setType,
-            string? fromLangCode,
+            int userId,
+            bool publicOnly = false,
+            int? categoryId = null,
+            SetType? setType = null,
+            string? fromLangCode = null,
             string? searchText = null,
             string? progress = null)
         {
@@ -92,12 +93,13 @@ namespace Services
 
             if (!string.IsNullOrEmpty(progress))
             {
-                filteredSetIds = await _unitOfWork.Sets.FilterSetIdsByProgressAsync(currentUserId, progress, isMySets: true);
+                filteredSetIds = await _unitOfWork.Sets.FilterSetIdsByProgressAsync(userId, progress, isMySets: true);
             }
             var setsPagedResult = await _unitOfWork.Sets.GetAllPagedAsync(
                     page: page,
                     perPage: perPage,
-                    filter: s => s.UserId == currentUserId
+                    filter: s => s.UserId == userId
+                    && (!publicOnly || s.IsPublic)
                     && (filteredSetIds == null || filteredSetIds.Contains(s.Id))
                     && (categoryId == null || s.Categories.Any(c => c.Id == categoryId))
                     && (setType == null || s.Type == setType)
@@ -106,7 +108,7 @@ namespace Services
                     includeProperties: "User"
             );
 
-            var dtos = await mapToSetDtosAsync(setsPagedResult.Items, currentUserId);
+            var dtos = await mapToSetDtosAsync(setsPagedResult.Items, userId);
             return new PagedResult<SetDTO>(dtos, setsPagedResult.TotalItems, page, perPage);
         }
         public async Task<List<SetDTO>> GetSetsByCollectionIdAsync(int collectionId, int userId)

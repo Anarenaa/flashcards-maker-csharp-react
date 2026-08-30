@@ -41,6 +41,22 @@ namespace WebAPI.Controllers
 
             return Ok(pagedResult);
         }
+
+        [HttpGet("public/{userId}")]
+        public async Task<IActionResult> GetUserPublicSets(
+            int userId,
+            [FromQuery] int page = 1,
+            [FromQuery] int perPage = 20)
+        {
+            var pagedResult = await _setService.GetAllUserSetsPagedAsync(
+                userId: userId,
+                page: page,
+                perPage: perPage,
+                publicOnly: true
+            );
+            return Ok(pagedResult);
+        }
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetSetById(int id)
         {

@@ -1,0 +1,33 @@
+.stats-grid {
+  display: grid;
+  gap: 1.5rem;
+
+  @media (max-width: 900px) {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.75rem;
+  }
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr !important;
+    gap: 0.75rem;
+  }
+
+  .stat-card {
+    background: var(--component-bg);
+    border: 1px solid var(--component-border);
+    padding: 1.875rem 1.25rem;
+    border-radius: 1rem;
+    text-align: center;
+  }
+
+  .label {
+    opacity: 0.6;
+    min-width: 6.25rem;
+  }
+
+  .stat-number {
+    font-size: 1.8rem;
+    font-weight: 700;
+    color: var(--accent-white);
+    margin-top: 0.5rem;
+  }
+}

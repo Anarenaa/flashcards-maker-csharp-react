@@ -9,7 +9,7 @@ import "./SetHeader.scss";
 
 export default function SetHeader({
   setInfo,
-  backHref,
+  onBack,
   backLabel,
   isMine,
   onAddCard,
@@ -45,13 +45,14 @@ export default function SetHeader({
 
   return (
     <header className="set-header">
-      <NavLink
-        to={backHref}
+      <button
+        type="button"
         className={`set-header__back-link ${isScrolled ? "hidden" : ""}`}
+        onClick={onBack}
       >
         <ChevronLeft size={18} />
         {backLabel}
-      </NavLink>
+      </button>
 
       <div className="set-header__row">
         <div className={`set-header__info ${isScrolled ? "hidden" : ""}`}>

@@ -30,7 +30,7 @@ it("should render set info, categories, and action buttons correctly", () => {
   const { container } = renderWithProviders(
     <SetHeader
       setInfo={mockSetInfo}
-      backHref="/sets"
+      onBack={() => {}}
       backLabel="Back"
       isMine={true}
       onAddCard={() => {}}
@@ -79,7 +79,7 @@ it("should disable practice button when flashcardsCount is 0", () => {
   const { container } = renderWithProviders(
     <SetHeader
       setInfo={mockSetInfo}
-      backHref="/sets"
+      onBack={() => {}}
       backLabel="Back"
       isMine={false}
       onPractice={() => {}}
@@ -104,7 +104,7 @@ it("should call onAddCard, onAddCategory, and onPractice callbacks when respecti
   const { container } = renderWithProviders(
     <SetHeader
       setInfo={mockSetInfo}
-      backHref="/sets"
+      onBack={() => {}}
       backLabel="Back"
       isMine={true}
       onAddCard={handleAddCard}
@@ -156,7 +156,7 @@ it("should send remove category request when clicking category remove button", a
   const { container } = renderWithProviders(
     <SetHeader
       setInfo={mockSetInfo}
-      backHref="/sets"
+      onBack={() => {}}
       backLabel="Back"
       isMine={true}
       onAddCard={() => {}}

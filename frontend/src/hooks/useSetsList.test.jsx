@@ -2,7 +2,7 @@ import { renderHook, act, waitFor } from "@testing-library/react";
 import { QueryClientProvider } from "@tanstack/react-query";
 import { http, HttpResponse } from "msw";
 import { server, createTestQueryClient } from "../setupTests";
-import { useSetsList } from "./useSetsList";
+import { useSetsListWithFilters } from "./useSetsListWithFilters";
 
 const mockSetsResponse = (overrides = {}) => ({
   items: [{ id: 1, name: "German A1" }],
@@ -35,7 +35,9 @@ beforeEach(() => {
 });
 
 it("loads sets, categories and types right after mount", async () => {
-  const { result } = renderHook(() => useSetsList("/sets"), { wrapper });
+  const { result } = renderHook(() => useSetsListWithFilters("/sets"), {
+    wrapper,
+  });
 
   await waitFor(() => expect(result.current.isLoading).toBe(false));
 
@@ -54,7 +56,9 @@ it("does not fire a request when searchText changes without submit", async () =>
     }),
   );
 
-  const { result } = renderHook(() => useSetsList("/sets"), { wrapper });
+  const { result } = renderHook(() => useSetsListWithFilters("/sets"), {
+    wrapper,
+  });
   await waitFor(() => expect(result.current.isLoading).toBe(false));
 
   act(() => {
@@ -78,7 +82,9 @@ it("fires exactly one request on submit — not one per letter", async () => {
     }),
   );
 
-  const { result } = renderHook(() => useSetsList("/sets"), { wrapper });
+  const { result } = renderHook(() => useSetsListWithFilters("/sets"), {
+    wrapper,
+  });
   await waitFor(() => expect(result.current.isLoading).toBe(false));
 
   act(() => {
@@ -101,7 +107,9 @@ it("clearSearch does not fire a request when no search was ever applied", async 
     }),
   );
 
-  const { result } = renderHook(() => useSetsList("/sets"), { wrapper });
+  const { result } = renderHook(() => useSetsListWithFilters("/sets"), {
+    wrapper,
+  });
   await waitFor(() => expect(result.current.isLoading).toBe(false));
 
   const countBeforeClear = requestCount;
@@ -131,7 +139,9 @@ it("clearSearch fires a request when a search was previously applied", async () 
     }),
   );
 
-  const { result } = renderHook(() => useSetsList("/sets"), { wrapper });
+  const { result } = renderHook(() => useSetsListWithFilters("/sets"), {
+    wrapper,
+  });
   await waitFor(() => expect(result.current.isLoading).toBe(false));
 
   act(() => {
@@ -167,7 +177,9 @@ it("handlePageChange respects hasPrev/hasNext boundaries", async () => {
     ),
   );
 
-  const { result } = renderHook(() => useSetsList("/sets"), { wrapper });
+  const { result } = renderHook(() => useSetsListWithFilters("/sets"), {
+    wrapper,
+  });
   await waitFor(() => expect(result.current.isLoading).toBe(false));
 
   act(() => {

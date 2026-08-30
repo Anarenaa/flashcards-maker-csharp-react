@@ -76,19 +76,22 @@ namespace Services
 
             return userDtos;
         }
-        public async Task<IUserProfileDTO> GetUserAsync(int id)
+        public async Task<IUserProfileDTO> GetUserAsync(int id, int? currentUserId = null)
         {
             var user = await _userManager.FindByIdAsync(id.ToString());
             if (user == null) throw new KeyNotFoundException("Користувача не знайдено");
 
-            if (!user.IsPublic)
+            bool isOwner = currentUserId.HasValue && currentUserId.Value == user.Id;
+
+            if (!user.IsPublic && !isOwner)
             {
                 return new PrivateUserDTO
                 {
                     Id = user.Id,
                     UserName = user.UserName!,
                     AvatarUrl = user.AvatarUrl,
-                    IsPublic = false 
+                    IsPublic = false,
+                    PublicSetsCount = await _unitOfWork.Sets.GetUserSetsCount(user.Id, filter: s => s.IsPublic == true)
                 };
             }
 

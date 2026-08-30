@@ -10,6 +10,7 @@ import DefaultProfileImage from "../../components/Profile/DefaultProfileImage";
 import toast from "react-hot-toast";
 import api from "../../services/api";
 import "./MyProfilePage.scss";
+import StatsGrid from "../../components/Profile/StatsGrid";
 
 const userSchema = z.object({
   avatar: z.any().optional(),
@@ -226,27 +227,7 @@ export default function MyProfilePage({ currentUser }) {
           )}
         </form>
 
-        <div className="stats-grid">
-          <div className="stat-card">
-            <span className="label">Кількість ваших сетів</span>
-            <div className="stat-number">{currentUser?.setsCount}</div>
-          </div>
-
-          <div className="stat-card">
-            <span className="label">Кількість ваших карток</span>
-            <div className="stat-number">{currentUser?.flashcardsCount}</div>
-          </div>
-
-          <div className="stat-card">
-            <span className="label">Вивчено cетів</span>
-            <div className="stat-number">{currentUser?.completedSets}</div>
-          </div>
-
-          <div className="stat-card">
-            <span className="label">Вивчено карток</span>
-            <div className="stat-number">{currentUser?.masteredCards}</div>
-          </div>
-        </div>
+        <StatsGrid user={currentUser} />
       </div>
     </>
   );

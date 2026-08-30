@@ -6,6 +6,7 @@ import "./SetsGrid.scss";
 
 function SetsGrid({
   sets,
+  withTop = true,
   isLoading,
   isFetching = false,
   isMine = false,
@@ -38,7 +39,7 @@ function SetsGrid({
           </div>
         )
       ) : (
-        sets.map((set) => <SetCard key={set.id} set={set} isMine={isMine} />)
+        sets.map((set) => <SetCard key={set.id} set={set} isMine={isMine} withTop={withTop} />)
       )}
     </div>
   );
