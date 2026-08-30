@@ -67,15 +67,17 @@ export default function SetHeader({
           <div className="set-header__meta">
             <div className="set-header__tags">
               {setInfo.categories.map((tag) => (
-                <span key={tag.id} className="set-header__tag">
+                <span key={tag.id} className={`set-header__tag ${!isMine ? "extra-padding" : ""}`} >
                   {tag.name}
-                  <button
-                    onClick={() => {
-                      removeCategoryMutation.mutate(tag.id);
-                    }}
-                  >
-                    <X size={18} className="icon" />
-                  </button>
+                  {isMine && (
+                    <button
+                      onClick={() => {
+                        removeCategoryMutation.mutate(tag.id);
+                      }}
+                    >
+                      <X size={18} className="icon" />
+                    </button>
+                  )}
                 </span>
               ))}
             </div>

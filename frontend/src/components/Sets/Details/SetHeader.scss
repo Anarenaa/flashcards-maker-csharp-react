@@ -80,6 +80,10 @@
     padding: 0.5rem 0.6rem 0.5rem 1rem;
     border-radius: 1rem;
     font-size: 0.9rem;
+
+    &.extra-padding{
+      padding-right: 1rem;
+    }
   }
 
   &__updated {
