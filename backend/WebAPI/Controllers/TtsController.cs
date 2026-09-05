@@ -18,17 +18,10 @@ public class TtsController : ControllerBase
         if (string.IsNullOrWhiteSpace(request?.Text))
             return BadRequest(new { error = "Text is required." });
 
-        try
-        {
-            byte[] audioBytes = await _ttsService.SynthesizeSpeechAsync(request.Text, request.Language);
+        byte[] audioBytes = await _ttsService.SynthesizeSpeechAsync(request.Text, request.Language);
 
-            // mp3
-            return File(audioBytes, "audio/mpeg");
-        }
-        catch (Exception ex)
-        {
-            return StatusCode(500, new { error = $"TTS Error: {ex.Message}" });
-        }
+        // mp3
+        return File(audioBytes, "audio/mpeg");
     }
 }
 
