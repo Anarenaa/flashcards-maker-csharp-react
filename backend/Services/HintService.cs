@@ -47,7 +47,7 @@ namespace Services
             }
             else if (type == SetType.Subject || fromLang == toLang)
             {
-                result = await _wikiService.GetDescriptionAsync(term, toLang!);
+                result = await _wikiService.GetDefinitionAsync(term, toLang!);
             }
 
             if (string.IsNullOrWhiteSpace(result))

@@ -2,6 +2,6 @@
 {
     public interface IWikipediaService
     {
-        Task<string?> GetDescriptionAsync(string term, string lang);
+        Task<string?> GetDefinitionAsync(string term, string lang);
     }
 }

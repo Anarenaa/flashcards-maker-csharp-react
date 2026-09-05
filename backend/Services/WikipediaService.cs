@@ -12,7 +12,7 @@ namespace Services
             _httpClient = httpClient;
         }
 
-        public async Task<string?> GetDescriptionAsync(string term, string lang)
+        public async Task<string?> GetDefinitionAsync(string term, string lang)
         {
             try
             {
@@ -24,7 +24,17 @@ namespace Services
                 if (!response.IsSuccessStatusCode) return null;
 
                 var data = await response.Content.ReadFromJsonAsync<JsonElement>();
-                return data.TryGetProperty("description", out var desc) ? desc.GetString() : null;
+                if (data.TryGetProperty("description", out var desc) && desc.ValueKind == JsonValueKind.String)
+                {
+                    return desc.GetString();
+                }
+
+                if (data.TryGetProperty("extract", out var extract) && extract.ValueKind == JsonValueKind.String)
+                {
+                    return extract.GetString();
+                }
+
+                return null;
             }
             catch
             {
