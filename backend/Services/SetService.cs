@@ -72,6 +72,7 @@ namespace Services
                     && (setType == null || s.Type == setType)
                     && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
+                    orderBy: s => s.OrderByDescending(s => s.CreatedAt),
                     includeProperties: "User"
             );
 
@@ -105,6 +106,7 @@ namespace Services
                     && (setType == null || s.Type == setType)
                     && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
+                    orderBy: s => s.OrderByDescending(s => s.CreatedAt),
                     includeProperties: "User"
             );
 

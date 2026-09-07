@@ -1,33 +1,16 @@
 import { useState } from "react";
 import { BookOpen } from "lucide-react";
-import { useQueryClient } from "@tanstack/react-query";
-import { useMutation } from "@tanstack/react-query";
-import toast from "react-hot-toast";
 import FlashcardContextsPanel from "../../../features/flashcards/FlashcardContextsPanel";
 import PronounceButton from "../../Shared/PronounceButton";
 import ActionsDropdown from "../../Shared/ActionsDropdown";
 import FlashcardForm from "../../../features/flashcards/FlashcardForm";
 import ConfirmModal from "../../Shared/ConfirmModal";
-import api from "../../../services/api";
 import "./CardTile.scss";
 
-export default function CardTile({ card, setId, isMine, isLanguageType }) {
+export default function CardTile({ card, setId, isMine, isLanguageType, onDelete }) {
   const [isContextModalOpen, setIsContextModalOpen] = useState(false);
   const [isFlashcardFormOpen, setIsFlashcardFormOpen] = useState(false);
   const [deletedCardId, setDeletedCardId] = useState(null);
-
-  const queryClient = useQueryClient();
-
-  const deleteMutation = useMutation({
-    mutationFn: (cardId) => api.delete(`/sets/${setId}/flashcards/${cardId}`),
-    onSuccess: () => {
-      queryClient.invalidateQueries(["setCards"]);
-      setDeletedCardId(null);
-      setTimeout(()=>{
-        toast.success("Картку успішно видалено");
-      }, 200);
-    },
-  });
 
   return (
     <>
@@ -79,7 +62,8 @@ export default function CardTile({ card, setId, isMine, isLanguageType }) {
         <ConfirmModal
           isOpen={Boolean(deletedCardId)}
           onConfirm={() => {
-            deleteMutation.mutate(card.id);
+            onDelete(card.id);
+            setDeletedCardId(null);
           }}
           onCancel={() => setDeletedCardId(null)}
         />

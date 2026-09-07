@@ -2,10 +2,11 @@
 using Core.Context;
 using Core.Models;
 using Microsoft.EntityFrameworkCore;
+using Repositories.Interfaces;
 
 namespace Repositories
 {
-    public class Repository<T> where T : class, IHasCreationDate
+    public class Repository<T> where T : class
     {
         protected readonly BaseDataContext _context;
         protected readonly DbSet<T> _dbSet;
@@ -16,6 +17,7 @@ namespace Repositories
         }
         public async Task<IEnumerable<T>> GetAllAsync(
             Expression<Func<T, bool>>? filter = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
             string includeProperties = "")
         {
             IQueryable<T> query = _dbSet;
@@ -29,15 +31,18 @@ namespace Repositories
             {
                 query = query.Where(filter);
             }
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
 
-            return await query
-                .OrderByDescending(x => x.CreatedAt)
-                .ToListAsync();
+            return await query.ToListAsync();
         }
         public async Task<PagedResult<T>> GetAllPagedAsync(
             int page = 0,
             int pageSize = 20,
             Expression<Func<T, bool>>? filter = null,
+            Func<IQueryable<T>, IOrderedQueryable<T>>? orderBy = null,
             string includeProperties = "")
         {
             IQueryable<T> query = _dbSet;
@@ -51,10 +56,12 @@ namespace Repositories
             {
                 query = query.Where(filter);
             }
+            if (orderBy != null)
+            {
+                query = orderBy(query);
+            }
 
             int totalCount = await query.CountAsync();
-
-            query = query.OrderByDescending(x => x.CreatedAt);
 
             List<T> items;
 

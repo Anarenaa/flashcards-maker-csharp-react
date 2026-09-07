@@ -16,7 +16,15 @@ const flashcardSchema = z.object({
     .max(500, "Забагато символів"),
 });
 
-export default function FlashcardForm({ isOpen, onClose, setId, initialData }) {
+export default function FlashcardForm({
+  isOpen,
+  onClose,
+  setId,
+  totalItems,
+  pageSize,
+  handlePageChange,
+  initialData,
+}) {
   const queryClient = useQueryClient();
 
   const {
@@ -44,10 +52,13 @@ export default function FlashcardForm({ isOpen, onClose, setId, initialData }) {
   const createMutation = useMutation({
     mutationFn: (formData) =>
       api.post(`/sets/${setId}/flashcards`, formData).then((res) => res.data),
-    onSuccess: (newCard) => {
-      queryClient.invalidateQueries(["setCards"]);
+    onSuccess: () => {
+      queryClient.invalidateQueries(["setCards", setId]);
       reset();
       onClose();
+      
+      const lastPage = Math.ceil(((totalItems ?? 0) + 1) / pageSize);
+      handlePageChange(lastPage);
     },
   });
 
@@ -131,7 +142,9 @@ export default function FlashcardForm({ isOpen, onClose, setId, initialData }) {
               title="Підказка"
               tabIndex={3}
               onClick={() => hintMutation.mutate(termValue)}
-              disabled={!termValue || termValue.trim() === "" || hintMutation.isPending}
+              disabled={
+                !termValue || termValue.trim() === "" || hintMutation.isPending
+              }
             >
               {hintMutation.isPending ? (
                 <Loader2 size={20} className="spinner-icon" />

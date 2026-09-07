@@ -36,11 +36,15 @@ export function useSetDetails(endpoint, setId, initialPage, initialPageSize) {
   }, [page]);
 
   const handlePageChange = useCallback(
-    (direction) => {
+    (target) => {
       document.activeElement?.blur();
+      if (typeof target === "number") {
+        setPage(target);
+        return;
+      }
       setPage((prevPage) => {
-        if (direction === "prev" && pagination.hasPrev) return prevPage - 1;
-        if (direction === "next" && pagination.hasNext) return prevPage + 1;
+        if (target === "prev" && pagination.hasPrev) return prevPage - 1;
+        if (target === "next" && pagination.hasNext) return prevPage + 1;
         return prevPage;
       });
     },

@@ -81,6 +81,9 @@ export default function SetDetailsLayout({
           isMine={isMine}
           isLanguageType={setInfo?.type === 0}
           emptyText="Створіть свою першу картку"
+          page={page}
+          pagination={pagination}
+          onPageChange={handlePageChange}
         />
 
         <PaginationFooter
@@ -93,6 +96,9 @@ export default function SetDetailsLayout({
           isOpen={isFlashcardFormOpen}
           onClose={() => setIsFlashcardFormOpen(false)}
           setId={setId}
+          totalItems={pagination.totalItems}
+          pageSize={pageSize}
+          handlePageChange={handlePageChange}
         />
       )}
       {isAddCategoryFormOpen && (
