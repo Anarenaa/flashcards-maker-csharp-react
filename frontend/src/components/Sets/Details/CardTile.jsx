@@ -60,7 +60,6 @@ export default function CardTile({ card, setId, isMine, isLanguageType, onDelete
       )}
       {deletedCardId === card.id && (
         <ConfirmModal
-          isOpen={Boolean(deletedCardId)}
           onConfirm={() => {
             onDelete(card.id);
             setDeletedCardId(null);

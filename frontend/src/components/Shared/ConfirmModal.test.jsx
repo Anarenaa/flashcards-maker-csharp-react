@@ -2,7 +2,7 @@ import { render, fireEvent, screen } from "@testing-library/react";
 import ConfirmModal from "./ConfirmModal";
 
 it("should render confirmation text and action buttons", () => {
-  render(<ConfirmModal isOpen={true} onConfirm={() => {}} onCancel={() => {}} />);
+  render(<ConfirmModal onConfirm={() => {}} onCancel={() => {}} />);
 
   expect(screen.getByText(/Ви точно бажаєте видалити цей елемент/i)).not.toBeNull();
   expect(screen.getByText("Так")).not.toBeNull();
@@ -11,7 +11,7 @@ it("should render confirmation text and action buttons", () => {
 
 it("should call onConfirm when clicking 'Так' button", () => {
   const handleConfirm = vi.fn();
-  render(<ConfirmModal isOpen={true} onConfirm={handleConfirm} onCancel={() => {}} />);
+  render(<ConfirmModal onConfirm={handleConfirm} onCancel={() => {}} />);
 
   fireEvent.click(screen.getByText("Так"));
 
@@ -20,7 +20,7 @@ it("should call onConfirm when clicking 'Так' button", () => {
 
 it("should call onCancel when clicking 'No' button", () => {
   const handleCancel = vi.fn();
-  render(<ConfirmModal isOpen={true} onConfirm={() => {}} onCancel={handleCancel} />);
+  render(<ConfirmModal onConfirm={() => {}} onCancel={handleCancel} />);
 
   fireEvent.click(screen.getByText("Ні"));
 

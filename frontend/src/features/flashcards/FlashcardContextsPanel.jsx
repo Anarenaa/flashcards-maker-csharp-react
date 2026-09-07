@@ -145,7 +145,6 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
                       </button>
                       {deletingContextId === context.id && (
                         <ConfirmModal
-                          isOpen={Boolean(deletingContextId)}
                           onConfirm={() => {
                             deleteMutation.mutate(context.id, {
                               onSuccess: () => setDeletingContextId(null),

@@ -29,17 +29,16 @@ vi.mock("../../../features/flashcards/FlashcardForm", () => ({
 }));
 
 vi.mock("../../Shared/ConfirmModal", () => ({
-  default: ({ isOpen, onConfirm, onCancel }) =>
-    isOpen ? (
-      <div data-testid="confirm-modal">
-        <button data-testid="confirm-del" onClick={onConfirm}>
-          Confirm
-        </button>
-        <button data-testid="cancel-del" onClick={onCancel}>
-          Cancel
-        </button>
-      </div>
-    ) : null,
+  default: ({ onConfirm, onCancel }) => (
+    <div data-testid="confirm-modal">
+      <button data-testid="confirm-del" onClick={onConfirm}>
+        Confirm
+      </button>
+      <button data-testid="cancel-del" onClick={onCancel}>
+        Cancel
+      </button>
+    </div>
+  ),
 }));
 
 vi.mock("../../Shared/ActionsDropdown", () => ({

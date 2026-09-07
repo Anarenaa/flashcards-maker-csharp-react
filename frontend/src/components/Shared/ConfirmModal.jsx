@@ -1,7 +1,6 @@
 import "./ConfirmModal.scss";
-import { ModalWrapper } from "./ModalWrapper";
 
-export default function ConfirmModal({ isOpen, onConfirm, onCancel }) {
+export default function ConfirmModal({ onConfirm, onCancel }) {
   return (
     <div className="modal-backdrop position-top">
       <div className="confirm-modal">

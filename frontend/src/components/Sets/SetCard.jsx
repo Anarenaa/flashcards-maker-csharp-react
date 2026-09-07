@@ -106,7 +106,6 @@ export default function SetCard({ set, isMine, withTop = true }) {
       )}
       {deletingSetId === set.id && (
         <ConfirmModal
-          isOpen={Boolean(deletingSetId)}
           onConfirm={() => {
             deleteMutation.mutate(set.id);
           }}

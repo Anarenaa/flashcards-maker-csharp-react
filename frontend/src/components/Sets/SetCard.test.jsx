@@ -36,17 +36,16 @@ vi.mock("../../features/sets/SetForm", () => ({
 }));
 
 vi.mock("../Shared/ConfirmModal", () => ({
-  default: ({ isOpen, onConfirm, onCancel }) =>
-    isOpen ? (
-      <div data-testid="confirm-modal">
-        <button data-testid="confirm-delete-btn" onClick={onConfirm}>
-          Confirm
-        </button>
-        <button data-testid="cancel-delete-btn" onClick={onCancel}>
-          Cancel
-        </button>
-      </div>
-    ) : null,
+  default: ({ onConfirm, onCancel }) => (
+    <div data-testid="confirm-modal">
+      <button data-testid="confirm-delete-btn" onClick={onConfirm}>
+        Confirm
+      </button>
+      <button data-testid="cancel-delete-btn" onClick={onCancel}>
+        Cancel
+      </button>
+    </div>
+  ),
 }));
 
 const mockMineSet = {
