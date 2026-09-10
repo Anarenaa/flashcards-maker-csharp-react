@@ -25,7 +25,20 @@ import UserSetsPage from "./pages/UserPanel/UserProfile/UserSetsPage";
 
 function App() {
   const [isAuth, setIsAuth] = useState(null);
+  const [isTheOnlyUserMode, setIsTheOnlyUserMode] = useState(() => {
+    const saved = localStorage.getItem("isTheOnlyUserMode");
+     if (saved === null) {
+      localStorage.setItem("isTheOnlyUserMode", "false");
+      return false;
+    }
+    return saved === "true";
+  });
   const navigate = useNavigate();
+
+  const handleToggleTheOnlyUserMode = (newValue) => {
+    setIsTheOnlyUserMode(newValue);
+    localStorage.setItem("isTheOnlyUserMode", newValue ? "true" : "false");
+  };
 
   const { data: user, isLoading: isUserLoading } = useQuery({
     queryKey: ["my-profile"],
@@ -50,6 +63,14 @@ function App() {
     };
 
     checkUser();
+
+    const savedPalette = localStorage.getItem("themePalette") || "storm";
+    const savedMode = localStorage.getItem("themeMode") || "dark";
+
+    document.documentElement.setAttribute(
+      "data-theme",
+      `${savedPalette}-${savedMode}`,
+    );
   }, []);
 
   if (isAuth === null || (isAuth === true && isUserLoading)) {
@@ -73,12 +94,22 @@ function App() {
         <Route path="email-sent" element={<EmailSentPage />} />
         <Route path="change-password" element={<ChangePassword />} />
 
-        <Route element={<Layout currentUser={user} />}>
+        <Route
+          element={
+            <Layout currentUser={user} isTheOnlyUserMode={isTheOnlyUserMode} />
+          }
+        >
           <Route path="main" element={<MainPage />} />
-          <Route path="my-sets" element={<MySetsPage />} />
+          <Route path="my-sets" element={<MySetsPage isTheOnlyUserMode={isTheOnlyUserMode} />} />
           <Route path="my-collections" element={<MyCollectionsPage />} />
-          <Route path="my-profile" element={<MyProfilePage currentUser={user} />} />
-          <Route path="settings" element={<SettingsPage />} />
+          <Route
+            path="my-profile"
+            element={<MyProfilePage currentUser={user} />}
+          />
+          <Route
+            path="settings"
+            element={<SettingsPage isPublic={user?.isPublic} isTheOnlyUserMode={isTheOnlyUserMode} onToggleTheOnlyUserMode={handleToggleTheOnlyUserMode} />}
+          />
         </Route>
 
         <Route path="sets/:id">

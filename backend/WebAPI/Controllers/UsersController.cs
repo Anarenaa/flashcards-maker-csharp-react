@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Core.Models;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Services;
 
@@ -9,9 +11,11 @@ namespace WebAPI.Controllers
     public class UsersController : BaseApiController
     {
         private readonly UserService _userService;
-        public UsersController(UserService userService)
+        private readonly SignInManager<User> _signInManager;
+        public UsersController(UserService userService, SignInManager<User> signInManager)
         {
             _userService = userService;
+            _signInManager = signInManager;
         }
 
         [HttpGet("me")]
@@ -40,6 +44,40 @@ namespace WebAPI.Controllers
         public async Task<IActionResult> UpdateCurrentUserProfile([FromForm] UpdateUserDto dto)
         {
             await _userService.UpdateUserProfileAsync(UserId, dto.UserName, dto.AvatarFile, dto.RemoveAvatar);
+            return NoContent();
+        }
+
+        [HttpDelete("me")]
+        public async Task<IActionResult> DeleteCurrentUser()
+        {
+            var cookieOptions = new CookieOptions
+            {
+                HttpOnly = true,
+                Secure = true,
+                SameSite = SameSiteMode.Lax,
+                Path = "/"
+            };
+
+            Response.Cookies.Delete("AuthToken", cookieOptions);
+            Response.Cookies.Delete(".AspNetCore.Identity.Application", cookieOptions);
+            Response.Cookies.Delete(".AspNetCore.Identity.External", cookieOptions);
+
+            await _signInManager.SignOutAsync();
+            await _userService.DeleteUserAsync(UserId);
+            return NoContent();
+        }
+
+        [HttpPost("switch-my-publicity")]
+        public async Task<IActionResult> SwitchMyProfilePublicity()
+        {
+            await _userService.SwitchProfilePublicityAsync(UserId);
+            return NoContent();
+        }
+
+        [HttpPost("make-my-sets-private")]
+        public async Task<IActionResult> MakeMySetsPrivate()
+        {
+            await _userService.MakeUserSetsPrivate(UserId);
             return NoContent();
         }
     }

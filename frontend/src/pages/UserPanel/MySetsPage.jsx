@@ -3,13 +3,14 @@ import SetsPageLayout from "../../components/Layouts/SetsPageLayout";
 import "./MySetsPage.scss";
 import SetForm from "../../features/sets/SetForm";
 
-export default function MySetsPage() {
+export default function MySetsPage({ isTheOnlyUserMode }) {
   const [isFormOpen, setIsFormOpen] = useState(false);
   return (
     <>
       <SetsPageLayout
         endpoint="/my-sets"
         isMine={true}
+        isTheOnlyUserMode={isTheOnlyUserMode}
         loadingText="Завантажуємо твої сети..."
         extraCard={
           <button
@@ -21,7 +22,7 @@ export default function MySetsPage() {
           </button>
         }
       />
-      {isFormOpen && <SetForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} />}
+      {isFormOpen && <SetForm isOpen={isFormOpen} onClose={() => setIsFormOpen(false)} isTheOnlyUserMode={isTheOnlyUserMode} />}
     </>
   );
 }

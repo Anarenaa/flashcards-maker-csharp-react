@@ -1,0 +1,66 @@
+.settings-card {
+  background-color: var(--component-bg);
+  border: 1px solid var(--component-border);
+  border-radius: 1rem;
+  padding: 2rem 1.75rem;
+  margin: 1.5rem 0;
+
+  .title {
+    margin-bottom: 0.75rem;
+  }
+
+  .setting-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1rem 0;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+
+    &:last-child {
+      border-bottom: none;
+    }
+  }
+
+  .setting-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+
+    label {
+      display: inline-block;
+      font-weight: 600;
+      font-size: 1.1rem;
+      color: var(--text-color);
+    }
+
+    p {
+      font-size: 0.875rem;
+      opacity: 0.6;
+      color: var(--text-color);
+    }
+  }
+}
+.feedback-btn {
+  width: 100%;
+  background-color: var(--component-bg);
+  font-size: 1.2rem;
+  font-weight: 600;
+}
+.danger-card {
+  .title {
+    color: var(--error-text);
+  }
+  .setting-row{
+    @media (max-width: 513px) {
+      flex-direction: column;
+      align-items: start;
+    }
+  }
+  button {
+    width: auto;
+    @media (max-width: 513px) {
+      width: 100%;
+    }
+  }
+}

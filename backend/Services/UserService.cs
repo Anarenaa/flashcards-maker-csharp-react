@@ -137,12 +137,23 @@ namespace Services
                 MasteredCards = masteredCards
             };
         }
-        public async Task SwitchProfilePublicity(int userId)
+        public async Task SwitchProfilePublicityAsync(int userId)
         {
             var user = await _userManager.FindByIdAsync(userId.ToString());
             if (user == null) throw new NotFoundException("Користувача не знайдено");
             user.IsPublic = !user.IsPublic;
             await _userManager.UpdateAsync(user);
+        }
+        public async Task MakeUserSetsPrivate(int userId)
+        {
+            var user = await _userManager.FindByIdAsync(userId.ToString());
+            if (user == null) throw new KeyNotFoundException("Користувача не знайдено");
+            var publicSets = await _unitOfWork.Sets.GetAllAsync(filter: s => s.UserId == userId && s.IsPublic);
+            foreach (var set in publicSets)
+            {
+                set.IsPublic = false;
+            }
+            await _unitOfWork.SaveChangesAsync();
         }
         public async Task DeleteUserAsync(int id)
         {

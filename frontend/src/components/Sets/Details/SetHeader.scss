@@ -112,28 +112,6 @@
   }
 }
 
-.btn-secondary {
-  background: transparent;
-  border: 1px solid var(--square-color-2);
-  transition: border-color 0.3s;
-  color: var(--accent-white);
-  padding: 0.7rem 1rem;
-  border-radius: 0.5rem;
-  font-size: 0.95rem;
-  white-space: nowrap;
-
-  &:disabled{
-    opacity: 0.7;
-    cursor: not-allowed;
-  }
-
-  @media (hover: hover) and (pointer: fine) {
-    &:hover:not(:disabled) {
-      border-color: var(--accent-white);
-    }
-  }
-}
-
 .btn-practice {
   display: flex;
   align-items: center;

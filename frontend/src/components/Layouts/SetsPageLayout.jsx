@@ -6,6 +6,7 @@ import PaginationFooter from "../Sets/PaginationFooter";
 export default function SetsPageLayout({
   endpoint,
   isMine = false,
+  isTheOnlyUserMode,
   loadingText,
   emptyText,
   extraCard,
@@ -45,6 +46,7 @@ export default function SetsPageLayout({
 
       <SetsGrid
         sets={sets}
+        withTop={!isTheOnlyUserMode}
         isLoading={isLoading} // грід ховається тільки коли даних взагалі нема
         isFetching={isFetching} // новий проп — для легкого індикатора поверх
         isMine={isMine}

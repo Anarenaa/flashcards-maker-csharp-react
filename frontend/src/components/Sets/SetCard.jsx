@@ -35,12 +35,12 @@ export default function SetCard({ set, isMine, withTop = true }) {
       <div className="set-card-wrapper">
         {withTop && isMine ? (
             <span
-              className={`privacy-status ${set.isPublic ? "public" : "private"} overtop`}
+              className={`privacy-status ${set.isPublic ? "public" : "private"} ${withTop ? "overtop" : ""} `}
             >
               {set.isPublic ? "🌐 Публічний" : "🔒 Приватний"}
             </span>
           ) : withTop ? (
-            <NavLink to={`/users/${set.userId}`} className="author-wrapper overtop">
+            <NavLink to={`/users/${set.userId}`} className={`author-wrapper ${withTop ? "overtop" : ""}`}>
               <div className="author-avatar-mini">
                 {set.avatarUrl ? (
                   <img src={set.avatarUrl} alt={set.userName} />
@@ -52,7 +52,7 @@ export default function SetCard({ set, isMine, withTop = true }) {
             </NavLink>
           ) : null}
         {isMine && (
-          <div className="set-card-actions overtop">
+          <div className={`set-card-actions ${withTop ? "overtop" : ""} `}>
             <ActionsDropdown
               onEdit={() => setIsEditModalOpen(true)}
               onDelete={() => setDeletingSetId(set.id)}
@@ -66,7 +66,7 @@ export default function SetCard({ set, isMine, withTop = true }) {
           state={{ from: location.pathname }}
         >
           
-          <h3 className="set-card__title">
+          <h3 className="set-card__title" style={!withTop ? {paddingRight: "1rem"} : {}}>
             {set.name}
             {set.isGenerated && <span>{"\u2728"}</span>}
           </h3>
@@ -102,6 +102,7 @@ export default function SetCard({ set, isMine, withTop = true }) {
           isOpen={isEditModalOpen}
           onClose={() => setIsEditModalOpen(false)}
           initialData={set}
+          isTheOnlyUserMode={!withTop}
         />
       )}
       {deletingSetId === set.id && (

@@ -5,7 +5,7 @@ import DefaultProfileImage from "../Profile/DefaultProfileImage";
 import api from "../../services/api";
 import "./Header.scss";
 
-export default function Header({ currentUser }) {
+export default function Header({ currentUser, isTheOnlyUserMode }) {
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -86,14 +86,17 @@ export default function Header({ currentUser }) {
 
           {currentUser?.roles?.includes("User") && (
             <>
-              <li className="header__nav-btn">
-                <NavLink to="/main" className="header__link">
-                  Головна
-                </NavLink>
-              </li>
+              {!isTheOnlyUserMode && (
+                <li className="header__nav-btn">
+                  <NavLink to="/main" className="header__link">
+                    Головна
+                  </NavLink>
+                </li>
+              )}
+
               <li className="header__nav-btn">
                 <NavLink to="/my-sets" className="header__link">
-                  Мої сети
+                 {isTheOnlyUserMode ? "Сети" : "Мої сети"}  
                 </NavLink>
               </li>
               <li className="header__nav-btn">
@@ -127,7 +130,7 @@ export default function Header({ currentUser }) {
 
         {currentUser && (
           <form className="header__logout-form" onSubmit={handleLogout}>
-            <button type="submit" className="header__btn-exit">
+            <button type="submit" className="danger-button">
               Вийти
             </button>
           </form>

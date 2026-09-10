@@ -1,0 +1,50 @@
+:root {
+  --bg-color: #141b25;
+  --accent-purple: #2c1335;
+  --accent-color: #6b8789;
+  --accent-white: #f7ffff;
+  --square-color-2: #818375;
+  --text-color: var(--accent-white);
+
+  --component-bg: color-mix(in srgb, var(--square-color-2) 10%, transparent);
+  --component-border: color-mix(in srgb, var(--accent-white) 30%, transparent);
+  --component-hover: color-mix(in srgb, var(--accent-color) 40%, transparent);
+
+  --progress-bar-start: #6e8efb;
+  --progress-bar-end: #a777e3;
+  --progress-bar-gradient: linear-gradient(
+    135deg,
+    var(--progress-bar-start),
+    var(--progress-bar-end)
+  );
+
+  --error-color: #ff6464;
+  --error-text: #ff8080;
+  --error-bright-color: #dc3545;
+  --success-color: #28a745;
+}
+
+/* [data-theme="storm-light"] {
+  --bg-color: #f6faff;
+  --accent-purple: #e8dff0;
+  --accent-color: #ccecff;
+  --accent-white: #141b25;
+  --square-color-2: var(--accent-color);
+  --text-color: var(--accent-white);
+
+  --component-bg: color-mix(in srgb, transparent 90%, transparent);
+  --component-hover: color-mix(in srgb, var(--accent-color) 20%, transparent);
+
+  --progress-bar-start: #4a6ef5;
+  --progress-bar-end: #8b5cf6;
+  --progress-bar-gradient: linear-gradient(
+    135deg,
+    var(--progress-bar-start),
+    var(--progress-bar-end)
+  );
+
+  --error-color: #d93838;
+  --error-text: #c92a2a;
+  --error-bright-color: #dc3545;
+  --success-color: #2b8a3e;
+} */

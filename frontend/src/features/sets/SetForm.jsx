@@ -11,6 +11,7 @@ import { handleServerErrors } from "../../utils/formHandlers";
 import { LANGUAGES } from "../../constants/languages";
 import { ArrowRight, Check, Plus, X } from "lucide-react";
 import Stepper from "../../components/Shared/Stepper";
+import ToggleSwitch from "../../components/Shared/ToggleSwitch";
 import api from "../../services/api";
 import "./SetForm.scss";
 
@@ -32,10 +33,7 @@ const setAiSchema = z.object({
   type: z.coerce.number(),
   fromLang: z.string().optional(),
   toLang: z.string().min(1, "Виберіть мову"),
-  prompt: z
-    .string()
-    .min(1, "Введіть промт")
-    .max(1000, "Забагато символів"),
+  prompt: z.string().min(1, "Введіть промт").max(1000, "Забагато символів"),
   file: z.instanceof(File).optional().nullable(),
   cardsCount: z.coerce
     .number()
@@ -45,7 +43,7 @@ const setAiSchema = z.object({
     .nullable(),
 });
 
-export default function SetForm({ isOpen, onClose, initialData }) {
+export default function SetForm({ isOpen, onClose, initialData, isTheOnlyUserMode }) {
   const [isAiEnabled, setIsAiEnabled] = useState(false);
   const queryClient = useQueryClient();
   const types = useSetTypes().slice().reverse();
@@ -133,7 +131,7 @@ export default function SetForm({ isOpen, onClose, initialData }) {
       setValue("name", data.setInfo.name);
       setValue("description", data.setInfo.description);
       setValue("isPublic", data.setInfo.isPublic);
-      
+
       setGeneratedCards(data.flashcards);
     },
   });
@@ -214,19 +212,14 @@ export default function SetForm({ isOpen, onClose, initialData }) {
             {initialData ? "Редагування сету" : "Новий сет"}
           </h2>
           {!initialData && (
-            <label
-              className="toggle-switch ai-switch"
-              htmlFor="ai-checkbox-input"
-            >
-              <input
-                type="checkbox"
-                id="ai-checkbox-input"
-                checked={isAiEnabled}
-                onChange={(e) => setIsAiEnabled(e.target.checked)}
-              />
-              <span className="toggle-slider"></span>
-              <span className="toggle-label ai-toggle-label">ШІ</span>
-            </label>
+            <ToggleSwitch
+              id="ai-checkbox-input"
+              className="ai-switch"
+              checked={isAiEnabled}
+              onChange={(e) => setIsAiEnabled(e.target.checked)}
+              label="ШІ"
+              labelPosition="right"
+            />
           )}
         </div>
         <form onSubmit={handleSubmit(onSubmit)}>
@@ -336,7 +329,15 @@ export default function SetForm({ isOpen, onClose, initialData }) {
                       - {card.definition}
                     </span>
                   </div>
-                  <button type="button" className="generated-card__remove-btn" onClick={() => setGeneratedCards(prev => prev.filter((_, index) => index !== i))}>
+                  <button
+                    type="button"
+                    className="generated-card__remove-btn"
+                    onClick={() =>
+                      setGeneratedCards((prev) =>
+                        prev.filter((_, index) => index !== i),
+                      )
+                    }
+                  >
                     <X className="icon" size={18} />
                   </button>
                 </div>
@@ -364,19 +365,14 @@ export default function SetForm({ isOpen, onClose, initialData }) {
               )}
             </div>
           )}
-          {!isAiEnabled && (
-            <label
-              className="toggle-switch is-public-switch"
-              htmlFor="is-public-checkbox-input"
-            >
-              <span className="toggle-label">Публічний</span>
-              <input
-                type="checkbox"
-                id="is-public-checkbox-input"
-                {...register("isPublic")}
-              />
-              <span className="toggle-slider"></span>
-            </label>
+          {!isAiEnabled && !isTheOnlyUserMode && (
+            <ToggleSwitch
+              id="is-public-checkbox-input"
+              className="is-public-switch"
+              registerProps={register("isPublic")}
+              label="Публічний"
+              labelPosition="left"
+            />
           )}
           {isAiEnabled && (
             <div className="ai-controls">

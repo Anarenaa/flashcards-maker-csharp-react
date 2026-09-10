@@ -13,7 +13,7 @@ namespace Services
             _configuration = configuration;
         }
 
-        public async Task SendEmailAsync(string toEmail, string subject, string body)
+        public async Task SendEmailAsync(string toEmail, string subject, string body, string? replyToEmail = null)
         {
             var from = _configuration["EmailSettings:From"];
             var smtpServer = _configuration["EmailSettings:SmtpServer"];
@@ -30,6 +30,10 @@ namespace Services
                 Body = body,
                 IsBodyHtml = true
             };
+            if (!string.IsNullOrEmpty(replyToEmail))
+            {
+                message.ReplyToList.Add(new MailAddress(replyToEmail));
+            }
 
             using var client = new SmtpClient(smtpServer, SmtpPort)
             {
