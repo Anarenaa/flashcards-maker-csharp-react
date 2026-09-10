@@ -1,4 +1,5 @@
 import { render } from "@testing-library/react";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import CardsGrid from "./CardsGrid";
 
 // Mock child components for isolation
@@ -10,18 +11,38 @@ vi.mock("../../Shared/Loader", () => ({
   default: ({ loadingText }) => <div data-testid="loader">{loadingText}</div>,
 }));
 
+const renderWithProviders = (ui) => {
+  const queryClient = new QueryClient({
+    defaultOptions: { queries: { retry: false } },
+  });
+  return render(
+    <QueryClientProvider client={queryClient}>{ui}</QueryClientProvider>,
+  );
+};
+
 it("should show loader when loading and flashcardsCount > 0", () => {
-  const { container } = render(
-    <CardsGrid isLoading={true} flashcardsCount={5} loadingText="Custom loading..." />
+  const { container } = renderWithProviders(
+    <CardsGrid
+      isLoading={true}
+      flashcardsCount={5}
+      loadingText="Custom loading..."
+    />,
   );
 
   expect(container.querySelector('[data-testid="loader"]')).not.toBeNull();
-  expect(container.querySelector('[data-testid="loader"]').textContent).toBe("Custom loading...");
+  expect(container.querySelector('[data-testid="loader"]').textContent).toBe(
+    "Custom loading...",
+  );
 });
 
 it("should show empty state message when cards list is empty", () => {
-  const { container } = render(
-    <CardsGrid isLoading={false} flashcardsCount={0} cards={[]} emptyText="Немає карток" />
+  const { container } = renderWithProviders(
+    <CardsGrid
+      isLoading={false}
+      flashcardsCount={0}
+      cards={[]}
+      emptyText="Немає карток"
+    />,
   );
 
   expect(container.querySelector(".empty-state")).not.toBeNull();
@@ -34,8 +55,8 @@ it("should render list of cards when data is present", () => {
     { id: 2, term: "Car", definition: "Машина" },
   ];
 
-  const { container } = render(
-    <CardsGrid isLoading={false} flashcardsCount={2} cards={mockCards} />
+  const { container } = renderWithProviders(
+    <CardsGrid isLoading={false} flashcardsCount={2} cards={mockCards} />,
   );
 
   const tiles = container.querySelectorAll('[data-testid="card-tile"]');

@@ -1,7 +1,5 @@
-import { render, fireEvent, waitFor } from "@testing-library/react";
+import { render, fireEvent } from "@testing-library/react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { http, HttpResponse } from "msw";
-import { server } from "../../../setupTests";
 import CardTile from "./CardTile";
 
 const renderWithProviders = (ui) => {
@@ -133,11 +131,7 @@ it("should render actions and open edit form when isMine is true", () => {
 });
 
 it("should open confirmation modal and delete card successfully", async () => {
-  server.use(
-    http.delete("*/api/sets/10/flashcards/1", () => {
-      return new HttpResponse(null, { status: 204 });
-    }),
-  );
+  const onDelete = vi.fn();
 
   const { container } = renderWithProviders(
     <CardTile
@@ -145,6 +139,7 @@ it("should open confirmation modal and delete card successfully", async () => {
       setId={10}
       isMine={true}
       isLanguageType={false}
+      onDelete={onDelete}
     />,
   );
 
@@ -157,7 +152,6 @@ it("should open confirmation modal and delete card successfully", async () => {
 
   fireEvent.click(container.querySelector('[data-testid="confirm-del"]'));
 
-  await waitFor(() => {
-    expect(container.querySelector('[data-testid="confirm-modal"]')).toBeNull();
-  });
+  expect(onDelete).toHaveBeenCalledWith(1);
+  expect(container.querySelector('[data-testid="confirm-modal"]')).toBeNull();
 });
