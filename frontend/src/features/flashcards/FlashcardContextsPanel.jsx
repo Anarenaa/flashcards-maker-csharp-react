@@ -10,7 +10,12 @@ import ConfirmModal from "../../components/Shared/ConfirmModal";
 import api from "../../services/api";
 import "./FlashcardContextsPanel.scss";
 
-export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
+export default function FlashcardContextsPanel({
+  isOpen,
+  onClose,
+  card,
+  isSetMine = false,
+}) {
   const { id: setId } = useParams();
   const queryClient = useQueryClient();
   const [isFormOpen, setIsFormOpen] = useState(false);
@@ -93,9 +98,11 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
     <>
       <ModalWrapper isOpen={isOpen} onClose={onClose} showCloseButton={true}>
         <div className="contexts-wrapper">
-          <button className="add-new-button" onClick={handleAddClick}>
-            <Plus size={24} />
-          </button>
+          {isSetMine && (
+            <button className="add-new-button" onClick={handleAddClick}>
+              <Plus size={24} />
+            </button>
+          )}
 
           {isLoading || generateMutation.isPending ? (
             <Loader loadingText="Генеруємо приклади..." />
@@ -128,7 +135,7 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
                       </>
                     )}
                   </div>
-                  {!context.isGenerated && (
+                  {!context.isGenerated && isSetMine && (
                     <div className="actions">
                       <button
                         aria-label="Редагувати"
@@ -161,7 +168,7 @@ export default function FlashcardContextsPanel({ isOpen, onClose, card }) {
           )}
         </div>
       </ModalWrapper>
-      {isFormOpen && (
+      {isFormOpen && isSetMine && (
         <FlashcardContextForm
           isOpen={isFormOpen}
           onClose={() => {

@@ -56,6 +56,7 @@ export default function CardTile({ card, setId, isMine, isLanguageType, onDelete
           isOpen={isContextModalOpen}
           onClose={() => setIsContextModalOpen(false)}
           card={card}
+          isSetMine={isMine}
         />
       )}
       {deletedCardId === card.id && (
