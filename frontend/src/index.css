@@ -1,4 +1,28 @@
+:root {
+  --bg-color: #141b25;
+  --accent-purple: #2c1335;
+  --accent-color: #6b8789;
+  --accent-white: #f7ffff;
+  --square-color-2: #818375;
+  --text-color: var(--accent-white);
 
+  --component-bg: color-mix(in srgb, var(--square-color-2) 10%, transparent);
+  --component-border: color-mix(in srgb, var(--accent-white) 30%, transparent);
+  --component-hover: color-mix(in srgb, var(--accent-color) 40%, transparent);
+
+  --progress-bar-start: #6e8efb;
+  --progress-bar-end: #a777e3;
+  --progress-bar-gradient: linear-gradient(
+    135deg,
+    var(--progress-bar-start),
+    var(--progress-bar-end)
+  );
+
+  --error-color: #ff6464;
+  --error-text: #ff8080;
+  --error-bright-color: #dc3545;
+  --success-color: #28a745;
+}
 
 * {
   padding: 0;

@@ -63,14 +63,6 @@ function App() {
     };
 
     checkUser();
-
-    const savedPalette = localStorage.getItem("themePalette") || "storm";
-    const savedMode = localStorage.getItem("themeMode") || "dark";
-
-    document.documentElement.setAttribute(
-      "data-theme",
-      `${savedPalette}-${savedMode}`,
-    );
   }, []);
 
   if (isAuth === null || (isAuth === true && isUserLoading)) {

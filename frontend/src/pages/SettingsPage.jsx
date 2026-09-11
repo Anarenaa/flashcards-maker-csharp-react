@@ -19,28 +19,12 @@ export default function SettingsPage({
     useState(null);
   const queryClient = useQueryClient();
 
-  const { register, watch, setValue } = useForm({
+  const { register, setValue } = useForm({
     defaultValues: {
       isPublic: isPublic ?? false,
       isTheOnlyUserMode: isTheOnlyUserMode,
-      palette: localStorage.getItem("themePalette") || "storm",
-      isDarkTheme: (localStorage.getItem("themeMode") || "dark") === "dark",
     },
   });
-
-  const watchPalette = watch("palette");
-  const watchDarkTheme = watch("isDarkTheme");
-
-  useEffect(() => {
-    const mode = watchDarkTheme ? "dark" : "light";
-    localStorage.setItem("themePalette", watchPalette);
-    localStorage.setItem("themeMode", mode);
-
-    document.documentElement.setAttribute(
-      "data-theme",
-      `${watchPalette}-${mode}`,
-    );
-  }, [watchPalette, watchDarkTheme]);
 
   // sync with ToggleSwitch
   useEffect(() => {
@@ -121,16 +105,6 @@ export default function SettingsPage({
                     }
                   },
                 }}
-              />
-            </div>
-
-            <div className="setting-row">
-              <div className="setting-info">
-                <label>Темна тема</label>
-              </div>
-              <ToggleSwitch
-                id="is-dark-theme"
-                registerProps={register("isDarkTheme")}
               />
             </div>
           </div>

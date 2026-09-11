@@ -47,7 +47,6 @@ describe("Rendering and local state", () => {
 
     expect(container.querySelector("#is-public")).toBeInTheDocument();
     expect(container.querySelector("#is-the-only-user")).toBeInTheDocument();
-    expect(container.querySelector("#is-dark-theme")).toBeInTheDocument();
     expect(screen.getByText("Написати нам")).toBeInTheDocument();
     expect(screen.getByText("Видалити акаунт")).toBeInTheDocument();
   });
@@ -79,20 +78,6 @@ describe("Rendering and local state", () => {
     );
 
     expect(container.querySelector("#is-public")).toBeChecked();
-  });
-
-  it("should update theme localStorage and the document attribute when toggling dark theme", () => {
-    const { container } = renderPage();
-    const darkThemeToggle = container.querySelector("#is-dark-theme");
-
-    fireEvent.click(darkThemeToggle);
-
-    expect(localStorage.getItem("themeMode")).toBe(
-      darkThemeToggle.checked ? "dark" : "light",
-    );
-    expect(document.documentElement.getAttribute("data-theme")).toContain(
-      darkThemeToggle.checked ? "dark" : "light",
-    );
   });
 
   it("should open the EmailToSupport modal when clicking 'Написати нам' button", () => {
