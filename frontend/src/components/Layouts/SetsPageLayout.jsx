@@ -6,6 +6,7 @@ import PaginationFooter from "../Sets/PaginationFooter";
 export default function SetsPageLayout({
   endpoint,
   isMine = false,
+  isInfinity = false,
   isTheOnlyUserMode,
   loadingText,
   emptyText,
@@ -23,7 +24,7 @@ export default function SetsPageLayout({
     clearSearch,
     handleSubmit,
     handlePageChange,
-  } = useSetsListWithFilters(endpoint);
+  } = useSetsListWithFilters(endpoint, isInfinity);
 
   const hasActiveFilters = Object.values(filters).some((v) => v !== "");
   const isEmpty = !sets || sets.length === 0;

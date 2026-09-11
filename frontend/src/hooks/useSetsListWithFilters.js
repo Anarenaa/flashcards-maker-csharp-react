@@ -4,7 +4,7 @@ import api from "../services/api";
 import { useSetTypes } from "./useSetTypes";
 import { useCategories } from "./useCategories";
 
-export function useSetsListWithFilters(endpoint) {
+export function useSetsListWithFilters(endpoint, isInfinity = false) {
   const [filters, setFilters] = useState({
     searchText: "",
     categoryId: "",
@@ -51,6 +51,7 @@ export function useSetsListWithFilters(endpoint) {
     // стан — лишаємо попередні дані на екрані. Це заміна ручного
     // "не блимати" підходу.
     placeholderData: keepPreviousData,
+    staleTime: isInfinity ? Infinity : undefined,
   });
 
   const sets = data?.items ?? [];

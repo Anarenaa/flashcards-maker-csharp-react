@@ -10,6 +10,7 @@ export default function MySetsPage({ isTheOnlyUserMode }) {
       <SetsPageLayout
         endpoint="/my-sets"
         isMine={true}
+        isInfinity={true}
         isTheOnlyUserMode={isTheOnlyUserMode}
         loadingText="Завантажуємо твої сети..."
         extraCard={
