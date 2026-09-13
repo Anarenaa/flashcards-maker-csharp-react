@@ -377,9 +377,9 @@ namespace Core.Migrations.SqlServer
                 columns: new[] { "Id", "AccessFailedCount", "AvatarUrl", "ConcurrencyStamp", "CreatedAt", "Email", "EmailConfirmed", "IsBanned", "IsPublic", "LockoutEnabled", "LockoutEnd", "NormalizedEmail", "NormalizedUserName", "PasswordHash", "PhoneNumber", "PhoneNumberConfirmed", "SecurityStamp", "TwoFactorEnabled", "UpdatedAt", "UserName" },
                 values: new object[,]
                 {
-                    { 1, 0, null, "0790DE8E-983C-435E-9804-6334D976451B", new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local), "john_doe@gmail.com", true, false, true, false, null, "JOHN_DOE@GMAIL.COM", "JOHN_DOE", "AQAAAAIAAYagAAAAECWiT3PBdFR8jFPQAbbr/xZW0nPeypMwcicb5XAnXqxtp7h3mVfSfN4t2UQEzlwEcg==", null, false, "834371C8-1F0A-44C1-903D-94D1898E5E7B", false, new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local), "john_doe" },
-                    { 2, 0, null, "C8A1088E-983C-435E-9804-6334D976451C", new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Local), "jane_smith@gmail.com", true, false, true, false, null, "JANE_SMITH@GMAIL.COM", "JANE_SMITH", "AQAAAAIAAYagAAAAEEzkdq2JyhFWGCHP/KtVdIRcOheqDIHWulCLEYW1h6RefsLHVko0jduu4Zcu2Bwt1g==", null, false, "0B4D1A60-F22B-4467-93C0-94D1898E5E7C", false, new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Local), "jane_smith" },
-                    { 13, 0, null, "0790DE8E-983C-435E-9804-6334D976451B", new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local), "admin@example.com", true, false, true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEFgsHMTnZXkcaw1E4PQs9bvYxtiRXQo18Lr3rmtablo5pOsn5PC6XEs7CiZIZKTkTA==", null, false, "834371C8-1F0A-44C1-903D-94D1898E5E7B", false, new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local), "admin" }
+                    { 1, 0, null, "0790DE8E-983C-435E-9804-6334D976451B", new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc), "john_doe@gmail.com", true, false, true, false, null, "JOHN_DOE@GMAIL.COM", "JOHN_DOE", "AQAAAAIAAYagAAAAECWiT3PBdFR8jFPQAbbr/xZW0nPeypMwcicb5XAnXqxtp7h3mVfSfN4t2UQEzlwEcg==", null, false, "834371C8-1F0A-44C1-903D-94D1898E5E7B", false, new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc), "john_doe" },
+                    { 2, 0, null, "C8A1088E-983C-435E-9804-6334D976451C", new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Utc), "jane_smith@gmail.com", true, false, true, false, null, "JANE_SMITH@GMAIL.COM", "JANE_SMITH", "AQAAAAIAAYagAAAAEEzkdq2JyhFWGCHP/KtVdIRcOheqDIHWulCLEYW1h6RefsLHVko0jduu4Zcu2Bwt1g==", null, false, "0B4D1A60-F22B-4467-93C0-94D1898E5E7C", false, new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Utc), "jane_smith" },
+                    { 13, 0, null, "0790DE8E-983C-435E-9804-6334D976451B", new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc), "admin@example.com", true, false, true, false, null, "ADMIN@EXAMPLE.COM", "ADMIN", "AQAAAAIAAYagAAAAEFgsHMTnZXkcaw1E4PQs9bvYxtiRXQo18Lr3rmtablo5pOsn5PC6XEs7CiZIZKTkTA==", null, false, "834371C8-1F0A-44C1-903D-94D1898E5E7B", false, new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc), "admin" }
                 });
 
             migrationBuilder.InsertData(
@@ -387,9 +387,9 @@ namespace Core.Migrations.SqlServer
                 columns: new[] { "Id", "CreatedAt", "Name" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "English" },
-                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Vocabulary" },
-                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified), "Math" }
+                    { 1, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "English" },
+                    { 2, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Vocabulary" },
+                    { 3, new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "Math" }
                 });
 
             migrationBuilder.InsertData(
@@ -417,9 +417,9 @@ namespace Core.Migrations.SqlServer
                 columns: new[] { "Id", "CreatedAt", "Description", "FromLang", "IsGenerated", "IsPublic", "Name", "ToLang", "Type", "UpdatedAt", "UserId" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), "English vocabulary", null, false, true, "Fruits", null, 0, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified), 1 },
-                    { 2, new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified), "Math test preparation set", null, false, false, "Math", null, 0, new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Unspecified), 2 },
-                    { 3, new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified), "Всесвітня історія: революції різних років", null, false, true, "Роки революцій", null, 0, new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Unspecified), 2 }
+                    { 1, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Utc), "English vocabulary", null, false, true, "Fruits", null, 0, new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Utc), 1 },
+                    { 2, new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Utc), "Math test preparation set", null, false, false, "Math", null, 0, new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Utc), 2 },
+                    { 3, new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Utc), "Всесвітня історія: революції різних років", null, false, true, "Роки революцій", null, 0, new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Utc), 2 }
                 });
 
             migrationBuilder.InsertData(
@@ -448,14 +448,14 @@ namespace Core.Migrations.SqlServer
                 columns: new[] { "Id", "CreatedAt", "Definition", "SetId", "Term", "UpdatedAt" },
                 values: new object[,]
                 {
-                    { 1, new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Unspecified), "Яблуко", 1, "Apple", new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Unspecified) },
-                    { 2, new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Unspecified), "Банан", 1, "Banana", new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Unspecified) },
-                    { 3, new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Unspecified), "Ананас", 1, "Pineapple", new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Unspecified) },
-                    { 4, new DateTime(2026, 1, 1, 10, 35, 0, 0, DateTimeKind.Unspecified), "Це числова характеристика квадратного рівняння, що визначає кількість його дійсних коренів.", 2, "Дискримінант", new DateTime(2026, 1, 2, 11, 35, 0, 0, DateTimeKind.Unspecified) },
-                    { 5, new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Unspecified), "Це математична операція, що дозволяє знайти площу під кривою або обчислити загальну кількість чогось на основі швидкості зміни.", 2, "Інтеграл", new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Unspecified) },
-                    { 6, new DateTime(2024, 1, 3, 9, 50, 0, 0, DateTimeKind.Unspecified), "Це радикальна зміна в політичній, соціальній або економічній системі, яка зазвичай відбувається швидко і часто супроводжується конфліктами.", 3, "Революція", new DateTime(2024, 1, 4, 9, 50, 0, 0, DateTimeKind.Unspecified) },
-                    { 7, new DateTime(2026, 1, 3, 9, 55, 0, 0, DateTimeKind.Unspecified), "1789-1799", 3, "Роки великої французької революції", new DateTime(2026, 1, 6, 9, 55, 0, 0, DateTimeKind.Unspecified) },
-                    { 8, new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Unspecified), "1848-1849", 3, "З якого по який рік тривала \"Весна народів\" у Європі?", new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Unspecified) }
+                    { 1, new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Utc), "Яблуко", 1, "Apple", new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Utc) },
+                    { 2, new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Utc), "Банан", 1, "Banana", new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Utc) },
+                    { 3, new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Utc), "Ананас", 1, "Pineapple", new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Utc) },
+                    { 4, new DateTime(2026, 1, 1, 10, 35, 0, 0, DateTimeKind.Utc), "Це числова характеристика квадратного рівняння, що визначає кількість його дійсних коренів.", 2, "Дискримінант", new DateTime(2026, 1, 2, 11, 35, 0, 0, DateTimeKind.Utc) },
+                    { 5, new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Utc), "Це математична операція, що дозволяє знайти площу під кривою або обчислити загальну кількість чогось на основі швидкості зміни.", 2, "Інтеграл", new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Utc) },
+                    { 6, new DateTime(2024, 1, 3, 9, 50, 0, 0, DateTimeKind.Utc), "Це радикальна зміна в політичній, соціальній або економічній системі, яка зазвичай відбувається швидко і часто супроводжується конфліктами.", 3, "Революція", new DateTime(2024, 1, 4, 9, 50, 0, 0, DateTimeKind.Utc) },
+                    { 7, new DateTime(2026, 1, 3, 9, 55, 0, 0, DateTimeKind.Utc), "1789-1799", 3, "Роки великої французької революції", new DateTime(2026, 1, 6, 9, 55, 0, 0, DateTimeKind.Utc) },
+                    { 8, new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Utc), "1848-1849", 3, "З якого по який рік тривала \"Весна народів\" у Європі?", new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Utc) }
                 });
 
             migrationBuilder.CreateIndex(

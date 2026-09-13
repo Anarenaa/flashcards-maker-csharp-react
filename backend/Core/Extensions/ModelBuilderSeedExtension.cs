@@ -1,10 +1,15 @@
-﻿using Core.Models;
+﻿using System.Globalization;
+using Core.Models;
 using Microsoft.EntityFrameworkCore;
 
 namespace Core.Extensions
 {
     public class ModelBuilderSeedExtension
     {
+        private static DateTime Utc(string s) =>
+            DateTime.Parse(s, CultureInfo.InvariantCulture,
+                DateTimeStyles.AdjustToUniversal | DateTimeStyles.AssumeUniversal);
+
         public static void SeedAll(ModelBuilder modelBuilder)
         {
             SeedRoles(modelBuilder);

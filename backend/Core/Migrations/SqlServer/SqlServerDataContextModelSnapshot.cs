@@ -150,23 +150,23 @@ namespace Core.Migrations.SqlServer
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "English",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Vocabulary",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Math",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
 
@@ -209,25 +209,25 @@ namespace Core.Migrations.SqlServer
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "Favorites",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = 2
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "My English Vocabulary",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = 1
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Name = "English A0",
-                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedAt = new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             UserId = 1
                         });
                 });
@@ -273,74 +273,74 @@ namespace Core.Migrations.SqlServer
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Utc),
                             Definition = "Яблуко",
                             SetId = 1,
                             Term = "Apple",
-                            UpdatedAt = new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 1, 10, 20, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Utc),
                             Definition = "Банан",
                             SetId = 1,
                             Term = "Banana",
-                            UpdatedAt = new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 1, 10, 25, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Utc),
                             Definition = "Ананас",
                             SetId = 1,
                             Term = "Pineapple",
-                            UpdatedAt = new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 1, 10, 30, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 4,
-                            CreatedAt = new DateTime(2026, 1, 1, 10, 35, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 1, 10, 35, 0, 0, DateTimeKind.Utc),
                             Definition = "Це числова характеристика квадратного рівняння, що визначає кількість його дійсних коренів.",
                             SetId = 2,
                             Term = "Дискримінант",
-                            UpdatedAt = new DateTime(2026, 1, 2, 11, 35, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 2, 11, 35, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 5,
-                            CreatedAt = new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Utc),
                             Definition = "Це математична операція, що дозволяє знайти площу під кривою або обчислити загальну кількість чогось на основі швидкості зміни.",
                             SetId = 2,
                             Term = "Інтеграл",
-                            UpdatedAt = new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 2, 11, 40, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 6,
-                            CreatedAt = new DateTime(2024, 1, 3, 9, 50, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 3, 9, 50, 0, 0, DateTimeKind.Utc),
                             Definition = "Це радикальна зміна в політичній, соціальній або економічній системі, яка зазвичай відбувається швидко і часто супроводжується конфліктами.",
                             SetId = 3,
                             Term = "Революція",
-                            UpdatedAt = new DateTime(2024, 1, 4, 9, 50, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2024, 1, 4, 9, 50, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 7,
-                            CreatedAt = new DateTime(2026, 1, 3, 9, 55, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 3, 9, 55, 0, 0, DateTimeKind.Utc),
                             Definition = "1789-1799",
                             SetId = 3,
                             Term = "Роки великої французької революції",
-                            UpdatedAt = new DateTime(2026, 1, 6, 9, 55, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 6, 9, 55, 0, 0, DateTimeKind.Utc)
                         },
                         new
                         {
                             Id = 8,
-                            CreatedAt = new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Utc),
                             Definition = "1848-1849",
                             SetId = 3,
                             Term = "З якого по який рік тривала \"Весна народів\" у Європі?",
-                            UpdatedAt = new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Unspecified)
+                            UpdatedAt = new DateTime(2026, 1, 3, 10, 0, 0, 0, DateTimeKind.Utc)
                         });
                 });
 
@@ -478,37 +478,37 @@ namespace Core.Migrations.SqlServer
                         new
                         {
                             Id = 1,
-                            CreatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Utc),
                             Description = "English vocabulary",
                             IsGenerated = false,
                             IsPublic = true,
                             Name = "Fruits",
                             Type = 0,
-                            UpdatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedAt = new DateTime(2024, 1, 1, 10, 15, 0, 0, DateTimeKind.Utc),
                             UserId = 1
                         },
                         new
                         {
                             Id = 2,
-                            CreatedAt = new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 2, 11, 30, 0, 0, DateTimeKind.Utc),
                             Description = "Math test preparation set",
                             IsGenerated = false,
                             IsPublic = false,
                             Name = "Math",
                             Type = 0,
-                            UpdatedAt = new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedAt = new DateTime(2024, 1, 3, 12, 11, 0, 0, DateTimeKind.Utc),
                             UserId = 2
                         },
                         new
                         {
                             Id = 3,
-                            CreatedAt = new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Unspecified),
+                            CreatedAt = new DateTime(2024, 1, 3, 9, 45, 0, 0, DateTimeKind.Utc),
                             Description = "Всесвітня історія: революції різних років",
                             IsGenerated = false,
                             IsPublic = true,
                             Name = "Роки революцій",
                             Type = 0,
-                            UpdatedAt = new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Unspecified),
+                            UpdatedAt = new DateTime(2024, 1, 4, 14, 20, 0, 0, DateTimeKind.Utc),
                             UserId = 2
                         });
                 });
@@ -605,7 +605,7 @@ namespace Core.Migrations.SqlServer
                             Id = 1,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             Email = "john_doe@gmail.com",
                             EmailConfirmed = true,
                             IsBanned = false,
@@ -617,7 +617,7 @@ namespace Core.Migrations.SqlServer
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             UserName = "john_doe"
                         },
                         new
@@ -625,7 +625,7 @@ namespace Core.Migrations.SqlServer
                             Id = 2,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "C8A1088E-983C-435E-9804-6334D976451C",
-                            CreatedAt = new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(2023, 2, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             Email = "jane_smith@gmail.com",
                             EmailConfirmed = true,
                             IsBanned = false,
@@ -637,7 +637,7 @@ namespace Core.Migrations.SqlServer
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "0B4D1A60-F22B-4467-93C0-94D1898E5E7C",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            UpdatedAt = new DateTime(2023, 3, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             UserName = "jane_smith"
                         },
                         new
@@ -645,7 +645,7 @@ namespace Core.Migrations.SqlServer
                             Id = 13,
                             AccessFailedCount = 0,
                             ConcurrencyStamp = "0790DE8E-983C-435E-9804-6334D976451B",
-                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            CreatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             Email = "admin@example.com",
                             EmailConfirmed = true,
                             IsBanned = false,
@@ -657,7 +657,7 @@ namespace Core.Migrations.SqlServer
                             PhoneNumberConfirmed = false,
                             SecurityStamp = "834371C8-1F0A-44C1-903D-94D1898E5E7B",
                             TwoFactorEnabled = false,
-                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Local),
+                            UpdatedAt = new DateTime(2023, 1, 2, 13, 30, 0, 0, DateTimeKind.Utc),
                             UserName = "admin"
                         });
                 });

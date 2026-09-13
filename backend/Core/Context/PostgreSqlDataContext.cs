@@ -10,7 +10,7 @@ namespace Core.Context
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-            ConfigureDateTypeForBaseModels(modelBuilder, "timezone('utc', now())");
+            ConfigureDateTypeForBaseModels(modelBuilder, "NOW()");
         }
     }
 }

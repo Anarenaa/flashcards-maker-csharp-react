@@ -16,7 +16,7 @@ namespace Core.Migrations.SqlServer
                 table: "FlashcardContexts",
                 type: "datetime2",
                 nullable: false,
-                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Unspecified));
+                defaultValue: new DateTime(1, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc));
 
             migrationBuilder.AddColumn<bool>(
                 name: "IsGenerated",
