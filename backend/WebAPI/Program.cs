@@ -326,22 +326,6 @@ builder.Services.AddCors(options =>
 
 var app = builder.Build();
 
-// ������������ ������ ������� ��� �����
-//using (var scope = app.Services.CreateScope())
-//{
-//    var services = scope.ServiceProvider;
-//    try
-//    {
-//        var context = services.GetRequiredService<DataContext>();
-//        context.Database.Migrate();
-//        Console.WriteLine("----> Database Migration Successful");
-//    }
-//    catch (Exception ex)
-//    {
-//        Console.WriteLine($"----> Migration Error: {ex.Message}");
-//    }
-//}
-
 // ���������� HTTPS ��������� �� �����-������� Render
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
@@ -382,7 +366,15 @@ app.Use(async (context, next) =>
 
 if (!app.Environment.IsDevelopment())
 {
-    app.UseExceptionHandler("/Home/Error");
+    app.UseExceptionHandler(errorApp =>
+    {
+        errorApp.Run(async context =>
+        {
+            context.Response.StatusCode = StatusCodes.Status500InternalServerError;
+            context.Response.ContentType = "application/json";
+            await context.Response.WriteAsJsonAsync(new { message = "Internal server error." });
+        });
+    });
     app.UseHsts();
 }
 if (app.Environment.IsDevelopment())
@@ -404,10 +396,5 @@ app.UseAuthorization();
 
 app.MapStaticAssets();
 app.MapControllers();
-
-app.MapControllerRoute(
-    name: "default",
-    pattern: "{controller=Home}/{action=Index}/{id?}")
-    .WithStaticAssets();
 
 app.Run();
