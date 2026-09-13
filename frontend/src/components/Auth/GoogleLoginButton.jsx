@@ -2,7 +2,9 @@ import React from "react";
 import './GoogleLoginButton.scss';
 
 export default function GoogleLoginButton({ returnUrl }) {
-  const googleUrl = `/api/auth/google-login${
+  const apiBaseUrl = import.meta.env.VITE_API_URL;
+
+  const googleUrl = `${apiBaseUrl}/auth/google-login${
     returnUrl ? `?returnUrl=${encodeURIComponent(returnUrl)}` : ""
   }`;
 
