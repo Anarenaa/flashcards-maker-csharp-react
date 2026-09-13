@@ -19,13 +19,15 @@ namespace WebAPI.Controllers
         private readonly SignInManager<User> _signInManager;
         private readonly IEmailService _emailService;
         private readonly IConfiguration _configuration;
+        private readonly IWebHostEnvironment _env;
 
         public AuthController(
             IAuthService authService,
             UserManager<User> userManager,
             SignInManager<User> signInManager,
             IEmailService emailService,
-            IConfiguration configuration
+            IConfiguration configuration,
+            IWebHostEnvironment env 
         )
         {
             _authService = authService;
@@ -33,6 +35,30 @@ namespace WebAPI.Controllers
             _signInManager = signInManager;
             _emailService = emailService;
             _configuration = configuration;
+            _env = env;
+        }
+
+        private CookieOptions BuildAuthCookieOptions(DateTime? expires = null)
+        {
+            var options = new CookieOptions
+            {
+                HttpOnly = true,
+                Path = "/",
+                Expires = expires
+            };
+
+            if (_env.IsDevelopment())
+            {
+                options.SameSite = SameSiteMode.Lax;
+                options.Secure = false;
+            }
+            else
+            {
+                options.SameSite = SameSiteMode.None;
+                options.Secure = true;
+            }
+
+            return options;
         }
 
         [HttpPost("register")]
@@ -72,13 +98,7 @@ namespace WebAPI.Controllers
 
                     var token = await _authService.LoginAsync(loginDto);
 
-                    Response.Cookies.Append("AuthToken", token, new CookieOptions
-                    {
-                        HttpOnly = true,
-                        Secure = true,
-                        SameSite = SameSiteMode.Lax,
-                        Expires = DateTime.UtcNow.AddDays(7)
-                    });
+                    Response.Cookies.Append("AuthToken", token, BuildAuthCookieOptions(DateTime.UtcNow.AddDays(7)));
 
                     return Ok(new { message = "Реєстрація та вхід успішні", username = dto.UserName });
                 }
@@ -116,13 +136,7 @@ namespace WebAPI.Controllers
             try
             {
                 var token = await _authService.LoginAsync(dto);
-                Response.Cookies.Append("AuthToken", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTime.UtcNow.AddDays(7)
-                });
+                Response.Cookies.Append("AuthToken", token, BuildAuthCookieOptions(DateTime.UtcNow.AddDays(7)));
 
                 return Ok(new
                 {
@@ -152,13 +166,7 @@ namespace WebAPI.Controllers
         [HttpPost("logout")]
         public async Task<IActionResult> Logout()
         {
-            var cookieOptions = new CookieOptions
-            {
-                HttpOnly = true,
-                Secure = true,
-                SameSite = SameSiteMode.Lax,
-                Path = "/"
-            };
+            var cookieOptions = BuildAuthCookieOptions();
 
             Response.Cookies.Delete("AuthToken", cookieOptions);
             Response.Cookies.Delete(".AspNetCore.Identity.Application", cookieOptions);
@@ -222,13 +230,7 @@ namespace WebAPI.Controllers
 
                 await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
 
-                Response.Cookies.Append("AuthToken", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = true,
-                    SameSite = SameSiteMode.Lax,
-                    Expires = DateTime.UtcNow.AddDays(7)
-                });
+                Response.Cookies.Append("AuthToken", token, BuildAuthCookieOptions(DateTime.UtcNow.AddDays(7)));
 
                 var destination = !string.IsNullOrEmpty(returnUrl) ? returnUrl : "/";
                 return this.RedirectToFrontend(destination);

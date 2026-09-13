@@ -26,6 +26,8 @@ AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 
 var builder = WebApplication.CreateBuilder(args);
 
+var isDevelopment = builder.Environment.IsDevelopment();
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
@@ -210,8 +212,16 @@ builder.Services.AddAuthentication(options =>
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
 {
-    options.Cookie.SameSite = SameSiteMode.Lax;
-    options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    if (isDevelopment)
+    {
+        options.Cookie.SameSite = SameSiteMode.Lax;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    }
+    else
+    {
+        options.Cookie.SameSite = SameSiteMode.None;
+        options.Cookie.SecurePolicy = CookieSecurePolicy.Always;
+    }
 })
 .AddJwtBearer(options =>
 {
@@ -299,6 +309,21 @@ builder.Services.AddScoped<IHintService, HintService>();
 
 builder.Services.AddHttpClient<IElevenLabsService, ElevenLabsService>();
 
+var frontendOrigins = isDevelopment
+    ? new[] { "http://localhost:5173" }
+    : new[] { "https://flashcards-maker-csharp-react-frontend.onrender.com" };
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontend", policy =>
+    {
+        policy.WithOrigins(frontendOrigins)
+              .AllowAnyMethod()
+              .AllowAnyHeader()
+              .AllowCredentials();
+    });
+});
+
 var app = builder.Build();
 
 // ������������ ������ ������� ��� �����
@@ -371,6 +396,8 @@ if (app.Environment.IsDevelopment())
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseCors("AllowFrontend"); 
 
 app.UseAuthentication();
 app.UseAuthorization();
