@@ -1,37 +1,36 @@
-# 1. Етап рантайму (базовий образ)
+# 1. Runtime stage (base image)
 FROM mcr.microsoft.com/dotnet/aspnet:9.0 AS base
 WORKDIR /app
-# Render зазвичай використовує 8080 для .NET контейнерів
 EXPOSE 8080
 ENV ASPNETCORE_URLS=http://+:8080
 
-# 2. Етап збірки (SDK)
+# 2. Build stage (SDK)
 FROM mcr.microsoft.com/dotnet/sdk:9.0 AS build
 WORKDIR /src
 
-# Копіюємо файли проєктів для відновлення пакетів (це прискорює збірку завдяки кешуванню)
-COPY ["App/App.csproj", "App/"]
+# Copy project files for dependency restoration (optimizes caching)
+COPY ["WebAPI/WebAPI.csproj", "WebAPI/"]
 COPY ["Core/Core.csproj", "Core/"]
 COPY ["Services/Services.csproj", "Services/"]
 COPY ["Repositories/Repositories.csproj", "Repositories/"]
 
-RUN dotnet restore "App/App.csproj"
+RUN dotnet restore "WebAPI/WebAPI.csproj"
 
-# Копіюємо весь інший код
+# Copy the rest of the source code
 COPY . .
 
-# Збірка проєкту
-WORKDIR "/src/App"
-RUN dotnet build "App.csproj" -c Release -o /app/build
+# Build the project
+WORKDIR "/src/WebAPI"
+RUN dotnet build "WebAPI.csproj" -c Release -o /app/build
 
-# 3. Етап публікації
+# 3. Publish stage
 FROM build AS publish
-RUN dotnet publish "App.csproj" -c Release -o /app/publish /p:UseAppHost=false
+RUN dotnet publish "WebAPI.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# 4. Фінальний образ
+# 4. Final image stage
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 
-# Запуск застосунку
-ENTRYPOINT ["dotnet", "App.dll"]
+# Run the application
+ENTRYPOINT ["dotnet", "WebAPI.dll"]
