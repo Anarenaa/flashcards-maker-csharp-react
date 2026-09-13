@@ -93,7 +93,9 @@ function App() {
         >
           <Route path="main" element={<MainPage />} />
           <Route path="my-sets" element={<MySetsPage isTheOnlyUserMode={isTheOnlyUserMode} />} />
-          <Route path="my-collections" element={<MyCollectionsPage />} />
+          {
+            //<Route path="my-collections" element={<MyCollectionsPage />} />
+          }
           <Route
             path="my-profile"
             element={<MyProfilePage currentUser={user} />}

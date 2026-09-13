@@ -99,11 +99,11 @@ export default function Header({ currentUser, isTheOnlyUserMode }) {
                  {isTheOnlyUserMode ? "Сети" : "Мої сети"}  
                 </NavLink>
               </li>
-              <li className="header__nav-btn">
+              {/* <li className="header__nav-btn">
                 <NavLink to="/my-collections" className="header__link">
                   Мої колекції
                 </NavLink>
-              </li>
+              </li> */}
               <li className="header__nav-btn">
                 <NavLink
                   to="/my-profile"
