@@ -322,9 +322,13 @@ builder.Services.AddScoped<IHintService, HintService>();
 
 builder.Services.AddHttpClient<IElevenLabsService, ElevenLabsService>();
 
+var frontendUrl = builder.Configuration["FrontendUrl"]?.Trim().TrimEnd('/');
+if (!isDevelopment && string.IsNullOrEmpty(frontendUrl))
+    throw new InvalidOperationException("Configuration value 'FrontendUrl' is required in production (used for CORS).");
+
 var frontendOrigins = isDevelopment
     ? new[] { "http://localhost:5173" }
-    : new[] { "https://flashcards-maker-csharp-react-frontend.onrender.com" };
+    : new[] { frontendUrl! };
 
 builder.Services.AddCors(options =>
 {
