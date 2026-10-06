@@ -301,7 +301,20 @@ builder.Services.AddScoped<ISessionService, SessionService>();
 builder.Services.AddScoped<IPracticeService, PracticeService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<UserService>();
-builder.Services.AddTransient<IEmailService, EmailService>();
+if (string.Equals(builder.Configuration["EmailSettings:Provider"], "Brevo", StringComparison.OrdinalIgnoreCase))
+{
+    builder.Services.AddHttpClient<BrevoEmailService>(c => c.Timeout = TimeSpan.FromSeconds(10));
+    builder.Services.AddTransient<IEmailService>(sp => new ResilientEmailService(
+        sp.GetRequiredService<BrevoEmailService>(),
+        sp.GetRequiredService<ILogger<ResilientEmailService>>()));
+}
+else
+{
+    builder.Services.AddTransient<EmailService>();
+    builder.Services.AddTransient<IEmailService>(sp => new ResilientEmailService(
+        sp.GetRequiredService<EmailService>(),
+        sp.GetRequiredService<ILogger<ResilientEmailService>>()));
+}
 
 builder.Services.AddScoped<IWikipediaService, WikipediaService>();
 builder.Services.AddScoped<IDictionaryService, DictionaryService>();
@@ -356,6 +369,12 @@ app.Use(async (context, next) =>
         context.Response.StatusCode = StatusCodes.Status429TooManyRequests;
         context.Response.ContentType = "application/json";
         await context.Response.WriteAsJsonAsync(new { message = ex.Message });
+    }
+    catch (EmailDeliveryException)
+    {
+        context.Response.StatusCode = StatusCodes.Status503ServiceUnavailable;
+        context.Response.ContentType = "application/json";
+        await context.Response.WriteAsJsonAsync(new { message = "Не вдалося надіслати лист. Спробуйте пізніше." });
     }
     catch (DbException)
     {

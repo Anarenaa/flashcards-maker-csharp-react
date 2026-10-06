@@ -25,6 +25,9 @@ api.interceptors.response.use(
     ) {
       error.globalMessage =
         "Здається, у вас зник інтернет. Перевірте підключення до мережі 🌐";
+    } else if (error.code === "ECONNABORTED" || error.code === "ETIMEDOUT") {
+      error.globalMessage =
+        "Сервер занадто довго відповідає. Спробуйте пізніше.";
     }
     // response === undefined
     else if (!error.response) {
@@ -49,6 +52,8 @@ api.interceptors.response.use(
       } else if (status === 429) {
         error.globalMessage =
           "Занадто багато запитів! Будь ласка, спробуйте трохи пізніше.";
+      } else if (status === 503 && errorData?.message) {
+        error.globalMessage = errorData.message;
       } else if (status >= 500) {
         error.globalMessage =
           "Не вдалося з'єднатися з сервером. Спробуйте пізніше.";
