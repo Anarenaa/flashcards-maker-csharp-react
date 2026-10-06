@@ -8,6 +8,8 @@ import api from "../../../services/api";
 import "../AuthShared.scss";
 import "./VerifyEmailPage.scss";
 
+const REQUEST_TIMEOUT_MS = 2000;
+
 const verifyEmailSchema = z.object({
   email: emailRule,
 });
@@ -25,7 +27,7 @@ export default function VerifyEmailPage() {
 
   const onSubmit = async (data) => {
     try {
-      await api.post("/auth/verify-email", data);
+      await api.post("/auth/verify-email", data, { timeout: REQUEST_TIMEOUT_MS });
 
       window.location.href = "/email-sent";
     } catch (err) {

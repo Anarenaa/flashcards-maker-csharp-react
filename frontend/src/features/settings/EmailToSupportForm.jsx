@@ -8,6 +8,8 @@ import { useMutation } from "@tanstack/react-query";
 import api from "../../services/api";
 import toast from "react-hot-toast";
 
+const REQUEST_TIMEOUT_MS = 2000;
+
 const letterSchema = z.object({
   subject: z
     .string()
@@ -33,7 +35,7 @@ export default function EmailToSupport({ isOpen, onClose }) {
   });
 
   const sendMutation = useMutation({
-    mutationFn: (dataForm) => api.post("/emails/to-support", dataForm),
+    mutationFn: (dataForm) => api.post("/emails/to-support", dataForm, { timeout: REQUEST_TIMEOUT_MS }),
     onSuccess: () => {
       reset();
       onClose();
