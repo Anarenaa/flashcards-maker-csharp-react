@@ -55,10 +55,6 @@ export default function PracticeMapPage() {
   };
   const backNav = getBackNavigation();
 
-  // Use real browser history navigation (with a fallback), same as SetHeader,
-  // instead of always pushing a fresh entry — pushing here was fighting with
-  // navigate(-1) on the set details page, causing an infinite back-and-forth
-  // ping-pong between the two pages.
   const handleBack = useHandleBackLink(backNav.url);
 
   const flashcardIds = flashcards.map((f) => f.id);
