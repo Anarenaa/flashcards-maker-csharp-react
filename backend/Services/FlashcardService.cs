@@ -17,6 +17,7 @@ namespace Services
         {
             var flashcards = await _unitOfWork.Flashcards.GetAllAsync(
                 filter: f => f.SetId == setId,
+                orderBy: q => q.OrderBy(f => f.CreatedAt).ThenBy(f => f.Id),
                 includeProperties: "Set"
             );
             return flashcards.Select(f => new FlashcardDTO
@@ -34,6 +35,7 @@ namespace Services
                 page,
                 pageSize,
                 filter: f => f.SetId == setId,
+                orderBy: q => q.OrderBy(f => f.CreatedAt).ThenBy(f => f.Id),
                 includeProperties: "Set"
             );
 

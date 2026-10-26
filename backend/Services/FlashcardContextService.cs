@@ -17,7 +17,10 @@ namespace Services
         public async Task<List<FlashcardContextDTO>> GetAllFlashcardContextsAsync(int flashcardId)
         {
             var contexts = await _unitOfWork.FlashcardContexts
-                .GetAllAsync(filter: fc => fc.FlashcardId == flashcardId);
+                .GetAllAsync(
+                    filter: fc => fc.FlashcardId == flashcardId,
+                    orderBy: q => q.OrderBy(fc => fc.CreatedAt).ThenBy(fc => fc.Id)
+                );
 
             return contexts.Select(fc => new FlashcardContextDTO
             {

@@ -57,7 +57,7 @@ namespace Services
                                          u.Email!.ToLower().Contains(searchTerm));
             }
 
-            var users = await query.ToListAsync();
+            var users = await query.OrderBy(u => u.Id).ToListAsync();
             var userDtos = new List<UserDTO>();
 
             foreach (var user in users)

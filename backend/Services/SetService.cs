@@ -72,7 +72,7 @@ namespace Services
                     && (setType == null || s.Type == setType)
                     && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
-                    orderBy: s => s.OrderByDescending(s => s.CreatedAt),
+                    orderBy: s => s.OrderByDescending(s => s.CreatedAt).ThenByDescending(s => s.Id),
                     includeProperties: "User"
             );
 
@@ -106,7 +106,7 @@ namespace Services
                     && (setType == null || s.Type == setType)
                     && (string.IsNullOrEmpty(fromLangCode) || s.FromLang == fromLangCode)
                     && (string.IsNullOrEmpty(searchText) || s.Name.Contains(searchText)),
-                    orderBy: s => s.OrderByDescending(s => s.CreatedAt),
+                    orderBy: s => s.OrderByDescending(s => s.CreatedAt).ThenByDescending(s => s.Id),
                     includeProperties: "User"
             );
 
@@ -117,6 +117,7 @@ namespace Services
         {
             var sets = await _unitOfWork.Sets.GetAllAsync(
                     filter: s => s.Collections.Any(c => c.Id == collectionId),
+                    orderBy: s => s.OrderByDescending(s => s.CreatedAt).ThenByDescending(s => s.Id),
                     includeProperties: "User"
             );
 

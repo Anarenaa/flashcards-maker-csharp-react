@@ -31,10 +31,10 @@ namespace Repositories
             {
                 query = query.Where(filter);
             }
-            if (orderBy != null)
-            {
-                query = orderBy(query);
-            }
+            
+            query = orderBy != null
+                ? orderBy(query)
+                : query.OrderBy(e => EF.Property<int>(e, "Id"));
 
             return await query.ToListAsync();
         }
@@ -56,10 +56,10 @@ namespace Repositories
             {
                 query = query.Where(filter);
             }
-            if (orderBy != null)
-            {
-                query = orderBy(query);
-            }
+            
+            query = orderBy != null
+                ? orderBy(query)
+                : query.OrderBy(e => EF.Property<int>(e, "Id"));
 
             int totalCount = await query.CountAsync();
 

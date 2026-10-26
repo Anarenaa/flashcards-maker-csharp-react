@@ -14,7 +14,7 @@ namespace Services
         }
         public async Task<IEnumerable<CategoryDTO>> GetAllCategoriesAsync()
         {
-            var categories = await _unitOfWork.Categories.GetAllAsync(orderBy: c => c.OrderBy(c => c.Name));
+            var categories = await _unitOfWork.Categories.GetAllAsync(orderBy: c => c.OrderBy(c => c.Name).ThenBy(c => c.Id));
             return categories.Select(c => new CategoryDTO
             {
                 Id = c.Id,

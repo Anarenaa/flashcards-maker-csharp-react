@@ -16,6 +16,7 @@ namespace Services
         {
             var collections = await _unitOfWork.Collections.GetAllAsync(
                 filter: c => c.UserId == userId,
+                orderBy: q => q.OrderByDescending(c => c.CreatedAt).ThenByDescending(c => c.Id),
                 includeProperties: "Sets"
              );
 
@@ -48,23 +49,26 @@ namespace Services
                 Id = collection.Id,
                 Name = collection.Name,
                 Description = collection.Description,
-                Sets = collection.Sets.Select(s => new SetDTO
-                {
-                    Id = s.Id,
-                    Name = s.Name,
-                    Description = s.Description,
-                    Type = s.Type,
-                    FromLang = s.FromLang,
-                    ToLang = s.ToLang,
-                    AvatarUrl = s.User?.AvatarUrl,
-                    UserName = s.User?.UserName ?? "Користувач",
-                    IsPublic = s.IsPublic,
-                    IsGenerated = s.IsGenerated,
-                    FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
-                    CreatedAt = s.CreatedAt,
-                    LastUpdatedAt = s.UpdatedAt,
-                    OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
-                }).ToList()
+                Sets = collection.Sets
+                    .OrderByDescending(s => s.CreatedAt)
+                    .ThenByDescending(s => s.Id)
+                    .Select(s => new SetDTO
+                        {
+                            Id = s.Id,
+                            Name = s.Name,
+                            Description = s.Description,
+                            Type = s.Type,
+                            FromLang = s.FromLang,
+                            ToLang = s.ToLang,
+                            AvatarUrl = s.User?.AvatarUrl,
+                            UserName = s.User?.UserName ?? "Користувач",
+                            IsPublic = s.IsPublic,
+                            IsGenerated = s.IsGenerated,
+                            FlashcardsCount = flashcardCounts.GetValueOrDefault(s.Id, 0),
+                            CreatedAt = s.CreatedAt,
+                            LastUpdatedAt = s.UpdatedAt,
+                            OverallProgress = progressMap.GetValueOrDefault(s.Id, 0f)
+                        }).ToList()
             };
         }
         public async Task CreateCollectionAsync(CollectionDTO collectionDto, int userId)

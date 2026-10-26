@@ -18,7 +18,10 @@ namespace Services
         //Замінити Report на ReportDTO
         public async Task<IEnumerable<Report>> GetAllReports()
         {
-            var reports = await _unitOfWork.Reports.GetAllAsync(filter: r => r.IsResolved == false);
+            var reports = await _unitOfWork.Reports.GetAllAsync(
+                filter: r => r.IsResolved == false,
+                orderBy: q => q.OrderByDescending(r => r.CreatedAt).ThenByDescending(r => r.Id)
+            );
             return reports;
         }
         public async Task<Report?> GetReportByIdAsync(int reportId)
