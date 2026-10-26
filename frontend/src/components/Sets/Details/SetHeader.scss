@@ -5,15 +5,28 @@
   border-bottom: 1px solid
     color-mix(in srgb, var(--square-color-2) 30%, transparent);
 
+  // On mobile the header "dissolves" so that only the actions bar stays
+  // sticky; the rest scrolls away naturally (no height change on scroll).
   @media (max-width: 768px) {
-    position: sticky;
-    top: 0;
-    transition: top 0.4s ease-in-out;
-    z-index: 100;
+    display: contents;
 
-    .hidden {
-      position: absolute;
-      top: -100vh;
+    .set-header__row {
+      display: contents;
+    }
+    .set-header__back-link {
+      margin-top: 1.75rem;
+    }
+    .set-header__info {
+      margin-bottom: 1.5rem;
+    }
+    .set-header__actions {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      padding: 0.75rem 0;
+      background-color: var(--bg-color);
+      border-bottom: 1px solid
+        color-mix(in srgb, var(--square-color-2) 30%, transparent);
     }
   }
 
@@ -66,7 +79,7 @@
     flex-wrap: wrap;
   }
 
-  &__tags{
+  &__tags {
     display: flex;
     flex-wrap: wrap;
     gap: 0.5rem;
@@ -81,7 +94,7 @@
     border-radius: 1rem;
     font-size: 0.9rem;
 
-    &.extra-padding{
+    &.extra-padding {
       padding-right: 1rem;
     }
   }

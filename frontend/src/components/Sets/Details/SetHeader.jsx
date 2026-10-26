@@ -1,4 +1,3 @@
-import { useState, useEffect } from "react";
 import { NavLink } from "react-router";
 import { Play, ChevronLeft, X } from "lucide-react";
 import { formatLocalDate } from "../../../utils/formatLocalDate";
@@ -16,21 +15,6 @@ export default function SetHeader({
   onAddCategory,
   onPractice,
 }) {
-  const [isScrolled, setIsScrolled] = useState(false);
-
-  useEffect(() => {
-    const handleScroll = () => {
-      if (window.scrollY > 0) {
-        setIsScrolled(true);
-      } else {
-        setIsScrolled(false);
-      }
-    };
-
-    window.addEventListener("scroll", handleScroll);
-    return () => window.removeEventListener("scroll", handleScroll);
-  }, []);
-
   const queryClient = useQueryClient();
 
   const removeCategoryMutation = useMutation({
@@ -45,17 +29,13 @@ export default function SetHeader({
 
   return (
     <header className="set-header">
-      <button
-        type="button"
-        className={`set-header__back-link ${isScrolled ? "hidden" : ""}`}
-        onClick={onBack}
-      >
+      <button type="button" className="set-header__back-link" onClick={onBack}>
         <ChevronLeft size={18} />
         {backLabel}
       </button>
 
       <div className="set-header__row">
-        <div className={`set-header__info ${isScrolled ? "hidden" : ""}`}>
+        <div className="set-header__info">
           <h1>
             {setInfo.name}
             {setInfo.isGenerated && <span>{"\u2728"}</span>}
@@ -67,7 +47,10 @@ export default function SetHeader({
           <div className="set-header__meta">
             <div className="set-header__tags">
               {setInfo.categories.map((tag) => (
-                <span key={tag.id} className={`set-header__tag ${!isMine ? "extra-padding" : ""}`} >
+                <span
+                  key={tag.id}
+                  className={`set-header__tag ${!isMine ? "extra-padding" : ""}`}
+                >
                   {tag.name}
                   {isMine && (
                     <button
