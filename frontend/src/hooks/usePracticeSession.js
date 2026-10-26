@@ -46,7 +46,13 @@ export function usePracticeSession({
     isError: isSessionError,
     refetch: retryStartSession,
   } = useQuery({
-    queryKey: ["practice-session", setId, globalMode, isReversed, initialFlashcards.length],
+    queryKey: [
+      "practice-session",
+      setId,
+      globalMode,
+      isReversed,
+      initialFlashcards.map((c) => c.id).join(","),
+    ],
     queryFn: () =>
       api
         .post(`/sets/${setId}/sessions`, initialFlashcards, {
