@@ -1,24 +1,36 @@
 # Build
 bin/
 obj/
+
 # IDE
 .vs/
 .idea/
+
 # User files
-*.user*.suo
+*.user
+*.suo
+*.DotSettings.user
+
 # Logs
 *.log
-# ASP.NETwwwroot/lib/
+
+# ASP.NET
+wwwroot/lib/
 wwwroot/node_modules/
+
 # Secrets 
-/ env.env
+.env
 .env.*
 appsettings.Development.json
 secrets.json
+
 # Publish
 publish/
+
 # OS
-.DS_StoreThumbs.db
+.DS_Store
+Thumbs.db
+
 # Performance and test reports
 html-report/
 optimization-traces/
