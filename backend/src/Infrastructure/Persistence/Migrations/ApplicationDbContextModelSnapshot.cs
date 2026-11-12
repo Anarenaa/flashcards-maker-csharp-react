@@ -42,6 +42,10 @@ namespace Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(500)")
                         .HasColumnName("definition");
 
+                    b.Property<long>("SetId")
+                        .HasColumnType("bigint")
+                        .HasColumnName("set_id");
+
                     b.Property<string>("Term")
                         .IsRequired()
                         .HasColumnType("varchar(255)")
@@ -54,7 +58,88 @@ namespace Infrastructure.Persistence.Migrations
                     b.HasKey("Id")
                         .HasName("pk_flashcards");
 
+                    b.HasIndex("SetId")
+                        .HasDatabaseName("ix_flashcards_set_id");
+
                     b.ToTable("flashcards", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Sets.Set", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<long>("Id"));
+
+                    b.Property<DateTime>("CreatedAt")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_at")
+                        .HasDefaultValueSql("timezone('utc', now())");
+
+                    b.Property<string>("Description")
+                        .HasColumnType("varchar(500)")
+                        .HasColumnName("description");
+
+                    b.Property<string>("FromLang")
+                        .IsRequired()
+                        .HasColumnType("varchar(2)")
+                        .HasColumnName("from_lang");
+
+                    b.Property<bool>("IsGenerated")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_generated");
+
+                    b.Property<bool>("IsPublic")
+                        .HasColumnType("boolean")
+                        .HasColumnName("is_public");
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("varchar(255)")
+                        .HasColumnName("name");
+
+                    b.Property<string>("ToLang")
+                        .IsRequired()
+                        .HasColumnType("varchar(2)")
+                        .HasColumnName("to_lang");
+
+                    b.Property<string>("Type")
+                        .IsRequired()
+                        .HasColumnType("varchar(20)")
+                        .HasColumnName("type");
+
+                    b.Property<DateTime?>("UpdatedAt")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("updated_at");
+
+                    b.HasKey("Id")
+                        .HasName("pk_sets");
+
+                    b.HasIndex("Name")
+                        .IsUnique()
+                        .HasDatabaseName("ix_sets_name");
+
+                    b.ToTable("sets", (string)null);
+                });
+
+            modelBuilder.Entity("Domain.Flashcards.Flashcard", b =>
+                {
+                    b.HasOne("Domain.Sets.Set", "Set")
+                        .WithMany("Flashcards")
+                        .HasForeignKey("SetId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired()
+                        .HasConstraintName("fk_flashcards_sets_set_id");
+
+                    b.Navigation("Set");
+                });
+
+            modelBuilder.Entity("Domain.Sets.Set", b =>
+                {
+                    b.Navigation("Flashcards");
                 });
 #pragma warning restore 612, 618
         }

@@ -1,11 +1,12 @@
 using Domain.Flashcards;
 
-namespace Api.Dtos;
+namespace Application.Common.Dtos;
 
 public record FlashcardDto(
     long Id,
     string Term,
     string Definition,
+    long SetId,
     DateTime CreatedAt,
     DateTime? UpdatedAt)
 {
@@ -15,6 +16,7 @@ public record FlashcardDto(
             flashcard.Id.Value,
             flashcard.Term,
             flashcard.Definition,
+            flashcard.SetId.Value,
             flashcard.CreatedAt,
             flashcard.UpdatedAt);
     }
@@ -22,7 +24,8 @@ public record FlashcardDto(
 
 public record CreateFlashcardDto(
     string Term,
-    string Definition);
+    string Definition,
+    long SetId);
 
 public record UpdateFlashcardDto(
     string Term,

@@ -1,4 +1,5 @@
 ﻿using Domain.Flashcards;
+using Domain.Sets;
 
 namespace Application.Flashcards.Exceptions;
 
@@ -10,6 +11,9 @@ public abstract class FlashcardException(FlashcardId flashcardId, string message
 
 public class FlashcardNotFoundException(FlashcardId flashcardId)
     : FlashcardException(flashcardId, $"Flashcard not found under id {flashcardId}");
+
+public class FlashcardSetNotFoundException(SetId setId)
+    : FlashcardException(FlashcardId.Empty(), $"Set with id '{setId}' was not found.");
 
 public class FlashcardUnhandledException(FlashcardId flashcardId, Exception? innerException = null)
     : FlashcardException(flashcardId, $"Unhandled flashcard exception under id {flashcardId}", innerException);

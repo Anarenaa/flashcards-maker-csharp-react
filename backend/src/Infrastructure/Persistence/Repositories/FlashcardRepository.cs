@@ -2,6 +2,7 @@
 using Application.Common.Interfaces.Repositories;
 using Application.Common.Models;
 using Domain.Flashcards;
+using Domain.Sets;
 using LanguageExt;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,9 +13,16 @@ public class FlashcardRepository(ApplicationDbContext context) : IFlashcardQueri
     public async Task<PagedResult<Flashcard>> GetAllPaged(
         int pageNumber,
         int? pageSize,
-        CancellationToken cancellationToken)
+        SetId? setId = null,
+        CancellationToken cancellationToken = default)
     {
         var query = context.Flashcards.AsNoTracking();
+        
+        if (setId is not null && setId.Value > 0)
+        {
+            query = query.Where(x => x.SetId == setId);
+        }
+        
         var totalCount = await query.CountAsync(cancellationToken);
 
         List<Flashcard> items;

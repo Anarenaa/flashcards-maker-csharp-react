@@ -1,4 +1,4 @@
-using Api.Dtos;
+using Application.Common.Dtos;
 using Api.Modules.Errors;
 using Application.Common.Interfaces.Queries;
 using Application.Common.Models;
@@ -20,7 +20,13 @@ public class FlashcardsController(ISender sender, IFlashcardQueries flashcardQue
         [FromQuery] int? pageSize = null,
         CancellationToken cancellationToken = default)
     {
-        var pagedFlashcards = await flashcardQueries.GetAllPaged(pageNumber, pageSize, cancellationToken);
+        
+        var pagedFlashcards = await flashcardQueries.GetAllPaged(
+            pageNumber, 
+            pageSize,
+            null,
+            cancellationToken);
+        
         return Ok(pagedFlashcards.Map(FlashcardDto.FromDomainModel));
     }
 
@@ -44,7 +50,8 @@ public class FlashcardsController(ISender sender, IFlashcardQueries flashcardQue
         var input = new CreateFlashcardCommand
         {
             Term = request.Term,
-            Definition = request.Definition
+            Definition = request.Definition,
+            SetId = request.SetId
         };
 
         var result = await sender.Send(input, cancellationToken);

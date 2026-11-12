@@ -39,5 +39,11 @@ public static class ConfigurePersistenceServices
             provider.GetRequiredService<FlashcardRepository>());
         services.AddScoped<IFlashcardQueries>(provider =>
             provider.GetRequiredService<FlashcardRepository>());
+        
+        services.AddScoped<SetRepository>();
+        services.AddScoped<ISetRepository>(provider =>
+            provider.GetRequiredService<SetRepository>());
+        services.AddScoped<ISetQueries>(provider =>
+            provider.GetRequiredService<SetRepository>());
     }
 }

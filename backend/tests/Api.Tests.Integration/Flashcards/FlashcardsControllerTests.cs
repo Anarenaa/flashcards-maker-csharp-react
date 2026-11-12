@@ -1,8 +1,9 @@
 using System.Net;
 using System.Net.Http.Json;
-using Api.Dtos;
+using Application.Common.Dtos;
 using Application.Common.Models;
 using Domain.Flashcards;
+using Domain.Sets;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
 using Tests.Common;
@@ -13,21 +14,27 @@ namespace Api.Tests.Integration.Flashcards;
 
 public class FlashcardsControllerTests : BaseIntegrationTest, IAsyncLifetime
 {
-    private readonly Flashcard _firstTestFlashcard;
-    private readonly Flashcard _secondTestFlashcard;
-    private readonly Flashcard _thirdTestFlashcard;
+    private Set _testSet = null!;
+    private Flashcard _firstTestFlashcard = null!;
+    private Flashcard _secondTestFlashcard = null!;
+    private Flashcard _thirdTestFlashcard = null!;
     private readonly string _flashcardsRoute;
 
     public FlashcardsControllerTests(IntegrationTestWebFactory factory) : base(factory)
     {
-        _firstTestFlashcard = FlashcardsTestData.FirstTestFlashcard();
-        _secondTestFlashcard = FlashcardsTestData.SecondTestFlashcard();
-        _thirdTestFlashcard = FlashcardsTestData.ThirdTestFlashcard();
         _flashcardsRoute = "api/flashcards";
     }
 
     public async Task InitializeAsync()
     {
+        _testSet = Set.New("Default Test Set", "Description", SetType.Language, "en", "uk");
+        await Context.Sets.AddAsync(_testSet);
+        await Context.SaveChangesAsync();
+
+        _firstTestFlashcard = FlashcardsTestData.FirstTestFlashcard(_testSet.Id);
+        _secondTestFlashcard = FlashcardsTestData.SecondTestFlashcard(_testSet.Id);
+        _thirdTestFlashcard = FlashcardsTestData.ThirdTestFlashcard(_testSet.Id);
+
         await Context.Flashcards.AddAsync(_secondTestFlashcard);
         await Context.SaveChangesAsync();
         Context.ChangeTracker.Clear();
@@ -36,6 +43,7 @@ public class FlashcardsControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task DisposeAsync()
     {
         Context.Flashcards.RemoveRange(Context.Flashcards);
+        Context.Sets.RemoveRange(Context.Sets);
         await Context.SaveChangesAsync();
         Context.ChangeTracker.Clear();
     }
@@ -46,7 +54,8 @@ public class FlashcardsControllerTests : BaseIntegrationTest, IAsyncLifetime
         // Arrange
         var request = new CreateFlashcardDto(
             Term: _firstTestFlashcard.Term,
-            Definition: _firstTestFlashcard.Definition);
+            Definition: _firstTestFlashcard.Definition,
+            SetId: _testSet.Id.Value);
 
         // Act
         var response = await Client.PostAsJsonAsync(_flashcardsRoute, request);
@@ -67,7 +76,7 @@ public class FlashcardsControllerTests : BaseIntegrationTest, IAsyncLifetime
     public async Task ShouldNotCreateFlashcardBecauseRequestIsInvalid()
     {
         // Arrange - empty term and definition fail validation rules
-        var request = new CreateFlashcardDto(Term: "", Definition: "");
+        var request = new CreateFlashcardDto(Term: "", Definition: "", SetId: _testSet.Id.Value);
 
         // Act
         var response = await Client.PostAsJsonAsync(_flashcardsRoute, request);
@@ -178,5 +187,8 @@ public class FlashcardsControllerTests : BaseIntegrationTest, IAsyncLifetime
         var responseDto = await response.Content.ReadFromJsonAsync<PagedResult<FlashcardDto>>();
         responseDto.Should().NotBeNull();
         responseDto!.Items.Should().Contain(x => x.Id == _secondTestFlashcard.Id.Value);
+        responseDto!.PageNumber.Should().Be(1);
+        responseDto!.PageSize.Should().Be(10);
+        responseDto!.HasPreviousPage.Should().BeFalse();
     }
 }

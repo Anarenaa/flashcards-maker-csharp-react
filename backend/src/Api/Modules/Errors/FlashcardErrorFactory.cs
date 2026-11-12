@@ -12,6 +12,7 @@ public static class FlashcardErrorFactory
             StatusCode = error switch
             {
                 FlashcardNotFoundException => StatusCodes.Status404NotFound,
+                FlashcardSetNotFoundException => StatusCodes.Status404NotFound,
                 FlashcardUnhandledException => StatusCodes.Status500InternalServerError,
                 _ => throw new NotImplementedException("Flashcard error handler is not implemented.")
             }

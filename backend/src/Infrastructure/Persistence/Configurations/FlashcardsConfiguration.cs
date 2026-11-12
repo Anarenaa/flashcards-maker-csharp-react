@@ -1,4 +1,5 @@
 ﻿using Domain.Flashcards;
+using Domain.Sets;
 using Infrastructure.Persistence.Converters;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Builders;
@@ -9,7 +10,6 @@ public class FlashcardsConfiguration : IEntityTypeConfiguration<Flashcard>
 {
     public void Configure(EntityTypeBuilder<Flashcard> builder)
     {
-        builder.Property(x => x.Id);
         builder.Property(x => x.Id)
             .HasConversion(
                 id => id.Value,
@@ -17,6 +17,15 @@ public class FlashcardsConfiguration : IEntityTypeConfiguration<Flashcard>
             )
             .ValueGeneratedOnAdd()
             .HasSentinel(new FlashcardId(0));
+        
+        
+        builder.Property(x => x.SetId)
+            .HasConversion(id => id.Value, value => new SetId(value))
+            .IsRequired();
+        builder.HasOne(f => f.Set)
+            .WithMany(s => s.Flashcards)
+            .HasForeignKey(f => f.SetId)
+            .OnDelete(DeleteBehavior.Cascade);
 
         builder.Property(x => x.Term)
             .HasColumnType("varchar(255)")
