@@ -13,7 +13,7 @@ public record UpdateSetCommand : IRequest<Either<SetException, Set>>
     public required long SetId { get; init; }
     public required string Name { get; init; }
     public string? Description { get; init; }
-    public SetType Type { get; init; }
+    public required SetType Type { get; init; }
     public required string FromLang { get; init; }
     public required string ToLang { get; init; }
     public bool IsPublic { get; init; }

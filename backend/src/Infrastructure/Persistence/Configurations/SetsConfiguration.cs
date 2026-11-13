@@ -26,7 +26,7 @@ public class SetsConfiguration : IEntityTypeConfiguration<Set>
             .HasColumnType("varchar(500)");
         
         builder.Property(x => x.Type)
-            .HasConversion<string>()
+            .HasConversion(x => x.Value, x => SetType.From(x))
             .HasColumnType("varchar(20)")
             .IsRequired();
     
